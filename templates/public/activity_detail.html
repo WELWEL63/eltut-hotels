@@ -14,14 +14,67 @@
 
         <div class="row g-4">
             <div class="col-lg-8">
-                {% set img_url = images[0].url if images else '' %}
-                {% if img_url and (img_url.startswith('http') or img_url.startswith('/static')) %}
-                    <img src="{{ img_url }}" class="img-fluid rounded-3 mb-4 w-100"
-                         style="max-height: 480px; object-fit: cover;"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div class="rounded-3 bg-secondary bg-opacity-10 d-none align-items-center justify-content-center mb-4" style="height: 400px;">
-                        <i class="bi bi-image text-secondary" style="font-size: 4rem;"></i>
+                {# ─── Gallery carousel (all images, placeholder URLs filtered) ─── #}
+                {% set visible_images = [] %}
+                {% for img in images %}
+                    {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
+                        {% set _ = visible_images.append(img) %}
+                    {% endif %}
+                {% endfor %}
+                {% if visible_images %}
+                    <div id="activityGallery" class="carousel slide mb-2 rounded-3 overflow-hidden">
+                        {% if visible_images|length > 1 %}
+                            <div class="carousel-indicators">
+                                {% for img in visible_images %}
+                                    <button type="button" data-bs-target="#activityGallery"
+                                            data-bs-slide-to="{{ loop.index0 }}"
+                                            {% if loop.first %}class="active"{% endif %}></button>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="carousel-inner">
+                            {% for img in visible_images %}
+                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                    <img src="{{ img.url }}" class="d-block w-100"
+                                         style="height: 480px; object-fit: cover;"
+                                         alt="{{ activity.name }} — photo {{ loop.index }}">
+                                    {% if img.caption %}
+                                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
+                                            <small>{{ img.caption }}</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if visible_images|length > 1 %}
+                            <button class="carousel-control-prev" type="button"
+                                    data-bs-target="#activityGallery" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button"
+                                    data-bs-target="#activityGallery" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                        {% endif %}
                     </div>
+
+                    {# ─── Thumbnail strip ─── #}
+                    {% if visible_images|length > 1 %}
+                        <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
+                            {% for img in visible_images %}
+                                <a href="#activityGallery" data-bs-slide-to="{{ loop.index0 }}"
+                                   class="flex-shrink-0" style="text-decoration:none;">
+                                    <img src="{{ img.url }}" alt=""
+                                         style="width:90px; height:65px; object-fit:cover;
+                                                border-radius:6px; border:2px solid
+                                                {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};
+                                                cursor:pointer;">
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="mb-4"></div>
+                    {% endif %}
                 {% else %}
                     <div class="rounded-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center mb-4" style="height: 400px;">
                         <i class="bi bi-image text-secondary" style="font-size: 4rem;"></i>

@@ -149,43 +149,238 @@ def _parent_name(image, product_type: str) -> str:
 @admin_bp.route("/media")
 @admin_required
 def media_index():
-    """Browse every product image. Filter by product_type."""
+    """Media hub with per-product-type tabs.
+
+    Query params:
+        tab          hotels | packages | activities   (default: hotels)
+        q            search by name
+        has_images   1 = only with images, 0 = only without, empty = all
+        page         1-based
+    """
+    tab = (request.args.get("tab") or "hotels").strip().lower()
+    if tab not in ("hotels", "packages", "activities"):
+        tab = "hotels"
+
+    q = (request.args.get("q") or "").strip()
+    has_images = (request.args.get("has_images") or "").strip()
+    if has_images not in ("", "0", "1"):
+        has_images = ""
     page = max(1, int(request.args.get("page", 1) or 1))
     per_page = 30
-    product_type = (request.args.get("product_type") or "").strip().lower()
 
-    # Collect images from each model
-    rows: list[dict] = []
+    if tab == "hotels":
+        rows = _browse_hotels(q, has_images, page, per_page)
+    elif tab == "packages":
+        rows = _browse_packages(q, has_images, page, per_page)
+    else:
+        rows = _browse_activities(q, has_images, page, per_page)
+
+    # Small recent-uploads list for debugging (last 8 across all tables)
+    recent: list[dict] = []
     for ptype, model, *_ in (
         ("activity", ActivityImage, "activity_id", False, True),
         ("hotel",    HotelImage,    "hotel_id",    True,  False),
         ("package",  PackageImage,  "package_id",  True,  False),
     ):
-        if product_type and product_type != ptype:
-            continue
-        images = list(db.session.scalars(
-            select(model).order_by(model.id.desc()).limit(500)
-        ))
-        for img in images:
+        for img in db.session.scalars(
+            select(model).order_by(model.id.desc()).limit(8)
+        ):
             meta = _image_meta(img, ptype)
             meta["parent_label"] = _parent_name(img, ptype)
-            rows.append(meta)
-
-    # Simple in-memory pagination (data volume is small — under 500 rows per type)
-    total = len(rows)
-    total_pages = max(1, (total + per_page - 1) // per_page)
-    page = min(page, total_pages)
-    offset = (page - 1) * per_page
-    items = rows[offset:offset + per_page]
+            recent.append(meta)
+    recent.sort(key=lambda r: r["id"], reverse=True)
+    recent = recent[:8]
 
     return render_template(
         "admin/media_index.html",
-        items=items,
-        total=total,
+        tab=tab,
+        items=rows["items"],
+        total=rows["total"],
         page=page,
-        total_pages=total_pages,
-        product_type=product_type,
+        total_pages=rows["total_pages"],
+        q=q,
+        has_images=has_images,
+        recent=recent,
     )
+
+
+# ─── Browse helpers (one per product type) ────────────────────────────────
+def _browse_hotels(q, has_images, page, per_page):
+    """Paginated hotels with image-count + first-image preview."""
+    from models import Hotel, Destination
+
+    # Subquery: image count per hotel
+    count_sq = (
+        select(HotelImage.hotel_id, func.count(HotelImage.id).label("n"))
+        .group_by(HotelImage.hotel_id)
+        .subquery()
+    )
+    # Subquery: first image url per hotel (min id)
+    first_sq = (
+        select(HotelImage.hotel_id, func.min(HotelImage.id).label("min_id"))
+        .group_by(HotelImage.hotel_id)
+        .subquery()
+    )
+
+    stmt = (
+        select(Hotel, func.coalesce(count_sq.c.n, 0).label("n_images"),
+               HotelImage.url.label("first_url"))
+        .outerjoin(count_sq, count_sq.c.hotel_id == Hotel.id)
+        .outerjoin(first_sq, first_sq.c.hotel_id == Hotel.id)
+        .outerjoin(HotelImage, HotelImage.id == first_sq.c.min_id)
+    )
+    if q:
+        stmt = stmt.where(Hotel.name.ilike(f"%{q}%"))
+    if has_images == "1":
+        stmt = stmt.where(func.coalesce(count_sq.c.n, 0) > 0)
+    elif has_images == "0":
+        stmt = stmt.where(func.coalesce(count_sq.c.n, 0) == 0)
+    stmt = stmt.order_by(Hotel.name.asc())
+
+    total = int(db.session.scalar(select(func.count()).select_from(stmt.subquery())) or 0)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
+    rows = db.session.execute(stmt.limit(per_page).offset(offset)).all()
+
+    # Destinations lookup
+    dest_ids = {h.destination_id for h, *_ in rows if h.destination_id}
+    dests = {
+        d.id: d.name
+        for d in db.session.scalars(
+            select(Destination).where(Destination.id.in_(dest_ids))
+        )
+    } if dest_ids else {}
+
+    items = [{
+        "id": h.id,
+        "name": h.name,
+        "destination": dests.get(h.destination_id, "—"),
+        "n_images": int(n),
+        "first_url": url,
+        "product_type": "hotel",
+    } for h, n, url in rows]
+
+    return {"items": items, "total": total, "total_pages": total_pages}
+
+
+def _browse_packages(q, has_images, page, per_page):
+    """Paginated packages with image-count + preview."""
+    from models import Package, Destination
+
+    count_sq = (
+        select(PackageImage.package_id, func.count(PackageImage.id).label("n"))
+        .group_by(PackageImage.package_id)
+        .subquery()
+    )
+    first_sq = (
+        select(PackageImage.package_id, func.min(PackageImage.id).label("min_id"))
+        .group_by(PackageImage.package_id)
+        .subquery()
+    )
+
+    stmt = (
+        select(Package, func.coalesce(count_sq.c.n, 0).label("n_images"),
+               PackageImage.url.label("first_url"))
+        .outerjoin(count_sq, count_sq.c.package_id == Package.id)
+        .outerjoin(first_sq, first_sq.c.package_id == Package.id)
+        .outerjoin(PackageImage, PackageImage.id == first_sq.c.min_id)
+    )
+    if q:
+        stmt = stmt.where(
+            (Package.name.ilike(f"%{q}%")) | (Package.code.ilike(f"%{q}%"))
+        )
+    if has_images == "1":
+        stmt = stmt.where(func.coalesce(count_sq.c.n, 0) > 0)
+    elif has_images == "0":
+        stmt = stmt.where(func.coalesce(count_sq.c.n, 0) == 0)
+    stmt = stmt.order_by(Package.name.asc())
+
+    total = int(db.session.scalar(select(func.count()).select_from(stmt.subquery())) or 0)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
+    rows = db.session.execute(stmt.limit(per_page).offset(offset)).all()
+
+    dest_ids = {p.destination_id for p, *_ in rows if p.destination_id}
+    dests = {
+        d.id: d.name
+        for d in db.session.scalars(
+            select(Destination).where(Destination.id.in_(dest_ids))
+        )
+    } if dest_ids else {}
+
+    items = [{
+        "id": p.id,
+        "name": p.name,
+        "code": p.code,
+        "destination": dests.get(p.destination_id, "—"),
+        "n_images": int(n),
+        "first_url": url,
+        "product_type": "package",
+    } for p, n, url in rows]
+
+    return {"items": items, "total": total, "total_pages": total_pages}
+
+
+def _browse_activities(q, has_images, page, per_page):
+    """Paginated activities with image-count + preview."""
+    from models import Activity, Destination
+
+    count_sq = (
+        select(ActivityImage.activity_id, func.count(ActivityImage.id).label("n"))
+        .group_by(ActivityImage.activity_id)
+        .subquery()
+    )
+    first_sq = (
+        select(ActivityImage.activity_id, func.min(ActivityImage.id).label("min_id"))
+        .group_by(ActivityImage.activity_id)
+        .subquery()
+    )
+
+    stmt = (
+        select(Activity, func.coalesce(count_sq.c.n, 0).label("n_images"),
+               ActivityImage.url.label("first_url"))
+        .outerjoin(count_sq, count_sq.c.activity_id == Activity.id)
+        .outerjoin(first_sq, first_sq.c.activity_id == Activity.id)
+        .outerjoin(ActivityImage, ActivityImage.id == first_sq.c.min_id)
+    )
+    if q:
+        stmt = stmt.where(
+            (Activity.name.ilike(f"%{q}%")) | (Activity.code.ilike(f"%{q}%"))
+        )
+    if has_images == "1":
+        stmt = stmt.where(func.coalesce(count_sq.c.n, 0) > 0)
+    elif has_images == "0":
+        stmt = stmt.where(func.coalesce(count_sq.c.n, 0) == 0)
+    stmt = stmt.order_by(Activity.name.asc())
+
+    total = int(db.session.scalar(select(func.count()).select_from(stmt.subquery())) or 0)
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    page = min(page, total_pages)
+    offset = (page - 1) * per_page
+    rows = db.session.execute(stmt.limit(per_page).offset(offset)).all()
+
+    dest_ids = {a.destination_id for a, *_ in rows if a.destination_id}
+    dests = {
+        d.id: d.name
+        for d in db.session.scalars(
+            select(Destination).where(Destination.id.in_(dest_ids))
+        )
+    } if dest_ids else {}
+
+    items = [{
+        "id": a.id,
+        "name": a.name,
+        "code": a.code,
+        "destination": dests.get(a.destination_id, "—"),
+        "n_images": int(n),
+        "first_url": url,
+        "product_type": "activity",
+    } for a, n, url in rows]
+
+    return {"items": items, "total": total, "total_pages": total_pages}
+
 
 
 # ─── Images for one product ──────────────────────────────────────────────
