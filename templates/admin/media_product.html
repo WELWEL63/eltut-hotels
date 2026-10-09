@@ -1,0 +1,127 @@
+{% extends "admin/base.html" %}
+{% block title %}Media — {{ parent_label }}{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a href="{{ url_for('admin.media_index') }}" class="text-decoration-none small">
+            <i class="bi bi-arrow-left"></i> All media
+        </a>
+        <h1 class="mb-0">{{ parent_label }}</h1>
+        <div class="text-muted small">
+            <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ product_type }}</span>
+            #{{ parent_id }} &middot; {{ total }} image{{ "" if total == 1 else "s" }}
+        </div>
+    </div>
+</div>
+
+{# ─── Upload form ─── #}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white"><strong>Upload new image</strong></div>
+    <div class="card-body">
+        <form method="POST"
+              action="{{ url_for('admin.media_upload', product_type=product_type, parent_id=parent_id) }}"
+              enctype="multipart/form-data"
+              class="row g-2 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">File</label>
+                <input type="file" name="file" class="form-control" required
+                       accept=".jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif">
+                <div class="form-text">JPG, PNG, WebP or GIF. Max 5&nbsp;MB.</div>
+            </div>
+            {% if has_type %}
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Type</label>
+                    <select name="type" class="form-select">
+                        {% for t in image_types %}
+                            <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+            {% if has_caption %}
+                <div class="col-md-4">
+                    <label class="form-label small text-muted mb-1">Caption</label>
+                    <input type="text" name="caption" class="form-control" maxlength="255"
+                           placeholder="Optional">
+                </div>
+            {% endif %}
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Sort order</label>
+                <input type="number" name="sort_order" class="form-control" value="{{ next_sort }}" min="0">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100">
+                    <i class="bi bi-upload"></i> Upload
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ─── Images ─── #}
+<div class="row g-3">
+    {% for img in items %}
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
+                <img src="{{ img.url }}" class="card-img-top"
+                     style="height:200px; object-fit:cover;"
+                     alt="Image {{ img.id }}"
+                     onerror="this.src='https://via.placeholder.com/400x200?text=no+image';">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="small">
+                            {% if img.type %}
+                                <span class="badge bg-primary-subtle text-primary-emphasis">{{ img.type }}</span>
+                            {% endif %}
+                            <span class="text-muted">sort: {{ img.sort_order or 0 }}</span>
+                        </div>
+                    </div>
+                    {% if img.caption %}
+                        <div class="small mt-2 fst-italic">{{ img.caption }}</div>
+                    {% endif %}
+                    <div class="small text-muted mt-1 text-truncate" title="{{ img.url }}">{{ img.url }}</div>
+                </div>
+                <div class="card-footer p-2 d-flex gap-1">
+                    <form method="POST"
+                          action="{{ url_for('admin.media_reorder', product_type=product_type, image_id=img.id) }}"
+                          class="flex-fill">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="direction" value="up">
+                        <button class="btn btn-sm btn-outline-secondary w-100" title="Move up">
+                            <i class="bi bi-arrow-up"></i>
+                        </button>
+                    </form>
+                    <form method="POST"
+                          action="{{ url_for('admin.media_reorder', product_type=product_type, image_id=img.id) }}"
+                          class="flex-fill">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="direction" value="down">
+                        <button class="btn btn-sm btn-outline-secondary w-100" title="Move down">
+                            <i class="bi bi-arrow-down"></i>
+                        </button>
+                    </form>
+                    <form method="POST"
+                          action="{{ url_for('admin.media_delete', product_type=product_type, image_id=img.id) }}"
+                          class="flex-fill"
+                          onsubmit="return confirm('Delete this image? The file will be removed.')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-outline-danger w-100" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body text-center text-muted py-5">
+                    No images yet. Use the form above to upload the first one.
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

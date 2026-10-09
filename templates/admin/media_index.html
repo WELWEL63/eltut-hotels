@@ -1,0 +1,106 @@
+{% extends "admin/base.html" %}
+{% block title %}Media — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Media</h1>
+        <p class="text-muted mb-0">{{ total }} image{{ "" if total == 1 else "s" }}</p>
+    </div>
+</div>
+
+{# ─── Filters ─── #}
+<form method="GET" class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <select name="product_type" class="form-select">
+                    <option value="">All products</option>
+                    <option value="activity" {% if product_type == "activity" %}selected{% endif %}>Activities</option>
+                    <option value="hotel"    {% if product_type == "hotel" %}selected{% endif %}>Hotels</option>
+                    <option value="package"  {% if product_type == "package" %}selected{% endif %}>Packages</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{# ─── Grid ─── #}
+{% if items %}
+    <div class="row g-3 mb-4">
+        {% for img in items %}
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100">
+                    <img src="{{ img.url }}" class="card-img-top"
+                         style="height:160px; object-fit:cover;"
+                         alt="Image {{ img.id }}"
+                         onerror="this.src='https://via.placeholder.com/300x160?text=no+image';">
+                    <div class="card-body p-2">
+                        <div class="small">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                {{ img.product_type }}
+                            </span>
+                            {% if img.type %}
+                                <span class="badge bg-primary-subtle text-primary-emphasis">{{ img.type }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="small text-muted mt-1 text-truncate" title="{{ img.parent_label }}">
+                            {{ img.parent_label }}
+                        </div>
+                        <div class="small text-muted">
+                            sort: {{ img.sort_order or 0 }}
+                        </div>
+                        {% if img.caption %}
+                            <div class="small text-muted fst-italic text-truncate">{{ img.caption }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer p-2 d-flex justify-content-between">
+                        <a href="{{ url_for('admin.media_for_product', product_type=img.product_type, parent_id=img.parent_id) }}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST"
+                              action="{{ url_for('admin.media_delete', product_type=img.product_type, image_id=img.id) }}"
+                              class="d-inline"
+                              onsubmit="return confirm('Delete this image?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center text-muted py-4">
+            No images found.
+        </div>
+    </div>
+{% endif %}
+
+{# ─── Pagination ─── #}
+{% if total_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination">
+            {% set qs = {} %}
+            {% if product_type %}{% set _ = qs.update({"product_type": product_type}) %}{% endif %}
+
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.media_index', page=page-1, **qs) }}">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+            </li>
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.media_index', page=page+1, **qs) }}">Next</a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

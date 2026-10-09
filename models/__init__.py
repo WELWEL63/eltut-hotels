@@ -165,7 +165,13 @@ from models.activity import (  # noqa: F401,E402
     ActivityPrice,
 )
 
-from models.hotel import Hotel, HotelFacility, HotelImage  # noqa: F401,E402
+from models.hotel import (  # noqa: F401,E402
+    Hotel,
+    HotelFacility,
+    HotelImage,
+    VALID_HOTEL_IMAGE_TYPES,
+    DEFAULT_HOTEL_IMAGE_TYPE,
+)
 from models.room import (  # noqa: F401,E402
     Room,
     RoomImage,
@@ -182,6 +188,8 @@ from models.package import (  # noqa: F401,E402
     PackageExclusion,
     PackageItinerary,
     PackagePrice,
+    VALID_PACKAGE_IMAGE_TYPES,
+    DEFAULT_PACKAGE_IMAGE_TYPE,
 )
 
 from models.flight import Flight  # noqa: F401,E402

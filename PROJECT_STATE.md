@@ -681,3 +681,24 @@ Blockers: none
 Next decision: A (admin), B (cloud function), C (tests), or D (deploy)
 === END STATE ===
 
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 11 of 15 (finish admin) — File 4 of 5 patching
+Last Completed File: templates/admin/report_index.html (2 patches applied)
+Next File: blueprints/admin/media_routes.py (File 5 of 5)
+Decisions Locked Since Last State:
+
+BUG: Jinja attempted Decimal / float division in the monthly bar
+chart. Fixed by casting m.total to float before division and using
+a single numeric type throughout.
+
+SIMPLIFIED: customer total extraction expression — the previous
+ternary was valid but fragile. Now uses customers.get("total", 0) if customers is mapping else 0.
+
+The log line "top_rated_activities failed: MongoDB..." is
+expected — report_service logs internally and returns an
+_error key. Not a bug. Worth noting in the report as a design
+consideration: templates should check _error per section.
+Blockers: awaiting browser confirmation that /admin/reports now renders
+=== END STATE ===
+
