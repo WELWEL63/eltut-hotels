@@ -1,0 +1,23 @@
+import os, time, psycopg2
+from dotenv import load_dotenv
+load_dotenv()
+uri = os.getenv("DATABASE_URL")
+t = time.time()
+c = psycopg2.connect(uri)
+print("connected in %.2fs" % (time.time() - t))
+cur = c.cursor()
+cur.execute("SELECT version()")
+print("VERSION:", cur.fetchone()[0][:80])
+cur.execute("SHOW statement_timeout")
+print("statement_timeout =", cur.fetchone()[0])
+cur.execute("SHOW idle_in_transaction_session_timeout")
+print("idle_in_transaction_session_timeout =", cur.fetchone()[0])
+cur.execute("SELECT setting FROM pg_settings WHERE name='max_connections'")
+print("max_connections =", cur.fetchone()[0])
+cur.execute("SELECT count(*) FROM pg_stat_activity")
+print("current backends =", cur.fetchone()[0])
+cur.execute("SELECT application_name, state, count(*) FROM pg_stat_activity WHERE datname = current_database() GROUP BY 1, 2 ORDER BY 3 DESC")
+print("--- backends by state ---")
+for row in cur.fetchall():
+    print(row)
+c.close()

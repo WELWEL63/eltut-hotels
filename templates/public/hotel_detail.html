@@ -1,0 +1,190 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ hotel.name }} — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('public.hotel_list') }}">Hotels</a></li>
+                <li class="breadcrumb-item active">{{ hotel.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                {% set img_url = images[0].url if images else '' %}
+                {% if img_url and (img_url.startswith('http') or img_url.startswith('/static')) %}
+                    <img src="{{ img_url }}" class="img-fluid rounded-3 mb-4 w-100"
+                         style="max-height: 480px; object-fit: cover;"
+                         alt="{{ hotel.name }}"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="rounded-3 bg-secondary bg-opacity-10 d-none align-items-center justify-content-center mb-4" style="height: 400px;">
+                        <i class="bi bi-building text-secondary" style="font-size: 4rem;"></i>
+                    </div>
+                {% else %}
+                    <div class="rounded-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center mb-4" style="height: 400px;">
+                        <i class="bi bi-building text-secondary" style="font-size: 4rem;"></i>
+                    </div>
+                {% endif %}
+
+                <h1 class="mb-2">{{ hotel.name }}</h1>
+
+                <div class="mb-3">
+                    {% for _ in range(hotel.stars) %}<i class="bi bi-star-fill text-warning"></i>{% endfor %}
+                    <span class="text-muted ms-2">{{ hotel.stars }} star hotel</span>
+                </div>
+
+                <div class="row text-muted small g-2 mb-4">
+                    {% if destination %}<div class="col-md-4"><i class="bi bi-geo-alt"></i> {{ destination.name }}</div>{% endif %}
+                    {% if hotel.address %}<div class="col-md-8"><i class="bi bi-house"></i> {{ hotel.address }}</div>{% endif %}
+                </div>
+
+                {% if hotel.description %}
+                    <h4 class="mt-4">About this hotel</h4>
+                    <p>{{ hotel.description }}</p>
+                {% endif %}
+
+                {% if facilities %}
+                    <h4 class="mt-4">Facilities</h4>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for f in facilities %}
+                            <span class="badge bg-light text-dark border">{{ f.name }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if rooms_with_availability %}
+                    <h4 class="mt-5">Rooms &amp; rates</h4>
+                    <p class="text-muted small">
+                        Showing availability for
+                        {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}.
+                    </p>
+
+                    {% for item in rooms_with_availability %}
+                        {% set room = item.room %}
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5">
+                                        <h5 class="mb-1">{{ room.type }}</h5>
+                                        <div class="small text-muted">
+                                            <i class="bi bi-egg-fried"></i>
+                                            {{ room.meal_plan|replace("_", " ")|title }}
+                                        </div>
+                                        <div class="small text-muted">
+                                            <i class="bi bi-people"></i>
+                                            Up to {{ room.max_occupancy }} guests
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-md-end">
+                                        {% if item.remaining is not none %}
+                                            {% if item.remaining > 0 %}
+                                                <span class="badge bg-success-subtle text-success-emphasis">
+                                                    {{ item.remaining }} rooms left
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger-subtle text-danger-emphasis">
+                                                    Sold out
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 text-md-end">
+                                        <div class="fw-bold mb-2">
+                                            &euro;{{ "%.2f"|format(room.base_price_per_night) }}
+                                            <small class="text-muted fw-normal">/ night</small>
+                                        </div>
+                                        {% if item.remaining is none or item.remaining > 0 %}
+                                            <a href="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id) }}"
+                                               class="btn btn-sm btn-primary">Select</a>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-secondary" disabled>Sold out</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {# ─── Seasonal rates sub-table ─── #}
+                                {% if item.rates %}
+                                    <hr class="my-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0 small text-muted">
+                                            <i class="bi bi-calendar3"></i> Rates for this room
+                                        </h6>
+                                        <button class="btn btn-sm btn-link text-decoration-none p-0 small"
+                                                type="button"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#rates-room-{{ room.id }}">
+                                            Show / hide
+                                        </button>
+                                    </div>
+                                    <div class="collapse show" id="rates-room-{{ room.id }}">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-borderless mb-0 align-middle">
+                                                <thead class="small text-muted">
+                                                    <tr>
+                                                        <th>Valid from</th>
+                                                        <th>Valid to</th>
+                                                        <th>Adult €</th>
+                                                        <th>Child €</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="small">
+                                                    {% for r in item.rates %}
+                                                        <tr>
+                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "—" }}</td>
+                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "—" }}</td>
+                                                            <td>{{ "%.2f"|format(r.adult_price) }}</td>
+                                                            <td>{{ "%.2f"|format(r.child_price) }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">No rooms are currently available at this hotel.</div>
+                {% endif %}
+            </div>
+
+            <aside class="col-lg-4">
+                <div class="card shadow-sm sticky-top" style="top: 1rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">Need help booking?</h5>
+                        <p class="small text-muted mb-3">Our team can help with rooms, group bookings, and special requests.</p>
+                        <a href="{{ url_for('public.contact') }}" class="btn btn-outline-primary w-100">Contact us</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        {% if related %}
+            <hr class="my-5">
+            <h4>Other hotels in {{ destination.name if destination else "this destination" }}</h4>
+            <div class="row g-4 mt-2">
+                {% for rel in related %}
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="mb-1">
+                                    {% for _ in range(rel.stars) %}
+                                        <i class="bi bi-star-fill text-warning small"></i>
+                                    {% endfor %}
+                                </div>
+                                <h6 class="card-title">{{ rel.name }}</h6>
+                                <a href="{{ url_for('public.hotel_detail', slug=rel.slug) }}"
+                                   class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

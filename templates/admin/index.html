@@ -1,0 +1,203 @@
+{% extends "admin/base.html" %}
+{% block title %}Admin dashboard — {{ config.APP_NAME }}{% endblock %}
+
+{% block admin_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Dashboard</h1>
+        <p class="text-muted mb-0">Snapshot of ElTut Tours activity</p>
+    </div>
+    <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-box-arrow-up-right"></i> View public site
+    </a>
+</div>
+
+{% if data._error %}
+    <div class="alert alert-warning">
+        <strong>Some data is unavailable:</strong> {{ data._error }}
+    </div>
+{% endif %}
+
+{# ─── KPI cards ─── #}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Total revenue</div>
+                        <div class="fs-3 fw-bold">
+                            €{{ "%.0f"|format(
+                                (revenue.by_product_type.activity or 0)
+                                | float
+                                + (revenue.by_product_type.hotel or 0) | float
+                                + (revenue.by_product_type.package or 0) | float
+                            ) }}
+                        </div>
+                    </div>
+                    <i class="bi bi-currency-euro fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Total bookings</div>
+                        <div class="fs-3 fw-bold">
+                            {{ (
+                                (bookings.by_status.pending or 0)
+                                + (bookings.by_status.confirmed or 0)
+                                + (bookings.by_status.cancelled or 0)
+                                + (bookings.by_status.completed or 0)
+                                + (bookings.by_status.refunded or 0)
+                            ) }}
+                        </div>
+                    </div>
+                    <i class="bi bi-calendar-check fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Customers</div>
+                        <div class="fs-3 fw-bold">{{ customers.total or 0 }}</div>
+                    </div>
+                    <i class="bi bi-people fs-2 opacity-50"></i>
+                </div>
+                <div class="small opacity-75">
+                    {{ customers.new_last_30_days or 0 }} new in 30 days
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small opacity-75">Enquiries</div>
+                        <div class="fs-3 fw-bold">
+                            {% if enquiries.by_status is defined %}
+                                {{ (enquiries.by_status.new or 0) + (enquiries.by_status.handled or 0) + (enquiries.by_status.spam or 0) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                    <i class="bi bi-envelope fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ─── Two-column layout ─── #}
+<div class="row g-4">
+
+    {# Left: bookings by status + recent bookings #}
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <strong>Bookings by status</strong>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for status, count in (bookings.by_status or {}).items() %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ status|title }}</span>
+                            <strong>{{ count }}</strong>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted">No bookings yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Top products</strong>
+                <a href="{{ maybe_url('admin.report_index') }}" class="small">All reports</a>
+            </div>
+            <div class="card-body p-0">
+                {% if bookings.top_products %}
+                    <ul class="list-group list-group-flush">
+                        {% for p in bookings.top_products %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-secondary">{{ p.product_type }}</span>
+                                    <span class="ms-2">#{{ p.product_id }}</span>
+                                </div>
+                                <div>
+                                    <strong>{{ p.quantity }}</strong>
+                                    <span class="small text-muted">booked</span>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="p-3 text-muted small">No bookings yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Right: revenue by type + top destinations #}
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <strong>Revenue by product type</strong>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for pt, amount in (revenue.by_product_type or {}).items() %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ pt|title }}</span>
+                            <strong>€{{ "%.2f"|format(amount|float) }}</strong>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted">No revenue yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <strong>Top searched destinations</strong>
+            </div>
+            <div class="card-body p-0">
+                {% if search.top_destinations and search.top_destinations[0]._error is not defined %}
+                    <ul class="list-group list-group-flush">
+                        {% for d in search.top_destinations %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ d.destination }}</span>
+                                <span>
+                                    <strong>{{ d.count }}</strong>
+                                    <span class="small text-muted">searches</span>
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="p-3 text-muted small">
+                        Search analytics are unavailable (MongoDB not configured).
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

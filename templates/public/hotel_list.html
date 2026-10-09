@@ -1,0 +1,175 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Hotels — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+
+<section class="py-4 bg-light border-bottom">
+    <div class="container">
+        <h1 class="mb-1">Hotels</h1>
+        <p class="text-muted mb-0">
+            {{ total }} hotel{{ "" if total == 1 else "s" }} found
+            {% if selected_destination %} in {{ selected_destination.name }}{% endif %}
+        </p>
+    </div>
+</section>
+
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            {# ─── Filter sidebar ─── #}
+            <aside class="col-lg-3">
+                <form method="GET" class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">Filters</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Destination</label>
+                            <select name="destination" class="form-select form-select-sm">
+                                <option value="">All destinations</option>
+                                {% for d in destinations %}
+                                    <option value="{{ d.slug }}"
+                                        {% if selected_destination and selected_destination.id == d.id %}selected{% endif %}>
+                                        {{ d.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Stars</label>
+                            <select name="stars" class="form-select form-select-sm">
+                                <option value="">Any rating</option>
+                                {% for n in [5, 4, 3, 2, 1] %}
+                                    <option value="{{ n }}" {% if selected_stars == n %}selected{% endif %}>
+                                        {{ n }} star{{ "" if n == 1 else "s" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Meal plan</label>
+                            <select name="meal_plan" class="form-select form-select-sm">
+                                <option value="">Any</option>
+                                {% for m in meal_plans %}
+                                    <option value="{{ m }}" {% if selected_meal_plan == m %}selected{% endif %}>
+                                        {{ m|replace("_", " ")|title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Search</label>
+                            <input type="text" name="q" class="form-control form-control-sm"
+                                   value="{{ query_text }}" placeholder="Hotel name">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Sort by</label>
+                            <select name="sort" class="form-select form-select-sm">
+                                <option value="newest"     {% if sort == "newest" %}selected{% endif %}>Newest</option>
+                                <option value="name"       {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
+                                <option value="stars_desc" {% if sort == "stars_desc" %}selected{% endif %}>Stars: high first</option>
+                                <option value="price_asc"  {% if sort == "price_asc" %}selected{% endif %}>Price: low to high</option>
+                                <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                        <a href="{{ url_for('public.hotel_list') }}"
+                           class="btn btn-link btn-sm w-100 mt-2">Clear</a>
+                    </div>
+                </form>
+            </aside>
+
+            {# ─── Results ─── #}
+            <div class="col-lg-9">
+                {% if items %}
+                    <div class="row g-4">
+                        {% for item in items %}
+                            <div class="col-sm-6 col-xl-4">
+                                <div class="card h-100 shadow-sm">
+                                    {% set img_url = item.image_url %}
+                                    {% if img_url and (img_url.startswith('http') or img_url.startswith('/static')) %}
+                                        <img src="{{ img_url }}" class="card-img-top"
+                                             alt="{{ item.hotel.name }}"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="card-img-top d-none align-items-center
+                                                    justify-content-center bg-secondary bg-opacity-10">
+                                            <i class="bi bi-building text-secondary fs-1"></i>
+                                        </div>
+                                    {% else %}
+                                        <div class="card-img-top d-flex align-items-center
+                                                    justify-content-center bg-secondary bg-opacity-10">
+                                            <i class="bi bi-building text-secondary fs-1"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="mb-2">
+                                            {% for _ in range(item.hotel.stars) %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <h5 class="card-title">{{ item.hotel.name }}</h5>
+                                        <p class="card-text text-muted small mb-2">
+                                            {{ item.hotel.address or "Egypt" }}
+                                        </p>
+                                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                                            <div>
+                                                {% if item.price %}
+                                                    <small class="text-muted">from</small>
+                                                    <span class="fw-bold">
+                                                        &euro;{{ "%.2f"|format(item.price) }}
+                                                    </span>
+                                                    <small class="text-muted">/ night</small>
+                                                {% endif %}
+                                            </div>
+                                            <a href="{{ url_for('public.hotel_detail', slug=item.hotel.slug) }}"
+                                               class="btn btn-sm btn-primary">View</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {# ─── Pagination ─── #}
+                    {% if total_pages > 1 %}
+                        {% set qs = {} %}
+                        {% if selected_destination %}{% set _ = qs.update({"destination": selected_destination.slug}) %}{% endif %}
+                        {% if selected_stars %}{% set _ = qs.update({"stars": selected_stars}) %}{% endif %}
+                        {% if selected_meal_plan %}{% set _ = qs.update({"meal_plan": selected_meal_plan}) %}{% endif %}
+                        {% if query_text %}{% set _ = qs.update({"q": query_text}) %}{% endif %}
+                        {% if sort %}{% set _ = qs.update({"sort": sort}) %}{% endif %}
+
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{{ url_for('public.hotel_list', page=page-1, **qs) }}">Previous</a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+                                </li>
+                                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{{ url_for('public.hotel_list', page=page+1, **qs) }}">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No hotels match your filters.
+                        <a href="{{ url_for('public.hotel_list') }}">Clear filters</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,93 @@
+﻿{% extends "base.html" %}
+{% block title %}Profile — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <aside class="col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('account.index') }}"
+                           class="list-group-item list-group-item-action">Dashboard</a>
+                        <a href="{{ url_for('account.bookings') }}"
+                           class="list-group-item list-group-item-action">My bookings</a>
+                        <a href="{{ url_for('account.profile') }}"
+                           class="list-group-item list-group-item-action active">Profile</a>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="col-lg-9">
+                <h1 class="mb-4">Profile</h1>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="mb-3">Personal information</h5>
+                        <form method="POST" novalidate>
+                            {{ profile_form.hidden_tag() }}
+
+                            <div class="mb-3">
+                                {{ profile_form.full_name.label(class="form-label") }}
+                                {{ profile_form.full_name(class="form-control" + (" is-invalid" if profile_form.full_name.errors else "")) }}
+                                {% for err in profile_form.full_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ profile_form.phone.label(class="form-label") }}
+                                {{ profile_form.phone(class="form-control") }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="{{ current_user.email }}" disabled>
+                                <div class="form-text small">
+                                    Email cannot be changed here.
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                {{ profile_form.submit.label.text }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3">Change password</h5>
+                        <form method="POST" novalidate>
+                            {{ password_form.hidden_tag() }}
+
+                            <div class="mb-3">
+                                {{ password_form.current_password.label(class="form-label") }}
+                                {{ password_form.current_password(class="form-control" + (" is-invalid" if password_form.current_password.errors else "")) }}
+                                {% for err in password_form.current_password.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ password_form.new_password.label(class="form-label") }}
+                                {{ password_form.new_password(class="form-control" + (" is-invalid" if password_form.new_password.errors else "")) }}
+                                {% for err in password_form.new_password.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                                <div class="form-text small">
+                                    Minimum 8 characters, with upper, lower, and a digit.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ password_form.confirm.label(class="form-label") }}
+                                {{ password_form.confirm(class="form-control" + (" is-invalid" if password_form.confirm.errors else "")) }}
+                                {% for err in password_form.confirm.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                {{ password_form.submit.label.text }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

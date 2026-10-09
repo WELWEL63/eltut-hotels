@@ -1,0 +1,60 @@
+﻿{% extends "base.html" %}
+
+{% block title %}About — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="mb-4">About {{ config.APP_NAME }}</h1>
+
+                <p class="lead">
+                    {{ config.APP_NAME }} is a travel company specialising in
+                    curated tours, hotels, and all-inclusive packages across
+                    Egypt.
+                </p>
+
+                <p>
+                    We work with local licensed guides, carefully selected
+                    hotels, and trusted activity operators to bring you
+                    unforgettable experiences — from the Pyramids of Giza
+                    to the coral reefs of the Red Sea.
+                </p>
+
+                <h3 class="mt-5">What we offer</h3>
+                <ul>
+                    <li>Handpicked activities with licensed Egyptologist guides</li>
+                    <li>Carefully rated hotels in every major destination</li>
+                    <li>All-inclusive packages with flights, transfers, and meals</li>
+                    <li>Optional add-on activities for the same booking</li>
+                    <li>Secure PayPal checkout</li>
+                </ul>
+
+                <h3 class="mt-5">Our destinations</h3>
+                <p>
+                    Cairo &middot; Giza &middot; Luxor &middot; Aswan &middot;
+                    Hurghada &middot; Sharm El Sheikh &middot; Marsa Alam &middot;
+                    El Gouna &middot; Soma Bay &middot; Dahab &middot;
+                    Sahl Hasheesh &middot; Makadi Bay &middot; Taba &middot; Safaga
+                </p>
+
+                <div class="alert alert-info mt-5">
+                    <strong>Coursework note:</strong> this project was built
+                    as part of the COMP6075 Systems Development module. The
+                    full source, ERD, and report are available separately.
+                </div>
+
+                <div class="mt-4">
+                    <a href="{{ url_for('public.contact') }}" class="btn btn-primary">
+                        Get in touch
+                    </a>
+                    <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary">
+                        Back to home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

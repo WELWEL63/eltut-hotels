@@ -1,0 +1,156 @@
+﻿{% extends "admin/base.html" %}
+{% block title %}Edit room — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 class="mb-4">Edit room</h1>
+<p class="text-muted">
+    Hotel:
+    <a href="{{ url_for('admin.hotel_edit', hotel_id=hotel.id) }}">{{ hotel.name }}</a>
+</p>
+
+<form method="POST" class="card shadow-sm mb-4">
+    <div class="card-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Room type</label>
+                <input type="text" name="type" class="form-control" required value="{{ room.type }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Meal plan</label>
+                <select name="meal_plan" class="form-select">
+                    {% for m in meal_plans %}
+                        <option value="{{ m }}" {% if room.meal_plan == m %}selected{% endif %}>
+                            {{ m|replace("_", " ")|title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Active</label>
+                <div class="form-check mt-2">
+                    <input type="checkbox" name="is_active" class="form-check-input"
+                           {% if room.is_active %}checked{% endif %}>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Max occupancy</label>
+                <input type="number" name="max_occupancy" class="form-control" min="1"
+                       value="{{ room.max_occupancy }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Inventory</label>
+                <input type="number" name="capacity" class="form-control" min="0"
+                       value="{{ room.capacity }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Base € / night (fallback)</label>
+                <input type="number" name="base_price_per_night" class="form-control" step="0.01" min="0"
+                       value="{{ room.base_price_per_night }}">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3">{{ room.description or '' }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between">
+        <a href="{{ url_for('admin.hotel_edit', hotel_id=hotel.id) }}" class="btn btn-link">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+</form>
+
+{# ─── Seasonal rates (Step 11.5) ─── #}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Seasonal rates</h4>
+    <span class="text-muted small">
+        {{ rates|length }} window{{ "" if rates|length == 1 else "s" }}
+    </span>
+</div>
+<p class="text-muted small">
+    The pricing service picks the rate whose window contains the requested
+    check-in date. If none matches, the base price is used.
+</p>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.room_rate_new', room_id=room.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2">
+                <div class="col-md-2">
+                    <label class="form-label small">Valid from</label>
+                    <input type="date" name="valid_from" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Valid to</label>
+                    <input type="date" name="valid_to" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Adult €</label>
+                    <input type="number" name="adult_price" step="0.01" min="0"
+                           class="form-control form-control-sm" required>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Child €</label>
+                    <input type="number" name="child_price" step="0.01" min="0"
+                           class="form-control form-control-sm" value="0">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Currency</label>
+                    <select name="currency" class="form-select form-select-sm">
+                        <option value="EUR" selected>EUR</option>
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary btn-sm w-100">Add rate</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if rates %}
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Adult</th>
+                        <th>Child</th>
+                        <th>Currency</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rates %}
+                        <tr>
+                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "—" }}</td>
+                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "—" }}</td>
+                            <td>{{ "%.2f"|format(r.adult_price) }}</td>
+                            <td>{{ "%.2f"|format(r.child_price) }}</td>
+                            <td>{{ r.currency }}</td>
+                            <td class="text-end">
+                                <form method="POST" class="d-inline"
+                                      action="{{ url_for('admin.room_rate_delete', rate_id=r.id) }}"
+                                      onsubmit="return confirm('Delete this rate window?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info">No seasonal rates yet. Add the first one above.</div>
+{% endif %}
+{% endblock %}
