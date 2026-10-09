@@ -877,6 +877,12 @@ def seed_packages(session: Session, rows: list[dict[str, str]]) -> int:
             )
             session.add(hotel)
             session.flush()
+            # WHY: SlugMixin does not auto-generate; every Hotel
+            # construction site must set slug explicitly or
+            # url_for('public.hotel_detail', slug=hotel.slug) will
+            # later fail with BuildError. Mirrors the pattern used
+            # in seed_hotels() at ~line 704.
+            hotel.slug = Hotel._generate_unique_slug(hname, session)
 
         rname = _clean(row.get("room_type")) or "Standard Room"
         meal_plan = _pick_meals(row.get("meal_plan")) or "room_only"

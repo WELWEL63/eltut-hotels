@@ -639,4 +639,45 @@ CSV's many seasonal price rows into a single value. Adding a
 - pricing_service.price_hotel picks the matching window for the
   requested dates
 
-  
+  === PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 12 of 15 — COMPLETE, banner patch re-attempting
+Last Completed File: templates/public/booking_confirmation.html (email fallback ✅ patched)
+Next File: blueprints/public/booking_routes.py (banner patch — regex-based retry)
+Decisions Locked Since Last State:
+
+First banner patch failed on whitespace mismatch: the route body has
+different indentation than my literal-string patch expected.
+
+Switched to regex-based patching (re.compile with re.MULTILINE) that
+captures the existing indent and preserves it. This survives any
+indentation drift.
+
+Template patch remains anchored on the closing </p>\n</div>\n</div>
+block; will adjust if anchor not found.
+Blockers: awaiting retry output
+=== END STATE ===
+
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 12 of 15 — COMPLETE (all bugs closed)
+Last Completed File: scripts/seed_from_csv.py ✅ (packages seeder patched)
+Next File: TBD — awaiting A/B/C/D choice
+Decisions Locked Since Last State:
+
+All data integrity checks pass:
+activities : 0 null slugs out of 177
+packages : 0 null slugs out of 1645
+hotels : 0 null slugs out of 180 (after backfill)
+
+Seeder patch syntactically valid.
+
+Confirmation page email fallback + dev-mode PayPal banner both
+verified working.
+
+No outstanding bugs. Clean baseline before the next phase.
+Blockers: none
+Next decision: A (admin), B (cloud function), C (tests), or D (deploy)
+=== END STATE ===
+

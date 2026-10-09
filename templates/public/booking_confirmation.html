@@ -10,13 +10,31 @@
                 <h1 class="mt-3">Booking received</h1>
                 <p class="lead">
                     Your reference is <strong>{{ booking.reference }}</strong>.
+                    {# WHY the fallback chain: guest bookings store the
+                       address on booking.guest_email; logged-in bookings
+                       store it on the User row (booking.user is not a
+                       defined relationship on this model yet). Since the
+                       viewer of this page IS the person who just booked,
+                       current_user.email is a safe fallback. #}
                     We've sent a confirmation to
-                    {% if booking.user %}
-                        {{ booking.user.email }}
-                    {% else %}
+                    {% if booking.guest_email %}
                         {{ booking.guest_email }}
+                    {% elif current_user.is_authenticated and current_user.email %}
+                        {{ current_user.email }}
+                    {% else %}
+                        your email on file
                     {% endif %}.
                 </p>
+
+                {% if not payment_service_configured %}
+                  <div class="alert alert-info mt-3" role="alert">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Dev mode:</strong> PayPal is not configured in
+                    this environment, so no payment was taken. Your booking
+                    is <code>{{ booking.status }}</code> and will need
+                    payment to be confirmed once PayPal is enabled.
+                  </div>
+                {% endif %}
             </div>
         </div>
 

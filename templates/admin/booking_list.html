@@ -1,0 +1,156 @@
+{% extends "admin/base.html" %}
+{% block title %}Bookings — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Bookings</h1>
+        <p class="text-muted mb-0">
+            {{ total }} booking{{ "" if total == 1 else "s" }}
+            {% if filtered_total %}
+                &middot; sum &pound;{{ "%.2f"|format(filtered_total) }}
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{# ─── Filters ─── #}
+<form method="GET" class="card shadow-sm mb-3">
+    <div class="card-body">
+        <div class="row g-2">
+            <div class="col-md-3">
+                <input type="text" name="q" class="form-control"
+                       value="{{ q }}" placeholder="Reference, email or name">
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">Any status</option>
+                    {% for s in ["pending", "confirmed", "cancelled", "completed"] %}
+                        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="product_type" class="form-select">
+                    <option value="">Any product</option>
+                    {% for p in ["activity", "hotel", "package"] %}
+                        <option value="{{ p }}" {% if product_type == p %}selected{% endif %}>{{ p|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="from" class="form-control" value="{{ date_from }}" placeholder="From">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="to" class="form-control" value="{{ date_to }}" placeholder="To">
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{# ─── Table ─── #}
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Dates</th>
+                    <th class="text-end">Total</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in items %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('admin.booking_detail', reference=b.reference) }}"
+                               class="fw-semibold text-decoration-none">
+                                {{ b.reference }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if b.user_id %}
+                                <span class="badge bg-primary-subtle text-primary-emphasis">User #{{ b.user_id }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis">Guest</span>
+                            {% endif %}
+                            <div class="small text-muted">
+                                {{ b.guest_email or "—" }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-capitalize">{{ b.product_type }}</span>
+                            <span class="text-muted small">#{{ b.product_id }}</span>
+                        </td>
+                        <td class="small">
+                            {% if b.activity_date %}
+                                {{ b.activity_date.strftime("%Y-%m-%d") }}
+                            {% elif b.check_in_date and b.check_out_date %}
+                                {{ b.check_in_date.strftime("%Y-%m-%d") }} → {{ b.check_out_date.strftime("%Y-%m-%d") }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {{ b.currency }} {{ "%.2f"|format(b.total_amount or 0) }}
+                        </td>
+                        <td>
+                            {% set badge = {
+                                "pending":   "warning",
+                                "confirmed": "success",
+                                "cancelled": "danger",
+                                "completed": "secondary",
+                                "refunded":  "info"
+                            }.get(b.status, "secondary") %}
+                            <span class="badge bg-{{ badge }}">{{ b.status }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('admin.booking_detail', reference=b.reference) }}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No bookings match these filters.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ─── Pagination ─── #}
+{% if total_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination">
+            {% set qs = {} %}
+            {% if status %}{% set _ = qs.update({"status": status}) %}{% endif %}
+            {% if product_type %}{% set _ = qs.update({"product_type": product_type}) %}{% endif %}
+            {% if q %}{% set _ = qs.update({"q": q}) %}{% endif %}
+            {% if date_from %}{% set _ = qs.update({"from": date_from}) %}{% endif %}
+            {% if date_to %}{% set _ = qs.update({"to": date_to}) %}{% endif %}
+
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.booking_list', page=page-1, **qs) }}">Previous</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+            </li>
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('admin.booking_list', page=page+1, **qs) }}">Next</a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

@@ -429,4 +429,11 @@ def booking_confirmation(reference: str):
     )
     if booking is None:
         abort(404)
-    return render_template("public/booking_confirmation.html", booking=booking)
+    # WHY pass is_configured: the template shows a dev-mode banner when
+    # PayPal is unconfigured so the demo audience understands why no
+    # payment step appeared. Without this, users think the flow is broken.
+    return render_template(
+        "public/booking_confirmation.html",
+        booking=booking,
+        payment_service_configured=payment_service.is_configured(),
+    )
