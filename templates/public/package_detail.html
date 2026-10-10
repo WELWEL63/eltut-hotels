@@ -73,7 +73,7 @@
                                     <i class="bi bi-calendar-check"></i> See departures &amp; prices
                                 </a>
                             {% elif remaining is none or remaining > 0 %}
-                                <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}"
+                                <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?{% if check_in %}check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
                                    class="btn btn-eltut-primary">
                                     <i class="bi bi-check-circle"></i> Book now
                                 </a>
@@ -238,7 +238,7 @@
                                                         {{ opt.currency }} {{ "%.0f"|format(opt.price_child) }} / child
                                                     </div>
                                                 {% endif %}
-                                                <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?option_id={{ opt.id }}"
+                                                <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?option_id={{ opt.id }}{% if check_in %}&check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
                                                    class="btn btn-eltut-primary w-100">
                                                     Book this option <i class="bi bi-arrow-right"></i>
                                                 </a>
@@ -432,35 +432,6 @@
                     </div>
                 {% endif %}
 
-                {# ─── FAQs ─── #}
-                {% if faqs %}
-                    <div class="section-header icon-ink mt-4">
-                        <span class="icon-box"><i class="bi bi-question-circle"></i></span>
-                        <span class="title">Frequently asked questions</span>
-                    </div>
-                    <div class="accordion" id="pkgFaqs">
-                        {% for faq in faqs %}
-                            <div class="accordion-item">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
-                                            type="button"
-                                            data-bs-toggle="collapse"
-                                            data-bs-target="#pkgfaq-{{ faq.id }}">
-                                        {{ faq.question }}
-                                    </button>
-                                </h2>
-                                <div id="pkgfaq-{{ faq.id }}"
-                                     class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
-                                     data-bs-parent="#pkgFaqs">
-                                    <div class="accordion-body" style="white-space: pre-wrap;">
-                                        {{ faq.answer or "—" }}
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
                 {# ─── Reviews ─── #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
@@ -555,9 +526,84 @@
 
             {# ─── SIDEBAR ─── #}
             <aside class="col-lg-4">
-                <div class="card shadow-sm sticky-top border-0" style="top: 1rem;">
+                <div class="card shadow-sm sticky-top border-0 overflow-hidden" style="top: 1rem;">
 
-                    {% if price_adult %}
+                    {# ─── Hero image ─── #}
+                    <div class="sidebar-hero">
+                        {% if images %}
+                            <img src="{{ images[0].url }}" alt="{{ package.name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="sidebar-hero-fallback" style="display:none;">
+                                <i class="bi bi-suitcase-lg"></i>
+                            </div>
+                        {% else %}
+                            <div class="sidebar-hero-fallback">
+                                <i class="bi bi-suitcase-lg"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# ─── Dates + party + price breakdown ─── #}
+                    {% if sidebar_pricing and sidebar_pricing.total is not none %}
+                        <div class="card-body border-bottom">
+                            {% if check_in and check_out %}
+                                <div class="small mb-1">
+                                    <i class="bi bi-calendar-range text-eltut-terracotta"></i>
+                                    <strong>{{ check_in.strftime("%d %b %Y") }}</strong>
+                                    →
+                                    <strong>{{ check_out.strftime("%d %b %Y") }}</strong>
+                                </div>
+                            {% endif %}
+                            <div class="small text-muted mb-3">
+                                <i class="bi bi-moon-stars"></i> {{ nights }} night{{ "" if nights == 1 else "s" }}
+                                ·
+                                <i class="bi bi-people"></i>
+                                {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                {% if children %}
+                                    + {{ children }} child{{ "" if children == 1 else "ren" }}
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em; font-size:.7rem;">
+                                    Price breakdown
+                                </div>
+                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 small"
+                                        data-bs-toggle="collapse" data-bs-target="#pkg-price-breakdown"
+                                        aria-expanded="true">
+                                    <span class="collapse-label">Hide</span>
+                                </button>
+                            </div>
+
+                            <div class="collapse show" id="pkg-price-breakdown">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">
+                                        Adult — {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.adult_rate or 0) }} × {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                    </span>
+                                </div>
+                                {% if sidebar_pricing.child_rate and sidebar_pricing.child_rate > 0 and children %}
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            Child — {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.child_rate) }} × {{ children }} child{{ "" if children == 1 else "ren" }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+
+                                <hr class="my-2">
+
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <span class="fw-bold">Total</span>
+                                    <span class="fs-5 fw-bold text-eltut-terracotta">
+                                        {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.total) }}
+                                    </span>
+                                </div>
+
+                                <div class="small text-muted text-end mt-1">
+                                    for the full {{ nights }}-night package
+                                </div>
+                            </div>
+                        </div>
+                    {% elif price_adult %}
                         <div class="card-body border-bottom">
                             <div class="text-muted small">Starting from</div>
                             <div class="fs-3 fw-bold text-eltut-terracotta">
@@ -569,10 +615,6 @@
                                     {{ currency }} {{ "%.0f"|format(price_child) }} / child
                                 </div>
                             {% endif %}
-                            <div class="small text-muted mt-2">
-                                <i class="bi bi-moon-stars"></i>
-                                {{ package.duration_nights }} night{{ "" if package.duration_nights == 1 else "s" }}
-                            </div>
                         </div>
                     {% endif %}
 
@@ -586,7 +628,7 @@
                                 <i class="bi bi-list-check"></i> Choose a departure
                             </a>
                         {% elif remaining is none or remaining > 0 %}
-                            <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}"
+                            <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?{% if check_in %}check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
                                class="btn btn-eltut-primary w-100 mb-2">
                                 <i class="bi bi-check-circle"></i> Book this package
                             </a>
@@ -720,5 +762,38 @@
     </div>
 </div>
 {% endif %}
+
+<style>
+/* Sidebar hero image */
+.sidebar-hero {
+    width: 100%;
+    height: 170px;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+.sidebar-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sidebar-hero-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: 3rem;
+    background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
+}
+</style>
+
+<script>
+(function() {
+    const collapse = document.getElementById('pkg-price-breakdown');
+    if (collapse) {
+        collapse.addEventListener('show.bs.collapse', function() {
+            const label = document.querySelector('.collapse-label');
+            if (label) label.textContent = 'Hide';
+        });
+        collapse.addEventListener('hide.bs.collapse', function() {
+            const label = document.querySelector('.collapse-label');
+            if (label) label.textContent = 'Show';
+        });
+    }
+})();
+</script>
 
 {% endblock %}
