@@ -13,14 +13,17 @@
         </nav>
 
         <div class="row g-4">
+            {# ═══════════════ MAIN COLUMN ═══════════════ #}
             <div class="col-lg-8">
-                {# ─── Gallery carousel (all images, placeholder URLs filtered) ─── #}
+
+                {# ─── Gallery carousel ─── #}
                 {% set visible_images = [] %}
                 {% for img in images %}
                     {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
                         {% set _ = visible_images.append(img) %}
                     {% endif %}
                 {% endfor %}
+
                 {% if visible_images %}
                     <div id="activityGallery" class="carousel slide mb-2 rounded-3 overflow-hidden">
                         {% if visible_images|length > 1 %}
@@ -41,7 +44,6 @@
                                                controls preload="metadata"
                                                {% if img.poster_url %}poster="{{ img.poster_url }}"{% endif %}>
                                             <source src="{{ img.url }}">
-                                            Your browser does not support video playback.
                                         </video>
                                     {% else %}
                                         <img src="{{ img.url }}" class="d-block w-100"
@@ -68,7 +70,6 @@
                         {% endif %}
                     </div>
 
-                    {# ─── Thumbnail strip ─── #}
                     {% if visible_images|length > 1 %}
                         <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
                             {% for img in visible_images %}
@@ -78,29 +79,26 @@
                                         <div class="d-flex align-items-center justify-content-center"
                                              style="width:90px; height:65px; background:#000;
                                                     border-radius:6px; border:2px solid
-                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};
-                                                    cursor:pointer;">
+                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};">
                                             <i class="bi bi-play-circle-fill text-white" style="font-size:1.8rem;"></i>
                                         </div>
                                     {% else %}
                                         <img src="{{ img.url }}" alt=""
                                              style="width:90px; height:65px; object-fit:cover;
                                                     border-radius:6px; border:2px solid
-                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};
-                                                    cursor:pointer;">
+                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};">
                                     {% endif %}
                                 </a>
                             {% endfor %}
                         </div>
-                    {% else %}
-                        <div class="mb-4"></div>
                     {% endif %}
                 {% else %}
                     <div class="rounded-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center mb-4" style="height: 400px;">
-                        <i class="bi bi-image text-secondary" style="font-size: 4rem;"></i>
+                        <i class="bi bi-compass text-secondary" style="font-size: 4rem;"></i>
                     </div>
                 {% endif %}
 
+                {# ─── Title + badges ─── #}
                 <h1 class="mb-3">{{ activity.name }}</h1>
 
                 <div class="d-flex gap-2 flex-wrap mb-3">
@@ -109,64 +107,113 @@
                     {% if remaining is not none and remaining > 0 %}
                         <span class="badge bg-success">{{ remaining }} seats available</span>
                     {% elif remaining == 0 %}
-                        <span class="badge bg-danger">Sold out today</span>
+                        <span class="badge bg-danger">Sold out</span>
                     {% endif %}
                 </div>
 
+                {# ─── Quick facts strip ─── #}
                 <div class="row text-muted small g-2 mb-4">
                     <div class="col-md-4"><i class="bi bi-clock"></i> {{ activity.duration_hours }}h</div>
-                    {% if destination %}<div class="col-md-4"><i class="bi bi-geo-alt"></i> {{ destination.name }}</div>{% endif %}
-                    {% if activity.schedule %}<div class="col-md-4"><i class="bi bi-calendar-event"></i> {{ activity.schedule }}</div>{% endif %}
-                    {% if guide %}<div class="col-md-4"><i class="bi bi-person-badge"></i> Guide: {{ guide.full_name }}</div>{% endif %}
+                    {% if destination %}
+                        <div class="col-md-4"><i class="bi bi-geo-alt"></i> {{ destination.name }}</div>
+                    {% endif %}
+                    {% if activity.schedule %}
+                        <div class="col-md-4"><i class="bi bi-calendar-event"></i> {{ activity.schedule }}</div>
+                    {% endif %}
+                    {% if activity.departure_time %}
+                        <div class="col-md-4"><i class="bi bi-clock-history"></i> Departs {{ activity.departure_time }}</div>
+                    {% endif %}
+                    {% if activity.meeting_point %}
+                        <div class="col-md-4"><i class="bi bi-geo"></i> {{ activity.meeting_point }}</div>
+                    {% endif %}
+                    {% if guide %}
+                        <div class="col-md-4"><i class="bi bi-person-badge"></i> Guide: {{ guide.full_name }}</div>
+                    {% endif %}
                 </div>
 
+                {# ─── Overview ─── #}
                 {% if activity.description %}
-                    <h4 class="mt-4">Overview</h4>
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-info-circle"></i></span>
+                        <span class="title">Overview</span>
+                    </div>
                     <p>{{ activity.description }}</p>
                 {% endif %}
 
+                {# ─── Included / Not included ─── #}
                 {% if inclusions or exclusions %}
-                    <div class="row mt-4">
+                    <div class="row g-3 mt-4">
                         {% if inclusions %}
                             <div class="col-md-6">
-                                <h5>Included</h5>
-                                <ul class="list-unstyled">
-                                    {% for item in inclusions %}
-                                        <li><i class="bi bi-check text-success"></i> {{ item.item }}</li>
-                                    {% endfor %}
-                                </ul>
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-header bg-white">
+                                        <span class="icon-box-sm icon-success"><i class="bi bi-check-lg"></i></span>
+                                        <strong>What's included</strong>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        {% for item in inclusions %}
+                                            <li class="list-group-item small">
+                                                <i class="bi bi-check-lg text-success me-2"></i>{{ item.item }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>
                         {% endif %}
                         {% if exclusions %}
                             <div class="col-md-6">
-                                <h5>Not included</h5>
-                                <ul class="list-unstyled">
-                                    {% for item in exclusions %}
-                                        <li><i class="bi bi-x text-danger"></i> {{ item.item }}</li>
-                                    {% endfor %}
-                                </ul>
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-header bg-white">
+                                        <span class="icon-box-sm icon-danger"><i class="bi bi-x-lg"></i></span>
+                                        <strong>Not included</strong>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        {% for item in exclusions %}
+                                            <li class="list-group-item small">
+                                                <i class="bi bi-dash-lg text-danger me-2"></i>{{ item.item }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
                 {% endif %}
 
+                {# ─── Languages ─── #}
                 {% if languages %}
-                    <h5 class="mt-4">Available in</h5>
-                    <p>{% for l in languages %}<span class="badge bg-light text-dark me-1">{{ l.language }}</span>{% endfor %}</p>
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-translate"></i></span>
+                        <span class="title">Available in</span>
+                    </div>
+                    <p>
+                        {% for l in languages %}
+                            <span class="badge bg-light text-dark border me-1">{{ l.language }}</span>
+                        {% endfor %}
+                    </p>
                 {% endif %}
 
+                {# ─── What to bring ─── #}
                 {% if activity.what_to_bring %}
-                    <h5 class="mt-4">What to bring</h5>
-                    <p>{{ activity.what_to_bring }}</p>
+                    <div class="section-header icon-gold mt-4">
+                        <span class="icon-box"><i class="bi bi-bag-check"></i></span>
+                        <span class="title">What to bring</span>
+                    </div>
+                    <p class="text-muted">{{ activity.what_to_bring }}</p>
                 {% endif %}
 
+                {# ─── Cancellation ─── #}
                 {% if activity.cancellation_policy %}
-                    <h5 class="mt-4">Cancellation policy</h5>
-                    <p class="text-muted">{{ activity.cancellation_policy }}</p>
+                    <div class="alert alert-info mt-4">
+                        <h6 class="alert-heading d-flex align-items-center gap-2 mb-2">
+                            <span class="icon-box-sm icon-info"><i class="bi bi-shield-exclamation"></i></span>
+                            Cancellation policy
+                        </h6>
+                        <div class="small" style="white-space: pre-wrap;">{{ activity.cancellation_policy }}</div>
+                    </div>
                 {% endif %}
-            </div>
 
-            {# ─── Reviews ─── #}
+                {# ─── Reviews ─── #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
                     <span class="title">
@@ -191,7 +238,7 @@
                     <div class="row g-3">
                         {% for r in reviews %}
                             <div class="col-12">
-                                <div class="card shadow-sm">
+                                <div class="card shadow-sm border-0">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <div>
@@ -235,7 +282,7 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm border-0">
                         <div class="card-body text-center py-4 text-muted">
                             <i class="bi bi-chat-square-text" style="font-size:2.5rem;"></i>
                             <p class="mt-3 mb-0">No reviews yet. Be the first to share your experience.</p>
@@ -258,42 +305,157 @@
 
             </div>
 
+            {# ═══════════════ SIDEBAR ═══════════════ #}
             <aside class="col-lg-4">
-                <div class="card shadow-sm sticky-top" style="top: 1rem;">
+                <div class="card shadow-sm sticky-top border-0 overflow-hidden" style="top: 1rem;">
+
+                    {# ─── Hero image ─── #}
+                    <div class="sidebar-hero">
+                        {% if visible_images %}
+                            <img src="{{ visible_images[0].url }}" alt="{{ activity.name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="sidebar-hero-fallback" style="display:none;">
+                                <i class="bi bi-compass"></i>
+                            </div>
+                        {% else %}
+                            <div class="sidebar-hero-fallback">
+                                <i class="bi bi-compass"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# ─── Booking panel ─── #}
+                    <div class="card-body border-bottom">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-calendar-check text-eltut-terracotta"></i>
+                            Book this activity
+                        </h5>
+
+                        {# Date #}
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Activity date</label>
+                            <input type="date" id="inline-activity-date"
+                                   class="form-control form-control-sm"
+                                   value="{{ activity_date.isoformat() if activity_date else '' }}">
+                        </div>
+
+                        {# Party size #}
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Adults</label>
+                                <input type="number" id="inline-adults"
+                                       class="form-control form-control-sm"
+                                       value="{{ adults }}" min="1" max="8">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-semibold">Children</label>
+                                <input type="number" id="inline-children"
+                                       class="form-control form-control-sm"
+                                       value="{{ children }}" min="0" max="8">
+                            </div>
+                        </div>
+
+                        {# Price breakdown #}
+                        {% if sidebar_pricing and sidebar_pricing.total is not none %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="small fw-semibold text-uppercase text-muted"
+                                     style="letter-spacing:.05em; font-size:.7rem;">
+                                    Price breakdown
+                                </div>
+                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 small"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#activity-price-breakdown"
+                                        aria-expanded="true">
+                                    <span class="collapse-label">Hide</span>
+                                </button>
+                            </div>
+
+                            <div class="collapse show" id="activity-price-breakdown">
+                                {% if price_adult %}
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            Adults — {{ sidebar_pricing.currency }} {{ "%.2f"|format(price_adult) }} × <span id="breakdown-adults">{{ adults }}</span>
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                {% if price_child and price_child > 0 %}
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            Children — {{ sidebar_pricing.currency }} {{ "%.2f"|format(price_child) }} × <span id="breakdown-children">{{ children }}</span>
+                                        </span>
+                                    </div>
+                                {% endif %}
+
+                                <hr class="my-2">
+
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <span class="fw-bold">Total</span>
+                                    <span class="fs-5 fw-bold text-eltut-terracotta" id="activity-total">
+                                        {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.total) }}
+                                    </span>
+                                </div>
+
+                                <div class="small text-muted text-end mt-1">
+                                    for <span id="party-summary">{{ adults }} adult{{ "" if adults == 1 else "s" }}{% if children %} + {{ children }} child{{ "" if children == 1 else "ren" }}{% endif %}</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light border small mb-0">
+                                <i class="bi bi-info-circle"></i> Price on request
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# ─── CTA buttons ─── #}
                     <div class="card-body">
-                        <h5 class="card-title">Book this activity</h5>
-                        {% if price_adult is not none %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Adults</span>
-                                <span class="fw-bold">{{ currency or "$" }} {{ "%.2f"|format(price_adult) }}</span>
-                            </div>
-                        {% endif %}
-                        {% if price_child is not none and price_child > 0 %}
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Children</span>
-                                <span class="fw-bold">{{ currency or "$" }} {{ "%.2f"|format(price_child) }}</span>
-                            </div>
-                        {% endif %}
-                        <hr>
-                        <a href="{{ maybe_url('public.booking_start', product_type='activity', product_id=activity.id) }}"
-                           class="btn btn-primary w-100 mb-2">Book now</a>
-                        <a href="{{ url_for('public.contact') }}" class="btn btn-outline-secondary w-100">Ask a question</a>
+                        <a href="#" id="book-now-link" class="btn btn-eltut-primary btn-lg w-100 mb-2">
+                            <i class="bi bi-check-circle"></i> Book now
+                        </a>
+
+                        <a href="{{ url_for('public.quote_request', product_type='activity', product_id=activity.id, product_name=activity.name) }}"
+                           class="btn btn-outline-primary w-100 mb-2">
+                            <i class="bi bi-file-earmark-text"></i> Request a quote
+                        </a>
+
+                        <a href="{{ url_for('public.contact') }}"
+                           class="btn btn-outline-secondary w-100 mb-3">
+                            <i class="bi bi-headset"></i> Ask a question
+                        </a>
+
+                        <hr class="my-3">
+
+                        <div class="small text-muted">
+                            <div class="mb-1"><i class="bi bi-shield-check text-success"></i> Free cancellation up to 24h</div>
+                            <div class="mb-1"><i class="bi bi-envelope-check text-success"></i> Instant confirmation email</div>
+                            <div><i class="bi bi-tag text-success"></i> No booking fees</div>
+                        </div>
                     </div>
                 </div>
             </aside>
         </div>
 
+        {# ─── Related activities ─── #}
         {% if related %}
             <hr class="my-5">
-            <h4>More activities in {{ destination.name if destination else "this destination" }}</h4>
-            <div class="row g-4 mt-2">
+            <div class="section-header icon-ink mb-4">
+                <span class="icon-box"><i class="bi bi-grid"></i></span>
+                <span class="title">More activities in {{ destination.name if destination else "this destination" }}</span>
+            </div>
+            <div class="row g-4">
                 {% for rel in related %}
                     <div class="col-md-4">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card h-100 shadow-sm border-0">
                             <div class="card-body">
+                                <span class="badge bg-primary mb-2">{{ rel.category|title }}</span>
                                 <h6 class="card-title">{{ rel.name }}</h6>
+                                <div class="small text-muted mb-3">
+                                    <i class="bi bi-clock"></i> {{ rel.duration_hours }}h
+                                    {% if rel.difficulty %}· {{ rel.difficulty|title }}{% endif %}
+                                </div>
                                 <a href="{{ url_for('public.activity_detail', slug=rel.slug) }}"
-                                   class="btn btn-sm btn-outline-primary">View</a>
+                                   class="btn btn-sm btn-outline-primary">
+                                    View activity <i class="bi bi-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -302,6 +464,7 @@
         {% endif %}
     </div>
 </section>
+
 {# ─── Write-review modal ─── #}
 {% if current_user.is_authenticated and not user_has_reviewed %}
 <div class="modal fade" id="writeReviewModal" tabindex="-1">
@@ -314,8 +477,7 @@
 
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="bi bi-pencil-square"></i>
-                        Write a review
+                        <i class="bi bi-pencil-square"></i> Write a review
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -340,8 +502,7 @@
                             <label class="form-label">
                                 Your name <span class="text-danger">*</span>
                             </label>
-                            <input type="text" name="guest_name"
-                                   class="form-control" required
+                            <input type="text" name="guest_name" class="form-control" required
                                    maxlength="150"
                                    value="{{ current_user.full_name if current_user.is_authenticated else '' }}"
                                    placeholder="Jane Doe">
@@ -350,8 +511,7 @@
                             <label class="form-label">
                                 Email <span class="text-danger">*</span>
                             </label>
-                            <input type="email" name="guest_email"
-                                   class="form-control" required
+                            <input type="email" name="guest_email" class="form-control" required
                                    maxlength="255"
                                    value="{{ current_user.email if current_user.is_authenticated else '' }}"
                                    placeholder="you@example.com">
@@ -366,7 +526,7 @@
                         <label class="form-label">Title (optional)</label>
                         <input type="text" name="title" class="form-control"
                                maxlength="150"
-                               placeholder="e.g. Excellent location">
+                               placeholder="e.g. Excellent trip">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Your review</label>
@@ -388,5 +548,92 @@
     </div>
 </div>
 {% endif %}
+
+<style>
+/* Sidebar hero image */
+.sidebar-hero {
+    width: 100%;
+    height: 170px;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+.sidebar-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sidebar-hero-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: 3rem;
+    background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
+}
+</style>
+
+<script>
+(function() {
+    'use strict';
+
+    const BOOK_URL = "{{ url_for('public.booking_start', product_type='activity', product_id=activity.id) }}";
+    const RATE_ADULT = {{ sidebar_pricing.adult_rate or 0 }};
+    const RATE_CHILD = {{ sidebar_pricing.child_rate or 0 }};
+    const CURRENCY = "{{ sidebar_pricing.currency or 'EUR' }}";
+
+    function fmt(v) {
+        return CURRENCY + ' ' + Number(v || 0).toFixed(2);
+    }
+
+    function recalc() {
+        const a = Math.max(1, parseInt(document.getElementById('inline-adults').value, 10) || 1);
+        const c = Math.max(0, parseInt(document.getElementById('inline-children').value, 10) || 0);
+        const d = document.getElementById('inline-activity-date').value;
+
+        // Breakdown counts
+        const ba = document.getElementById('breakdown-adults');
+        const bc = document.getElementById('breakdown-children');
+        if (ba) ba.textContent = a;
+        if (bc) bc.textContent = c;
+
+        // Party summary
+        const party = document.getElementById('party-summary');
+        if (party) {
+            let txt = a + ' adult' + (a === 1 ? '' : 's');
+            if (c > 0) txt += ' + ' + c + ' child' + (c === 1 ? '' : 'ren');
+            party.textContent = txt;
+        }
+
+        // Total
+        const total = (RATE_ADULT * a) + (RATE_CHILD * c);
+        const totalEl = document.getElementById('activity-total');
+        if (totalEl) totalEl.textContent = fmt(total);
+
+        // Book now URL with params
+        const link = document.getElementById('book-now-link');
+        if (link) {
+            const params = new URLSearchParams();
+            if (d) params.set('date', d);
+            params.set('adults', a);
+            params.set('children', c);
+            link.href = BOOK_URL + '?' + params.toString();
+        }
+    }
+
+    ['inline-adults', 'inline-children', 'inline-activity-date'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', recalc);
+    });
+
+    // Collapse toggle label
+    const collapse = document.getElementById('activity-price-breakdown');
+    if (collapse) {
+        collapse.addEventListener('show.bs.collapse', function() {
+            const label = document.querySelector('.collapse-label');
+            if (label) label.textContent = 'Hide';
+        });
+        collapse.addEventListener('hide.bs.collapse', function() {
+            const label = document.querySelector('.collapse-label');
+            if (label) label.textContent = 'Show';
+        });
+    }
+
+    recalc();
+})();
+</script>
 
 {% endblock %}

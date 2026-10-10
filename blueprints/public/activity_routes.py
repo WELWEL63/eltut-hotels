@@ -255,6 +255,39 @@ def activity_detail(slug: str):
     except Exception as exc:  # noqa: BLE001
         current_app.logger.debug("activity reviews unavailable: %s", exc)
 
+    # ─── Read booking params from URL (fallback: today+7) ───
+    from datetime import date as _date, timedelta as _td  # noqa: PLC0415
+
+    def _parse_date_arg(name: str):
+        raw = (request.args.get(name) or "").strip()
+        if not raw:
+            return None
+        try:
+            return _date.fromisoformat(raw)
+        except ValueError:
+            return None
+
+    # Accept either ?date= or ?activity_date=
+    activity_date = _parse_date_arg("date") or _parse_date_arg("activity_date")
+    if not activity_date:
+        activity_date = _date.today() + _td(days=7)
+
+    adults = _int_arg("adults", 2, 1, 8)
+    children = _int_arg("children", 0, 0, 8)
+
+    # ─── Compute total for the party ───
+    sidebar_pricing = {
+        "adult_rate": price_adult,
+        "child_rate": price_child,
+        "nights": None,
+        "total": None,
+        "currency": currency or "EUR",
+    }
+    if price_adult is not None:
+        child_rate = price_child or 0
+        total = (float(price_adult) * adults) + (float(child_rate) * children)
+        sidebar_pricing["total"] = total
+
     return render_template(
         "public/activity_detail.html",
         activity=activity,
@@ -273,4 +306,9 @@ def activity_detail(slug: str):
         related=related,
         reviews=reviews,
         user_has_reviewed=user_has_reviewed,
+        # NEW:
+        activity_date=activity_date,
+        adults=adults,
+        children=children,
+        sidebar_pricing=sidebar_pricing,
     )
