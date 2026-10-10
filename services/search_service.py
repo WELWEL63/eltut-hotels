@@ -357,7 +357,7 @@ def _hotel_pricing_for_dates(
     """Compute the hotel price picture for a stay."""
     empty = {
         "adult_rate": None, "child_rate": None, "nights": None,
-        "per_night": None, "total": None, "currency": "USD",
+        "per_night": None, "total": None, "currency": "EUR",
     }
 
     room = db.session.scalars(
@@ -379,7 +379,7 @@ def _hotel_pricing_for_dates(
 
     adult_rate: Decimal | None = None
     child_rate: Decimal | None = None
-    currency = "USD"
+    currency = "EUR"
 
     if check_in is not None:
         rate = db.session.scalars(
@@ -399,7 +399,7 @@ def _hotel_pricing_for_dates(
         if rate is not None:
             adult_rate = rate.adult_price
             child_rate = rate.child_price
-            currency = rate.currency or "USD"
+            currency = rate.currency or "EUR"
 
     if adult_rate is None:
         adult_rate = room.base_price_per_night
@@ -538,7 +538,7 @@ def _package_pricing(
         .limit(1)
     ).first()
     if row is None:
-        return {"adult_price": None, "child_price": None, "total": None, "currency": "USD"}
+        return {"adult_price": None, "child_price": None, "total": None, "currency": "EUR"}
     try:
         total = (row.adult_price * adults) + ((row.child_price or Decimal("0")) * children)
     except Exception:
@@ -547,7 +547,7 @@ def _package_pricing(
         "adult_price": row.adult_price,
         "child_price": row.child_price,
         "total": total,
-        "currency": row.currency or "USD",
+        "currency": row.currency or "EUR",
     }
 
 
@@ -665,7 +665,7 @@ def _activity_pricing(
         .limit(1)
     ).first()
     if row is None:
-        return {"adult_price": None, "child_price": None, "total": None, "currency": "USD"}
+        return {"adult_price": None, "child_price": None, "total": None, "currency": "EUR"}
     try:
         total = (row.adult_price * adults) + ((row.child_price or Decimal("0")) * children)
     except Exception:
@@ -674,7 +674,7 @@ def _activity_pricing(
         "adult_price": row.adult_price,
         "child_price": row.child_price,
         "total": total,
-        "currency": row.currency or "USD",
+        "currency": row.currency or "EUR",
     }
 
 
@@ -686,8 +686,8 @@ def _first_price_for_activity(activity_id: int) -> tuple[Decimal | None, str]:
         .limit(1)
     ).first()
     if row is None:
-        return None, "USD"
-    return row.adult_price, row.currency or "USD"
+        return None, "EUR"
+    return row.adult_price, row.currency or "EUR"
 
 
 def _first_price_for_package(package_id: int) -> tuple[Decimal | None, str]:
@@ -698,8 +698,8 @@ def _first_price_for_package(package_id: int) -> tuple[Decimal | None, str]:
         .limit(1)
     ).first()
     if row is None:
-        return None, "USD"
-    return row.adult_price, row.currency or "USD"
+        return None, "EUR"
+    return row.adult_price, row.currency or "EUR"
 
 
 def _cheapest_room_price(hotel_id: int) -> tuple[Decimal | None, str]:
@@ -712,8 +712,8 @@ def _cheapest_room_price(hotel_id: int) -> tuple[Decimal | None, str]:
         .limit(1)
     ).first()
     if row is None:
-        return None, "USD"
-    return row.base_price_per_night, "USD"
+        return None, "EUR"
+    return row.base_price_per_night, "EUR"
 
 
 def _first_image_url(images: list | None) -> str | None:

@@ -1,4 +1,4 @@
-"""
+﻿"""
 blueprints/public/booking_routes.py
 ───────────────────────────────────
 The booking flow — the heart of the customer journey.
@@ -14,6 +14,13 @@ DESIGN NOTES
     - Works for GUEST and LOGGED-IN customers. Logged-in users get their
       name/email/phone pre-filled on the form.
     - One flow handles all three product types (activity | hotel | package).
+    - The booking_start page READS its defaults from the URL query string:
+        hotel:     ?check_in=...&check_out=...&adults=...&children=...
+        package:   ?check_in=...&check_out=...&adults=...&children=...&option_id=...
+        activity:  ?date=...&adults=...&children=...
+      So a "Book now" link from a detail page lands with everything filled.
+    - The page also COMPUTES the price for the stay up-front so the user
+      sees the total before submitting.
     - Add-on upsells come from services.recommendation_service and are
       shown on the form; ticked ones become booking_items.
     - Prices and availability are ALWAYS recomputed server-side — the
@@ -26,7 +33,7 @@ DESIGN NOTES
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 from flask import (
@@ -39,16 +46,19 @@ from flask import (
     url_for,
 )
 from flask_login import current_user
+from sqlalchemy import select
 
 from blueprints.public import public_bp
 from extensions import db
 from models import (
     Activity,
     ActivityPrice,
+    Booking,
     Hotel,
     Package,
     PackagePrice,
     Room,
+    RoomRate,
     PRODUCT_TYPE_ACTIVITY,
     PRODUCT_TYPE_HOTEL,
     PRODUCT_TYPE_PACKAGE,
@@ -56,10 +66,16 @@ from models import (
     PackageOption,
 )
 
-from services import availability_service, booking_service, payment_service, pricing_service, recommendation_service
+from services import (
+    availability_service,
+    booking_service,
+    payment_service,
+    pricing_service,
+    recommendation_service,
+)
 
 
-# ─── Helpers ───────────────────────────────────────────────────────
+# ─── Helpers ────────────────────────────────────────────────────────
 def _to_int(value, default=0, lo=0, hi=1000):
     try:
         n = int(value)
@@ -105,7 +121,7 @@ def _product_meta(product_type: str, product) -> dict:
         return {}
     if product_type == PRODUCT_TYPE_ACTIVITY:
         price_row = db.session.scalar(
-            __import__("sqlalchemy").select(ActivityPrice)
+            select(ActivityPrice)
             .where(ActivityPrice.activity_id == product.id)
             .order_by(ActivityPrice.id).limit(1)
         )
@@ -115,12 +131,15 @@ def _product_meta(product_type: str, product) -> dict:
             "image": product.images[0].url if product.images else None,
             "adult_price": float(price_row.adult_price) if price_row else None,
             "child_price": float(price_row.child_price) if price_row else None,
-            "currency": price_row.currency if price_row else "USD",
+            "currency": price_row.currency if price_row else "EUR",
             "location": product.destination_id,
         }
     if product_type == PRODUCT_TYPE_HOTEL:
-        # product is a Room; find its hotel
         hotel = db.session.get(Hotel, product.hotel_id)
+        dest = None
+        if hotel and hotel.destination_id:
+            from models import Destination  # noqa: PLC0415
+            dest = db.session.get(Destination, hotel.destination_id)
         return {
             "name": f"{hotel.name if hotel else 'Hotel'} — {product.type}",
             "slug": hotel.slug if hotel else None,
@@ -129,10 +148,13 @@ def _product_meta(product_type: str, product) -> dict:
             "child_price": float(product.base_price_per_night),
             "currency": "EUR",
             "location": hotel.destination_id if hotel else None,
+            "hotel": hotel.name if hotel else None,
+            "room": product.type,
+            "destination": dest.name if dest else None,
         }
     if product_type == PRODUCT_TYPE_PACKAGE:
         price_row = db.session.scalar(
-            __import__("sqlalchemy").select(PackagePrice)
+            select(PackagePrice)
             .where(PackagePrice.package_id == product.id)
             .order_by(PackagePrice.id).limit(1)
         )
@@ -148,10 +170,105 @@ def _product_meta(product_type: str, product) -> dict:
     return {}
 
 
-# ─── Booking start (GET) ───────────────────────────────────────────
+def _room_stay_pricing(room: Room, check_in: date | None, check_out: date | None,
+                       adults: int, children: int) -> dict:
+    """Per-night + total for a hotel room for the specific stay."""
+    nights = 1
+    if check_in and check_out and check_out > check_in:
+        nights = (check_out - check_in).days
+
+    adult_rate = None
+    child_rate = None
+    currency = "EUR"
+
+    if check_in is not None:
+        rate = db.session.scalars(
+            select(RoomRate)
+            .where(RoomRate.room_id == room.id)
+            .where((RoomRate.valid_from.is_(None)) | (RoomRate.valid_from <= check_in))
+            .where((RoomRate.valid_to.is_(None)) | (RoomRate.valid_to >= check_in))
+            .order_by(RoomRate.id.asc())
+            .limit(1)
+        ).first()
+        if rate is not None:
+            adult_rate = float(rate.adult_price or 0)
+            child_rate = float(rate.child_price or 0)
+            currency = rate.currency or "EUR"
+
+    if adult_rate is None:
+        adult_rate = float(room.base_price_per_night or 0)
+        child_rate = 0.0
+
+    per_night = adult_rate * adults + child_rate * children
+    total = per_night * nights
+    return {
+        "adult_rate": adult_rate,
+        "child_rate": child_rate,
+        "nights": nights,
+        "per_night": per_night,
+        "total": total,
+        "currency": currency,
+    }
+
+
+def _package_pricing(package: Package, adults: int, children: int) -> dict:
+    row = db.session.scalars(
+        select(PackagePrice)
+        .where(PackagePrice.package_id == package.id)
+        .order_by(PackagePrice.id.asc()).limit(1)
+    ).first()
+    if row is None:
+        return {
+            "adult_rate": None, "child_rate": None, "nights": package.duration_nights,
+            "per_night": None, "total": None, "currency": "EUR",
+        }
+    adult_rate = float(row.adult_price or 0)
+    child_rate = float(row.child_price or 0)
+    per_person = adult_rate * adults + child_rate * children
+    return {
+        "adult_rate": adult_rate,
+        "child_rate": child_rate,
+        "nights": package.duration_nights,
+        "per_night": None,
+        "per_person": per_person,
+        "total": per_person,
+        "currency": row.currency or "EUR",
+    }
+
+
+def _activity_pricing(activity: Activity, adults: int, children: int) -> dict:
+    row = db.session.scalars(
+        select(ActivityPrice)
+        .where(ActivityPrice.activity_id == activity.id)
+        .order_by(ActivityPrice.id.asc()).limit(1)
+    ).first()
+    if row is None:
+        return {
+            "adult_rate": None, "child_rate": None, "nights": None,
+            "per_night": None, "total": None, "currency": "EUR",
+        }
+    adult_rate = float(row.adult_price or 0)
+    child_rate = float(row.child_price or 0)
+    per_person = adult_rate * adults + child_rate * children
+    return {
+        "adult_rate": adult_rate,
+        "child_rate": child_rate,
+        "nights": None,
+        "per_night": None,
+        "per_person": per_person,
+        "total": per_person,
+        "currency": row.currency or "EUR",
+    }
+
+
+# ─── Booking start (GET) ────────────────────────────────────────────
 @public_bp.route("/booking/start/<product_type>/<int:product_id>", methods=["GET"])
 def booking_start(product_type: str, product_id: int):
-    """Show the booking form for a product."""
+    """Show the booking form for a product.
+
+    Reads defaults from the URL query string so a "Book now" link from a
+    detail page lands with everything pre-filled.
+    """
     if product_type not in VALID_PRODUCT_TYPES:
         abort(404)
 
@@ -159,10 +276,25 @@ def booking_start(product_type: str, product_id: int):
     if product is None:
         abort(404)
 
-    # ─── Optional departure option (packages only) ────────────────
-    # When the customer picked a specific flight + rate on the
-    # package page, we honour it here: the option's price is used,
-    # and the flight is displayed in the summary.
+    # ─── Read defaults from URL ────────────────────────────────────
+    check_in = _parse_date(request.args.get("check_in"))
+    check_out = _parse_date(request.args.get("check_out"))
+    activity_date = _parse_date(request.args.get("date")) or _parse_date(request.args.get("activity_date"))
+    adults = _to_int(request.args.get("adults"), 2, 1, 8)
+    children = _to_int(request.args.get("children"), 0, 0, 8)
+
+    # Sensible fallbacks
+    if product_type == PRODUCT_TYPE_HOTEL and not check_in:
+        check_in = date.today()
+        check_out = check_in + timedelta(days=7)
+    elif product_type == PRODUCT_TYPE_HOTEL and check_in and not check_out:
+        check_out = check_in + timedelta(days=7)
+    elif product_type == PRODUCT_TYPE_PACKAGE and not activity_date:
+        activity_date = date.today() + timedelta(days=30)
+    elif product_type == PRODUCT_TYPE_ACTIVITY and not activity_date:
+        activity_date = date.today() + timedelta(days=7)
+
+    # ─── Optional departure option (packages only) ─────────────────
     option = None
     raw_option_id = (request.args.get("option_id") or "").strip()
     if product_type == "package" and raw_option_id:
@@ -178,26 +310,38 @@ def booking_start(product_type: str, product_id: int):
     meta = _product_meta(product_type, product)
 
     # If a valid option was selected, override meta's price fields
-    # so the booking form shows that option's price.
     if option is not None and option.price is not None:
         try:
             meta["price_adult"] = float(option.price.adult_price)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         try:
             meta["price_child"] = float(option.price.child_price)
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
         if option.price.currency:
             meta["currency"] = option.price.currency
         if option.departure_date:
             meta["default_start"] = option.departure_date.isoformat()
 
-    # Recommended add-ons (upsell)
+    # ─── Compute the price for the stay (server-side) ──────────────
+    try:
+        if product_type == PRODUCT_TYPE_HOTEL:
+            pricing = _room_stay_pricing(product, check_in, check_out, adults, children)
+        elif product_type == PRODUCT_TYPE_PACKAGE:
+            pricing = _package_pricing(product, adults, children)
+        elif product_type == PRODUCT_TYPE_ACTIVITY:
+            pricing = _activity_pricing(product, adults, children)
+        else:
+            pricing = {}
+    except Exception as exc:
+        current_app.logger.warning("booking_start pricing failed: %s", exc)
+        pricing = {}
+
+    # ─── Recommended add-ons (upsell) ──────────────────────────────
     addons: list[dict] = []
     try:
         if product_type == PRODUCT_TYPE_ACTIVITY:
-            # No add-ons recommended for a pure activity booking
             pass
         elif product_type == PRODUCT_TYPE_HOTEL:
             hotel = db.session.get(Hotel, product.hotel_id)
@@ -213,7 +357,7 @@ def booking_start(product_type: str, product_id: int):
         current_app.logger.warning("recommendations failed: %s", exc)
         addons = []
 
-    # Serialise the option for the template
+    # ─── Serialise the option for the template ─────────────────────
     option_summary = None
     if option is not None:
         flight = option.flight
@@ -239,10 +383,18 @@ def booking_start(product_type: str, product_id: int):
         meta=meta,
         addons=addons,
         option=option_summary,
+        pricing=pricing,
+        form_defaults={
+            "check_in": check_in,
+            "check_out": check_out,
+            "activity_date": activity_date,
+            "adults": adults,
+            "children": children,
+        },
     )
 
 
-# ─── Booking create (POST) ─────────────────────────────────────────
+# ─── Booking create (POST) ──────────────────────────────────────────
 @public_bp.route("/booking/create", methods=["POST"])
 def booking_create():
     """Create the booking, then either redirect to PayPal or confirm."""
@@ -262,25 +414,32 @@ def booking_create():
         return redirect(url_for("public.index"))
 
     # Travellers
-    adults = _to_int(request.form.get("adults"), 1, 1, 20)
-    children = _to_int(request.form.get("children"), 0, 0, 20)
+    adults = _to_int(request.form.get("adults"), 1, 1, 8)
+    children = _to_int(request.form.get("children"), 0, 0, 8)
 
     # Dates
     check_in = _parse_date(request.form.get("check_in"))
     check_out = _parse_date(request.form.get("check_out"))
     activity_date = _parse_date(request.form.get("activity_date"))
 
-    # Guest details (only used if not logged in)
+    # Guest details
     guest_email = (request.form.get("guest_email") or "").strip().lower()
     guest_name = (request.form.get("guest_name") or "").strip()
     guest_phone = (request.form.get("guest_phone") or "").strip()
+
+    # Marketing + payment preferences
+    how_heard = (request.form.get("how_heard") or "").strip() or None
+    payment_method = (request.form.get("payment_method") or "").strip() or None
 
     if not current_user.is_authenticated:
         if not guest_email or "@" not in guest_email:
             flash("Please provide a valid email address.", "danger")
             return redirect(request.referrer or url_for("public.index"))
+        if not guest_name:
+            flash("Please provide your name.", "danger")
+            return redirect(request.referrer or url_for("public.index"))
 
-    # Add-ons from the form (checkboxes named addon_<activity_id>)
+    # Add-ons from the form
     addon_specs: list[dict] = []
     for key in request.form.keys():
         if not key.startswith("addon_"):
@@ -322,17 +481,24 @@ def booking_create():
             return redirect(request.referrer or url_for("public.index"))
     except availability_service.AvailabilityError as exc:
         current_app.logger.warning("availability check failed: %s", exc)
-        # Do not block the booking on an availability error
 
-    # Build the traveller list (we use just a count for now; a real form
-    # would collect each traveller's name)
+    # Travellers — named per person if provided, else fallback to guest name
     travellers: list[dict] = []
-    for _ in range(adults):
-        travellers.append({"full_name": guest_name or "Guest", "traveller_type": "adult"})
-    for _ in range(children):
-        travellers.append({"full_name": guest_name or "Guest", "traveller_type": "child"})
+    for i in range(adults):
+        raw = (request.form.get(f"traveller_name_{i}") or "").strip()
+        travellers.append({
+            "full_name": raw or guest_name or f"Adult {i + 1}",
+            "traveller_type": "adult",
+        })
+    for j in range(children):
+        idx = adults + j
+        raw = (request.form.get(f"traveller_name_{idx}") or "").strip()
+        travellers.append({
+            "full_name": raw or f"Child {j + 1}",
+            "traveller_type": "child",
+        })
 
-    # Normalise addon_specs into the shape booking_service expects
+    # Add-on items
     addon_items: list[dict] = []
     for spec in addon_specs:
         try:
@@ -340,7 +506,7 @@ def booking_create():
             if a is None:
                 continue
             price_row = db.session.scalar(
-                __import__("sqlalchemy").select(ActivityPrice)
+                select(ActivityPrice)
                 .where(ActivityPrice.activity_id == a.id)
                 .order_by(ActivityPrice.id).limit(1)
             )
@@ -357,6 +523,9 @@ def booking_create():
             "name": a.name,
         })
 
+    # Currency
+    currency = "EUR"  # all products priced in EUR
+
     # Create the booking
     try:
         booking = booking_service.create_booking(
@@ -365,7 +534,7 @@ def booking_create():
             travellers_adults=adults,
             travellers_children=children,
             total_amount=total,
-            currency=meta_currency(product_type, product_id),
+            currency=currency,
             user=current_user if current_user.is_authenticated else None,
             guest_email=guest_email if not current_user.is_authenticated else None,
             guest_name=guest_name if not current_user.is_authenticated else None,
@@ -375,16 +544,19 @@ def booking_create():
             activity_date=activity_date,
             special_requests=(request.form.get("special_requests") or "").strip() or None,
             addon_items=addon_items,
+            how_heard=how_heard,
+            payment_method=payment_method,
+            travellers=travellers,
         )
     except booking_service.BookingError as exc:
         db.session.rollback()
         flash(f"Could not create booking: {exc}", "danger")
         return redirect(request.referrer or url_for("public.index"))
 
-    # Look up the initial Payment row (created by booking_service)
+    # Look up the initial Payment row
     from models import Payment
     payment = db.session.scalar(
-        __import__("sqlalchemy").select(Payment)
+        select(Payment)
         .where(Payment.booking_id == booking.id)
         .order_by(Payment.id).limit(1)
     )
@@ -411,20 +583,12 @@ def booking_create():
     return redirect(url_for("public.booking_confirmation", reference=booking.reference))
 
 
-def meta_currency(product_type: str, product_id: int) -> str:
-    """Return the currency for the product (EUR for rooms/packages, USD for activities)."""
-    if product_type == PRODUCT_TYPE_ACTIVITY:
-        return "USD"
-    return "EUR"
-
-
-# ─── PayPal return ─────────────────────────────────────────────────
+# ─── PayPal return ──────────────────────────────────────────────────
 @public_bp.route("/booking/paypal/return")
 def booking_paypal_return():
     """Handle the PayPal return URL — capture and confirm."""
     payment_id = request.args.get("paymentId", "").strip()
     payer_id = request.args.get("PayerID", "").strip()
-    token = request.args.get("token", "").strip()
 
     if not payment_id or not payer_id:
         flash("Missing PayPal parameters.", "danger")
@@ -432,7 +596,7 @@ def booking_paypal_return():
 
     from models import Payment
     payment = db.session.scalar(
-        __import__("sqlalchemy").select(Payment)
+        select(Payment)
         .where(Payment.provider_payment_id == payment_id)
         .limit(1)
     )
@@ -448,8 +612,7 @@ def booking_paypal_return():
         db.session.commit()
         return redirect(url_for("public.index"))
 
-    # Mark the booking confirmed
-    booking = db.session.get(__import__("models").Booking, payment.booking_id)
+    booking = db.session.get(Booking, payment.booking_id)
     try:
         if booking is not None:
             booking_service.mark_confirmed(booking, role="system")
@@ -463,7 +626,7 @@ def booking_paypal_return():
     return redirect(url_for("public.index"))
 
 
-# ─── PayPal cancel ─────────────────────────────────────────────────
+# ─── PayPal cancel ──────────────────────────────────────────────────
 @public_bp.route("/booking/paypal/cancel")
 def booking_paypal_cancel():
     """Customer pressed Cancel at PayPal."""
@@ -471,22 +634,18 @@ def booking_paypal_cancel():
     return redirect(url_for("public.index"))
 
 
-# ─── Confirmation ──────────────────────────────────────────────────
+# ─── Confirmation ───────────────────────────────────────────────────
 @public_bp.route("/booking/confirmation/<reference>")
 def booking_confirmation(reference: str):
     """Post-booking confirmation page."""
-    from models import Booking
     booking = db.session.scalar(
-        __import__("sqlalchemy").select(Booking)
-        .where(Booking.reference == reference)
+        select(Booking).where(Booking.reference == reference)
     )
     if booking is None:
         abort(404)
-    # WHY pass is_configured: the template shows a dev-mode banner when
-    # PayPal is unconfigured so the demo audience understands why no
-    # payment step appeared. Without this, users think the flow is broken.
     return render_template(
         "public/booking_confirmation.html",
         booking=booking,
         payment_service_configured=payment_service.is_configured(),
     )
+

@@ -1,40 +1,25 @@
-"""
+﻿"""
 services/recommendation_service.py
 ──────────────────────────────────
-Suggest add-on activities for a hotel or package booking.
+Rank and return add-on activities for a hotel, package, or booking.
 
-The upsell flow (a core feature of the coursework brief) offers optional
-activities for the same destination as the booking. This service selects
-and ranks those suggestions.
+Public API
+----------
+    recommend_addons_for_hotel(hotel_id, ...)      -> list[dict]
+    recommend_addons_for_package(package_id, ...)  -> list[dict]
+    recommend_addons_for_booking(booking, ...)     -> list[dict]
 
-SELECTION RULES
-    1. Same destination as the hotel/package (mandatory).
-    2. Activity is_active=True.
-    3. Activity has a price row (so the client can add it and know the cost).
-    4. Activity is not already in the booking (via exclude_ids).
-    5. If a target date is known, there is still capacity for it.
+Each dict exposes:
+    id, code, name, slug, category, difficulty, duration_hours,
+    capacity, destination_id, price_adult, price_child, currency,
+    image_url, avg_rating, score
 
-RANKING (highest first)
-    score = 0.7 * avg_rating + 0.3 * capacity_norm
-    where:
-        avg_rating is 0..5 (from Mongo reviews, or 0 if Mongo unavailable)
-        capacity_norm is min(activity.capacity / 20, 1.0)
-
-PUBLIC API
-    recommend_addons_for_hotel(hotel_id, check_in=None, check_out=None,
-                               exclude_ids=None, limit=6) -> list[dict]
-    recommend_addons_for_package(package_id, target_date=None,
-                                 exclude_ids=None, limit=6) -> list[dict]
-    recommend_addons_for_booking(booking, limit=6) -> list[dict]
-
-DESIGN NOTES
-    - Reads only. Never writes.
-    - Returns PLAIN DICTS so templates don't touch ORM objects.
-    - Mongo rating lookups are best-effort: if Mongo is down, ratings
-      are treated as 0 and we still return recommendations.
-    - availability_service is imported lazily to avoid an import cycle
-      at package load time.
-    - No Flask request imports — pure business logic.
+Design notes
+------------
+- Price lookup uses the first ActivityPrice row (mirrors search_service).
+- image_url points at ActivityImage.url when available, else None.
+- Ranking blends rating and capacity so small-group premium activities
+  don't get drowned out by high-capacity mass tourism ones.
 """
 
 from __future__ import annotations
@@ -44,100 +29,100 @@ from datetime import date
 from typing import Iterable, Optional
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 from extensions import db
-from models import (
-    Activity,
-    ActivityPrice,
-    Booking,
-    Hotel,
-    Package,
-    PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
-)
+from models import Activity, ActivityPrice, Booking, Hotel, Package, Room
+from models.activity import ActivityImage  # noqa: PLC0415
+from models.booking_item import BookingItem  # noqa: PLC0415
+from models import PRODUCT_TYPE_HOTEL
 
 
 log = logging.getLogger(__name__)
 
 
-# ─── Domain exceptions ─────────────────────────────────────────────
+# ─── Errors ─────────────────────────────────────────────────────────
 class RecommendationError(Exception):
-    """Base class for recommendation-domain errors."""
+    """Base error for the recommendation service."""
 
 
 class RecommendationProductNotFound(RecommendationError):
-    """The hotel/package id passed in does not exist."""
+    """Raised when the requested product does not exist."""
 
 
-# ─── Constants ─────────────────────────────────────────────────────
+# ─── Constants ──────────────────────────────────────────────────────
 DEFAULT_LIMIT = 6
 MAX_LIMIT = 20
 CAPACITY_NORM = 20.0
 
 
-# ─── Helpers ───────────────────────────────────────────────────────
+# ─── Internals ──────────────────────────────────────────────────────
 def _clamp_limit(limit: int | None) -> int:
-    if limit is None:
+    if not limit:
         return DEFAULT_LIMIT
     try:
         n = int(limit)
     except (TypeError, ValueError):
         return DEFAULT_LIMIT
-    return max(1, min(n, MAX_LIMIT))
+    return max(1, min(MAX_LIMIT, n))
 
 
 def _rating_lookup(product_ids: list[int]) -> dict[int, float]:
-    """
-    Fetch average ratings for the given activity ids from Mongo.
-
-    Best-effort: if Mongo is unavailable, returns an empty dict — the
-    caller treats missing ratings as 0.
-    """
+    """Best-effort Mongo rating lookup — returns {} if Mongo is down."""
     if not product_ids:
         return {}
-
     try:
         from mongo.reviews import rating_summary  # noqa: PLC0415
-    except Exception:  # noqa: BLE001 — Mongo not ready in dev
+    except Exception:
         return {}
-
     out: dict[int, float] = {}
     for pid in product_ids:
         try:
             summary = rating_summary("activity", pid)
-            avg = summary.get("average")
-            if avg is not None:
-                out[pid] = float(avg)
-        except Exception:  # noqa: BLE001
-            continue
+            out[pid] = float(summary.get("average") or 0.0)
+        except Exception:
+            out[pid] = 0.0
     return out
 
 
-def _first_price_for(activity_id: int) -> tuple[Optional[float], Optional[str]]:
-    """Return (adult_price, currency) from the first ActivityPrice row."""
-    row = db.session.scalar(
+def _first_price_for(activity_id: int) -> tuple[float | None, float | None, str]:
+    """Return (adult_price, child_price, currency) for the first price row."""
+    row = db.session.scalars(
         select(ActivityPrice)
         .where(ActivityPrice.activity_id == activity_id)
-        .order_by(ActivityPrice.id)
+        .order_by(ActivityPrice.id.asc())
         .limit(1)
-    )
+    ).first()
     if row is None:
-        return (None, None)
-    try:
-        return (float(row.adult_price), row.currency)
-    except Exception:  # noqa: BLE001
-        return (None, None)
+        return None, None, "EUR"
+    adult = float(row.adult_price) if row.adult_price is not None else None
+    child = float(row.child_price) if row.child_price is not None else None
+    return adult, child, (row.currency or "EUR")
+
+
+def _first_image_url(activity_id: int) -> str | None:
+    """Return the first image URL for an activity, or None."""
+    row = db.session.scalars(
+        select(ActivityImage)
+        .where(ActivityImage.activity_id == activity_id)
+        .order_by(ActivityImage.sort_order.asc(), ActivityImage.id.asc())
+        .limit(1)
+    ).first()
+    if row is None or not row.url:
+        return None
+    url = row.url.strip()
+    if not url:
+        return None
+    # If the URL doesn't start with http or /, assume it's a static-relative path
+    if not (url.startswith("http") or url.startswith("/")):
+        url = "/" + url
+    return url
 
 
 def _score(avg_rating: float, capacity: int) -> float:
-    """
-    Weighted ranking score.
-
-    70% rating + 30% capacity (normalised so a 20-seat activity hits 1.0).
-    """
-    cap_norm = min(max(capacity, 0) / CAPACITY_NORM, 1.0)
-    return round(0.7 * avg_rating + 0.3 * cap_norm, 4)
+    """Blend rating (0-5) and capacity into a single ranking score."""
+    cap_score = min(1.0, (capacity or 0) / CAPACITY_NORM)
+    rating_score = (avg_rating or 0.0) / 5.0
+    return rating_score * 0.7 + cap_score * 0.3
 
 
 def _to_public_dict(
@@ -145,7 +130,7 @@ def _to_public_dict(
     avg_rating: float,
 ) -> dict:
     """Convert an Activity ORM object into a plain dict for templates."""
-    adult_price, currency = _first_price_for(activity.id)
+    adult_price, child_price, currency = _first_price_for(activity.id)
     return {
         "id": activity.id,
         "code": activity.code,
@@ -161,13 +146,15 @@ def _to_public_dict(
         "capacity": activity.capacity,
         "destination_id": activity.destination_id,
         "price_adult": adult_price,
+        "price_child": child_price,
         "currency": currency,
+        "image_url": _first_image_url(activity.id),
         "avg_rating": avg_rating,
         "score": _score(avg_rating, activity.capacity or 0),
     }
 
 
-# ─── Core ranking ──────────────────────────────────────────────────
+# ─── Core ranking ───────────────────────────────────────────────────
 def _recommend_for_destination(
     *,
     destination_id: int,
@@ -175,12 +162,7 @@ def _recommend_for_destination(
     target_date: Optional[date] = None,
     limit: int = DEFAULT_LIMIT,
 ) -> list[dict]:
-    """
-    Fetch and rank activities in a destination.
-
-    Target date, if provided, is used to filter activities that have no
-    availability left for that day.
-    """
+    """Fetch and rank activities in a destination."""
     exclude_set = set(exclude_ids or [])
     limit = _clamp_limit(limit)
 
@@ -196,46 +178,38 @@ def _recommend_for_destination(
     if not activities:
         return []
 
-    # Filter to those that have a price row
     activities = [a for a in activities if _first_price_for(a.id)[0] is not None]
     if not activities:
         return []
 
-    # Exclude explicit ids
-    if exclude_set:
-        activities = [a for a in activities if a.id not in exclude_set]
-    if not activities:
-        return []
-
-    # Availability filter for the target date (best-effort: skip on error)
     if target_date is not None:
         try:
-            from services.availability_service import activity_availability  # noqa: PLC0415
-            filtered = []
+            from services import availability_service  # noqa: PLC0415
+            filtered: list[Activity] = []
             for a in activities:
                 try:
-                    if activity_availability(a.id, target_date) > 0:
+                    remaining = availability_service.activity_availability(
+                        a.id, target_date
+                    )
+                    if remaining is None or remaining > 0:
                         filtered.append(a)
-                except Exception:  # noqa: BLE001
-                    filtered.append(a)  # keep on error
-            activities = filtered
-        except Exception:  # noqa: BLE001
-            pass
+                except Exception:
+                    filtered.append(a)
+            activities = filtered or activities
+        except Exception as exc:
+            log.debug("availability filter skipped: %s", exc)
 
-    if not activities:
-        return []
+    if exclude_set:
+        activities = [a for a in activities if a.id not in exclude_set]
 
-    # Fetch Mongo ratings for the surviving set
     ids = [a.id for a in activities]
     ratings = _rating_lookup(ids)
-
-    # Build public dicts + sort by score
     rows = [_to_public_dict(a, ratings.get(a.id, 0.0)) for a in activities]
     rows.sort(key=lambda r: (-r["score"], r["id"]))
     return rows[:limit]
 
 
-# ─── Public API ────────────────────────────────────────────────────
+# ─── Public API ─────────────────────────────────────────────────────
 def recommend_addons_for_hotel(
     hotel_id: int,
     *,
@@ -244,12 +218,7 @@ def recommend_addons_for_hotel(
     exclude_ids: Optional[Iterable[int]] = None,
     limit: int = DEFAULT_LIMIT,
 ) -> list[dict]:
-    """
-    Suggest activities for a hotel's destination.
-
-    check_in / check_out are used to pick a representative date for the
-    availability filter (we use check_in). Pass None to skip filtering.
-    """
+    """Suggest activities for a hotel's destination."""
     hotel = db.session.get(Hotel, hotel_id)
     if hotel is None:
         raise RecommendationProductNotFound(f"hotel {hotel_id} not found")
@@ -288,25 +257,16 @@ def recommend_addons_for_booking(
     *,
     limit: int = DEFAULT_LIMIT,
 ) -> list[dict]:
-    """
-    Dispatch on the booking's product_type and return appropriate add-ons.
-
-    For an activity booking, no add-ons are suggested (an activity is
-    already the primary add-on). For a hotel or package booking, use the
-    matching helper and exclude activities already on the booking.
-    """
+    """Dispatch on the booking's product_type and return appropriate add-ons."""
     if booking is None:
         return []
 
-    # Gather ids already in the booking
     existing_ids = [
         item.product_id for item in (booking.items or [])
         if item.item_type == "activity_addon"
     ]
 
     if booking.product_type == PRODUCT_TYPE_HOTEL:
-        # product_id refers to a Room, not a Hotel. We need the room's hotel.
-        from models import Room  # noqa: PLC0415
         room = db.session.get(Room, booking.product_id)
         if room is None:
             return []
@@ -318,7 +278,7 @@ def recommend_addons_for_booking(
             limit=limit,
         )
 
-    if booking.product_type == PRODUCT_TYPE_PACKAGE:
+    if booking.product_type == "package":
         return recommend_addons_for_package(
             booking.product_id,
             target_date=booking.activity_date,
@@ -326,5 +286,14 @@ def recommend_addons_for_booking(
             limit=limit,
         )
 
-    # activity primary → nothing to add
+    # Activities don't recommend other activities
     return []
+
+
+__all__ = [
+    "RecommendationError",
+    "RecommendationProductNotFound",
+    "recommend_addons_for_hotel",
+    "recommend_addons_for_package",
+    "recommend_addons_for_booking",
+]
