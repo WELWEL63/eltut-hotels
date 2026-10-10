@@ -53,6 +53,7 @@ from extensions import db
 from models import (
     Activity,
     ActivityPrice,
+    Airline,
     Booking,
     Hotel,
     Package,
@@ -342,7 +343,22 @@ def booking_start(product_type: str, product_id: int):
         if product_type == PRODUCT_TYPE_HOTEL:
             pricing = _room_stay_pricing(product, check_in, check_out, adults, children)
         elif product_type == PRODUCT_TYPE_PACKAGE:
-            pricing = _package_pricing(product, adults, children)
+            # Use the selected departure option price if we have one.
+            # Otherwise fall back to the package's first price row.
+            if option is not None and option.price is not None:
+                _adult = float(option.price.adult_price or 0)
+                _child = float(option.price.child_price or 0)
+                pricing = {
+                    "adult_rate": _adult,
+                    "child_rate": _child,
+                    "nights": product.duration_nights,
+                    "per_night": None,
+                    "per_person": _adult,
+                    "total": (_adult * adults) + (_child * children),
+                    "currency": option.price.currency or "EUR",
+                }
+            else:
+                pricing = _package_pricing(product, adults, children)
         elif product_type == PRODUCT_TYPE_ACTIVITY:
             pricing = _activity_pricing(product, adults, children)
         else:
@@ -375,6 +391,23 @@ def booking_start(product_type: str, product_id: int):
     if option is not None:
         flight = option.flight
         price = option.price
+        # Resolve airline logo (best-effort via Airline FK, then name match)
+        airline_logo = None
+        if flight is not None:
+            try:
+                if getattr(flight, "airline_id", None):
+                    al = db.session.get(Airline, flight.airline_id)
+                    if al and al.logo_url:
+                        airline_logo = al.logo_url
+                if airline_logo is None and flight.airline_name:
+                    normalized = flight.airline_name.strip().lower().replace(" ", "")
+                    for a in db.session.scalars(select(Airline)):
+                        if a.name and a.name.strip().lower().replace(" ", "") == normalized:
+                            airline_logo = a.logo_url
+                            break
+            except Exception:
+                airline_logo = None
+
         option_summary = {
             "id": option.id,
             "label": option.display_label,
@@ -383,6 +416,7 @@ def booking_start(product_type: str, product_id: int):
             "flight_from": flight.flight_from if flight else None,
             "flight_to": flight.flight_to if flight else None,
             "airline_name": flight.airline_name if flight else None,
+            "airline_logo": airline_logo,
             "luggage_allowance": flight.luggage_allowance if flight else None,
             "price_adult": float(price.adult_price) if price else None,
             "price_child": float(price.child_price) if price else None,
