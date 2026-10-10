@@ -1,4 +1,4 @@
-"""
+﻿"""
 blueprints/public/hotel_routes.py
 ─────────────────────────────────
 Hotel listing and detail pages.
@@ -15,11 +15,18 @@ FILTERS (query parameters, all optional)
     sort         newest (default) | name | stars_desc | price_asc | price_desc
     page         1-based page number
 
+DETAIL PARAMS (query parameters, all optional)
+    check_in     YYYY-MM-DD (default: today)
+    check_out    YYYY-MM-DD (default: today + 7 days)
+    adults       int 1..8   (default: 2)
+    children     int 0..8   (default: 0)
+
 DESIGN NOTES
     - Reads only. No writes.
     - "from price" on a hotel = cheapest room's base_price_per_night.
-    - Room availability on the detail page uses default dates
-      (today -> today+7) when the visitor hasn't entered dates yet.
+    - Detail page reads check_in/check_out/adults/children from the URL.
+      It computes per-room totals using seasonal RoomRate rows where
+      they cover the requested check_in date.
     - Mongo rating lookup is best-effort (returns None on Mongo down).
 """
 
@@ -58,6 +65,16 @@ def _int_arg(name: str, default: int, lo: int, hi: int) -> int:
         return default
 
 
+def _parse_date_arg(name: str) -> date | None:
+    raw = (request.args.get(name) or "").strip()
+    if not raw:
+        return None
+    try:
+        return date.fromisoformat(raw)
+    except ValueError:
+        return None
+
+
 def _cheapest_room_price(hotel_id: int) -> tuple[float | None, str | None]:
     """Return (min base_price_per_night, currency) for a hotel, or (None, None)."""
     row = db.session.scalar(
@@ -67,7 +84,7 @@ def _cheapest_room_price(hotel_id: int) -> tuple[float | None, str | None]:
     if row is None:
         return (None, None)
     try:
-        return (float(row), "EUR")  # rooms store EUR in the seeded CSV
+        return (float(row), "EUR")
     except Exception:  # noqa: BLE001
         return (None, None)
 
@@ -122,7 +139,6 @@ def hotel_list():
         stmt = stmt.where(Hotel.stars == stars)
 
     if meal_plan and meal_plan in VALID_ROOM_MEAL_PLANS:
-        # Only hotels that have at least one room with this meal plan
         stmt = stmt.where(
             select(Room.id)
             .where(
@@ -136,7 +152,6 @@ def hotel_list():
     if query_text:
         stmt = stmt.where(Hotel.name.ilike(f"%{query_text}%"))
 
-    # Sorting
     if sort == "name":
         stmt = stmt.order_by(Hotel.name.asc())
     elif sort == "stars_desc":
@@ -230,11 +245,50 @@ def hotel_detail(slug: str):
         .order_by(Room.base_price_per_night)
     ))
 
-    # Room availability + seasonal rates for default dates (today -> today+7)
+    # ─── Read stay params from URL (fallback: today → today+7) ─────
     from models import RoomRate  # noqa: PLC0415
 
-    check_in = date.today()
-    check_out = check_in + timedelta(days=7)
+    url_check_in = _parse_date_arg("check_in")
+    url_check_out = _parse_date_arg("check_out")
+    if url_check_in and url_check_out and url_check_out > url_check_in:
+        check_in = url_check_in
+        check_out = url_check_out
+    else:
+        check_in = date.today()
+        check_out = check_in + timedelta(days=7)
+
+    nights = (check_out - check_in).days
+    adults = _int_arg("adults", 2, 1, 8)
+    children = _int_arg("children", 0, 0, 8)
+
+    def _stay_pricing(room: Room) -> dict:
+        """Per-night + total for a room, honouring seasonal RoomRate."""
+        rate = db.session.scalars(
+            select(RoomRate)
+            .where(RoomRate.room_id == room.id)
+            .where((RoomRate.valid_from.is_(None)) | (RoomRate.valid_from <= check_in))
+            .where((RoomRate.valid_to.is_(None)) | (RoomRate.valid_to >= check_in))
+            .order_by(RoomRate.id.asc())
+            .limit(1)
+        ).first()
+        if rate is not None:
+            adult_rate = float(rate.adult_price or 0)
+            child_rate = float(rate.child_price or 0)
+            currency = (rate.currency or "EUR")
+        else:
+            adult_rate = float(room.base_price_per_night or 0)
+            child_rate = 0.0
+            currency = "EUR"
+        per_night = adult_rate * adults + child_rate * children
+        total = per_night * max(nights, 0)
+        return {
+            "adult_rate": adult_rate,
+            "child_rate": child_rate,
+            "per_night": per_night,
+            "total": total,
+            "currency": currency,
+        }
+
     rooms_with_availability: list[dict] = []
     try:
         from services.availability_service import hotel_room_availability  # noqa: PLC0415
@@ -244,11 +298,8 @@ def hotel_detail(slug: str):
             except Exception:  # noqa: BLE001
                 remaining = None
 
-            # Attach the seasonal rate windows for this room (up to 12,
-            # soonest first). These populate the "Rates for this room"
-            # sub-table on the detail page.
             rate_rows = list(db.session.scalars(
-                __import__("sqlalchemy").select(RoomRate)
+                select(RoomRate)
                 .where(RoomRate.room_id == room.id)
                 .order_by(RoomRate.valid_from.asc().nullsfirst())
                 .limit(12)
@@ -258,12 +309,13 @@ def hotel_detail(slug: str):
                 "room": room,
                 "remaining": remaining,
                 "rates": rate_rows,
+                "pricing": _stay_pricing(room),
             })
     except Exception:  # noqa: BLE001
         rooms_with_availability = []
         for r in rooms:
             rate_rows = list(db.session.scalars(
-                __import__("sqlalchemy").select(RoomRate)
+                select(RoomRate)
                 .where(RoomRate.room_id == r.id)
                 .order_by(RoomRate.valid_from.asc().nullsfirst())
                 .limit(12)
@@ -272,6 +324,7 @@ def hotel_detail(slug: str):
                 "room": r,
                 "remaining": None,
                 "rates": rate_rows,
+                "pricing": _stay_pricing(r),
             })
 
     avg_rating, review_count = _avg_rating(hotel.id)
@@ -287,7 +340,6 @@ def hotel_detail(slug: str):
         .limit(3)
     ))
 
-    # New detail-page content (Phase 6.7)
     inclusions = list(db.session.scalars(
         select(HotelInclusion)
         .where(HotelInclusion.hotel_id == hotel.id)
@@ -304,17 +356,21 @@ def hotel_detail(slug: str):
         .order_by(HotelFAQ.sort_order, HotelFAQ.id)
     ))
 
-    # Cheapest base room price for the "From €X / night" sidebar
-    min_price = None
+    # ─── Cheapest total for the sidebar (respects dates + party) ───
+    cheapest_total = None
+    cheapest_per_night = None
+    sidebar_currency = "EUR"
     try:
-        min_price = db.session.scalar(
-            select(func.min(Room.base_price_per_night))
-            .where(Room.hotel_id == hotel.id, Room.is_active.is_(True))
-        )
+        priced = [r for r in rooms_with_availability if r.get("pricing")]
+        if priced:
+            cheapest = min(priced, key=lambda r: (r["pricing"]["total"] or 0))
+            cheapest_total = cheapest["pricing"]["total"]
+            cheapest_per_night = cheapest["pricing"]["per_night"]
+            sidebar_currency = cheapest["pricing"]["currency"]
     except Exception:
-        min_price = None
+        cheapest_total = None
 
-    # ─── Reviews (from MongoDB, best-effort) ──────────────────────
+    # ─── Reviews (from MongoDB, best-effort) ───────────────────────
     reviews: list[dict] = []
     user_has_reviewed = False
     try:
@@ -342,7 +398,12 @@ def hotel_detail(slug: str):
         inclusions=inclusions,
         exclusions=exclusions,
         faqs=faqs,
-        min_price=min_price,
+        cheapest_total=cheapest_total,
+        cheapest_per_night=cheapest_per_night,
+        sidebar_currency=sidebar_currency,
+        nights=nights,
+        adults=adults,
+        children=children,
         reviews=reviews,
         user_has_reviewed=user_has_reviewed,
         hotel=hotel,

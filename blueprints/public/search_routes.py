@@ -1,6 +1,6 @@
-"""
+﻿"""
 blueprints/public/search_routes.py
-────────────────────────────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Public search widget handler + results page.
 
 ROUTES
@@ -57,17 +57,20 @@ def _parse_date(value: str | None) -> date | None:
         return None
 
 
-def _int_arg(name: str, default: int, minimum: int = 0) -> int:
+def _int_arg(name: str, default: int, minimum: int = 0, maximum: int | None = None) -> int:
     raw = request.args.get(name)
     if raw is None or raw == "":
         return default
     try:
-        return max(minimum, int(raw))
+        value = max(minimum, int(raw))
+        if maximum is not None:
+            value = min(value, maximum)
+        return value
     except (TypeError, ValueError):
         return default
 
 
-# ─── /search → redirect to results ────────────────────────────────────────
+# â”€â”€â”€ /search â†’ redirect to results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @public_bp.route("/search")
 def search_shortcut():
     """Widget action URL. Redirects to /search/results preserving query."""
@@ -75,12 +78,12 @@ def search_shortcut():
     return redirect(url_for("public.search_results", **qs))
 
 
-# ─── /search/results → actual render ──────────────────────────────────────
+# â”€â”€â”€ /search/results â†’ actual render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @public_bp.route("/search/results")
 def search_results():
     """Render search results for the currently selected product type."""
 
-    # ─── Parse filters from the query string ───────────────────────
+    # â”€â”€â”€ Parse filters from the query string â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     product_type = (request.args.get("type") or "hotel").strip().lower()
     destination = (request.args.get("destination") or "").strip() or None
     q = (request.args.get("q") or "").strip() or None
@@ -90,14 +93,14 @@ def search_results():
     check_out = _parse_date(request.args.get("check_out"))
     activity_date = _parse_date(request.args.get("date"))
 
-    adults = _int_arg("adults", 1, minimum=1)
-    children = _int_arg("children", 0, minimum=0)
+    adults = _int_arg("adults", 1, minimum=1, maximum=8)
+    children = _int_arg("children", 0, minimum=0, maximum=8)
     page = _int_arg("page", 1, minimum=1)
 
     per_page = int(current_app.config.get("ITEMS_PER_PAGE", 12) or 12)
     per_page = max(6, min(per_page, 48))
 
-    # ─── Run the search ────────────────────────────────────────────
+    # â”€â”€â”€ Run the search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     result = search_service.search(
         product_type=product_type,
         destination=destination,
@@ -112,7 +115,7 @@ def search_results():
         q=q,
     )
 
-    # ─── Dropdown data for the persistent widget on the results page ─
+    # â”€â”€â”€ Dropdown data for the persistent widget on the results page â”€
     destinations = search_service.destinations_for_widget()
 
     return render_template(

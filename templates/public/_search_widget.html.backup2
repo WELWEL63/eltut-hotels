@@ -1,0 +1,203 @@
+﻿{#
+   Search widget V2 â€” designed to sit centered on the hero.
+   Include with: {% include "public/_search_widget.html" %}
+
+   Three tabs (Hotels | Packages | Activities).
+   Auto-advances through tabs until the user interacts with one.
+
+   Each tab is a separate <form> so the browser submits only the
+   fields for that product type â€” no JS required for switching.
+#}
+
+{% set _dests = search_destinations() %}
+
+<div class="search-widget search-widget-hero" id="eltutSearchWidget">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="sw-hotel-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#sw-hotel"
+                    type="button"
+                    role="tab">
+                <i class="bi bi-building"></i> <span class="d-none d-sm-inline">Hotels</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="sw-package-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#sw-package"
+                    type="button"
+                    role="tab">
+                <i class="bi bi-suitcase-lg"></i> <span class="d-none d-sm-inline">Packages</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="sw-activity-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#sw-activity"
+                    type="button"
+                    role="tab">
+                <i class="bi bi-compass"></i> <span class="d-none d-sm-inline">Activities</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        {# â”€â”€â”€ Hotels â”€â”€â”€ #}
+        <div class="tab-pane fade show active" id="sw-hotel" role="tabpanel">
+            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
+                <input type="hidden" name="type" value="hotel">
+                <div class="row g-2 g-md-3 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
+                        <select name="destination" class="form-select form-select-lg">
+                            <option value="">Where would you like to go?</option>
+                            {% for d in _dests %}
+                                <option value="{{ d.slug }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-calendar-check"></i> Check-in</label>
+                        <input type="date" name="check_in" id="sw-hotel-in"
+                               class="form-control form-control-lg"
+                               min="{{ today().isoformat() }}">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-calendar-x"></i> Check-out</label>
+                        <input type="date" name="check_out" id="sw-hotel-out"
+                               class="form-control form-control-lg"
+                               min="{{ today().isoformat() }}">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-people-fill"></i> Guests</label>
+                        <div class="input-group input-group-lg">
+                            <input type="number" name="adults" class="form-control" value="2" min="1" max="8" title="Adults" placeholder="A">
+                            <span class="input-group-text">+</span>
+                            <input type="number" name="children" class="form-control" value="0" min="0" max="8" title="Children" placeholder="C">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {# â”€â”€â”€ Packages â”€â”€â”€ #}
+        <div class="tab-pane fade" id="sw-package" role="tabpanel">
+            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
+                <input type="hidden" name="type" value="package">
+                <div class="row g-2 g-md-3 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
+                        <select name="destination" class="form-select form-select-lg">
+                            <option value="">Where would you like to go?</option>
+                            {% for d in _dests %}
+                                <option value="{{ d.slug }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-calendar-check"></i> From</label>
+                        <input type="date" name="check_in" id="sw-pkg-in"
+                               class="form-control form-control-lg"
+                               min="{{ today().isoformat() }}">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-calendar-x"></i> To</label>
+                        <input type="date" name="check_out" id="sw-pkg-out"
+                               class="form-control form-control-lg"
+                               min="{{ today().isoformat() }}">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-people-fill"></i> Guests</label>
+                        <div class="input-group input-group-lg">
+                            <input type="number" name="adults" class="form-control" value="2" min="1" max="8" title="Adults" placeholder="A">
+                            <span class="input-group-text">+</span>
+                            <input type="number" name="children" class="form-control" value="0" min="0" max="8" title="Children" placeholder="C">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {# â”€â”€â”€ Activities â”€â”€â”€ #}
+        <div class="tab-pane fade" id="sw-activity" role="tabpanel">
+            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
+                <input type="hidden" name="type" value="activity">
+                <div class="row g-2 g-md-3 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
+                        <select name="destination" class="form-select form-select-lg">
+                            <option value="">Where would you like to go?</option>
+                            {% for d in _dests %}
+                                <option value="{{ d.slug }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label"><i class="bi bi-calendar-check"></i> When</label>
+                        <input type="date" name="date" class="form-control form-control-lg"
+                               min="{{ today().isoformat() }}">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label"><i class="bi bi-people-fill"></i> Guests</label>
+                        <div class="input-group input-group-lg">
+                            <input type="number" name="adults" class="form-control" value="2" min="1" max="8" title="Adults" placeholder="A">
+                            <span class="input-group-text">+</span>
+                            <input type="number" name="children" class="form-control" value="0" min="0" max="8" title="Children" placeholder="C">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Keep check-out >= check-in for each form
+    [['sw-hotel-in', 'sw-hotel-out'], ['sw-pkg-in', 'sw-pkg-out']].forEach(function(pair) {
+        const start = document.getElementById(pair[0]);
+        const end = document.getElementById(pair[1]);
+        if (!start || !end) return;
+        start.addEventListener('change', function() {
+            if (start.value) end.min = start.value;
+            if (end.value && end.value < start.value) end.value = start.value;
+        });
+    });
+
+    // Auto-rotate the search tabs until the user interacts with any form
+    const widget = document.getElementById('eltutSearchWidget');
+    if (!widget) return;
+    let stopped = false;
+    widget.addEventListener('click', function() { stopped = true; });
+    widget.addEventListener('focusin', function() { stopped = true; });
+    const tabs = ['#sw-hotel-tab', '#sw-package-tab', '#sw-activity-tab'];
+    let current = 0;
+    setInterval(function() {
+        if (stopped) return;
+        current = (current + 1) % tabs.length;
+        const el = document.querySelector(tabs[current]);
+        if (el && window.bootstrap && window.bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(el).show();
+        }
+    }, 5000);
+})();
+</script>

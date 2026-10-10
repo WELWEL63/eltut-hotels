@@ -717,3 +717,24 @@ Next step: paste email_service + mongo.logs signatures so I can
 write tasks.py with the right function names.
 Blockers: awaiting directory creation + 3 signature outputs
 === END STATE ===
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: A61 — Full replacement with room-selection panel (best design)
+Last Completed File: templates/public/hotel_detail.html (about to be replaced)
+Next File: browser test → then package_detail.html or booking_start
+What's included:
+  ✅ All previous sections (gallery, facilities, inclusions, rules, map, tips, FAQ, reviews)
+  ✅ Room cards with total + per-night pricing
+  ✅ NEW: select-room-btn → booking panel opens under card
+  ✅ NEW: Booking panel shows dates/nights/party/price math
+  ✅ NEW: Book now → booking form with all params
+  ✅ NEW: Change room → closes panel
+  ✅ NEW: Inline JS handles toggle, only one panel at a time
+  ✅ Sidebar shows cheapest_total + dates + nights + party
+Approach: VS Code paste (not PowerShell — learned lesson)
+Rollback: .before-panel backup exists
+Blockers:
+  - Awaiting: TEMPLATE PARSES OK + browser test
+=== END STATE ===
+

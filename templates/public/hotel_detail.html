@@ -1,5 +1,5 @@
-﻿{% extends "base.html" %}
-{% block title %}{{ hotel.name }} â€” {{ config.APP_NAME }}{% endblock %}
+{% extends "base.html" %}
+{% block title %}{{ hotel.name }} — {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <section class="py-4">
@@ -15,7 +15,7 @@
         <div class="row g-4">
             <div class="col-lg-8">
 
-                {# â”€â”€â”€ Gallery carousel â”€â”€â”€ #}
+                {# ─── Gallery carousel ─── #}
                 {% set visible_images = [] %}
                 {% for img in images %}
                     {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
@@ -47,7 +47,7 @@
                                     {% else %}
                                         <img src="{{ img.url }}" class="d-block w-100"
                                              style="height: 480px; object-fit: cover;"
-                                             alt="{{ hotel.name }} â€” photo {{ loop.index }}">
+                                             alt="{{ hotel.name }} — photo {{ loop.index }}">
                                     {% endif %}
                                     {% if img.type %}
                                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
@@ -74,16 +74,14 @@
                                    class="flex-shrink-0 position-relative" style="text-decoration:none;">
                                     {% if img.media_type == 'video' %}
                                         <div class="d-flex align-items-center justify-content-center"
-                                             style="width:90px; height:65px; background:#000;
-                                                    border-radius:6px; border:2px solid
-                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};">
+                                             style="width:90px; height:65px; background:#000; border-radius:6px;
+                                                    {% if loop.first %}border:2px solid var(--bs-primary);{% else %}border:2px solid transparent;{% endif %}">
                                             <i class="bi bi-play-circle-fill text-white" style="font-size:1.8rem;"></i>
                                         </div>
                                     {% else %}
                                         <img src="{{ img.url }}" alt=""
-                                             style="width:90px; height:65px; object-fit:cover;
-                                                    border-radius:6px; border:2px solid
-                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};">
+                                             style="width:90px; height:65px; object-fit:cover; border-radius:6px;
+                                                    {% if loop.first %}border:2px solid var(--bs-primary);{% else %}border:2px solid transparent;{% endif %}">
                                     {% endif %}
                                 </a>
                             {% endfor %}
@@ -95,7 +93,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Title block â”€â”€â”€ #}
+                {# ─── Title block ─── #}
                 <h1 class="mb-2">{{ hotel.name }}</h1>
 
                 <div class="mb-3">
@@ -112,7 +110,7 @@
                     {% endif %}
                 </div>
 
-                {# â”€â”€â”€ Description â”€â”€â”€ #}
+                {# ─── Description ─── #}
                 {% if hotel.description %}
                     <div class="section-header icon-ink">
             <span class="icon-box"><i class="bi bi-info-circle"></i></span>
@@ -121,7 +119,7 @@
                     <p>{{ hotel.description }}</p>
                 {% endif %}
 
-                {# â”€â”€â”€ Facilities â”€â”€â”€ #}
+                {# ─── Facilities ─── #}
                 {% if facilities %}
                     <div class="section-header icon-nile">
             <span class="icon-box"><i class="bi bi-stars"></i></span>
@@ -136,7 +134,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Inclusions / Exclusions â”€â”€â”€ #}
+                {# ─── Inclusions / Exclusions ─── #}
                 {% if inclusions or exclusions %}
                     <div class="row g-3 mt-4">
                         {% if inclusions %}
@@ -174,7 +172,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ House rules + Check-in details â”€â”€â”€ #}
+                {# ─── House rules + Check-in details ─── #}
                 {% if hotel.house_rules or hotel.check_in_details %}
                     <div class="section-header icon-gold">
             <span class="icon-box"><i class="bi bi-lightbulb"></i></span>
@@ -204,7 +202,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Cancellation policy â”€â”€â”€ #}
+                {# ─── Cancellation policy ─── #}
                 {% if hotel.cancellation_policy %}
                     <div class="alert alert-info mt-4">
                         <h6 class="alert-heading d-flex align-items-center gap-2">
@@ -215,20 +213,28 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Rooms & rates â”€â”€â”€ #}
+                {# ─── Rooms & rates ─── #}
                 {% if rooms_with_availability %}
-                    <div class="section-header icon-ink">
+                    <div class="section-header icon-ink" id="rooms-section">
             <span class="icon-box"><i class="bi bi-door-open"></i></span>
             <span class="title">Rooms &amp; rates</span>
         </div>
                     <p class="text-muted small">
                         Showing availability for
-                        {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}.
+                        {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}
+                        &middot; {{ nights }} night{{ "" if nights == 1 else "s" }}
+                        &middot; {{ adults }} adult{{ "" if adults == 1 else "s" }}{% if children %} + {{ children }} child{{ "" if children == 1 else "ren" }}{% endif %}.
                     </p>
 
                     {% for item in rooms_with_availability %}
                         {% set room = item.room %}
-                        <div class="card mb-3 shadow-sm">
+                        <div class="card mb-3 shadow-sm room-card"
+                             id="room-card-{{ room.id }}"
+                             data-room-id="{{ room.id }}"
+                             data-room-name="{{ room.type }}"
+                             data-total="{{ '%.2f'|format(item.pricing.total) if item.pricing else '0.00' }}"
+                             data-per-night="{{ '%.2f'|format(item.pricing.per_night) if item.pricing else '0.00' }}"
+                             data-booking-url="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id, check_in=check_in.isoformat(), check_out=check_out.isoformat(), adults=adults, children=children) }}">
                             <div class="card-body">
                                 <div class="row align-items-center">
                                     <div class="col-md-5">
@@ -256,13 +262,27 @@
                                         {% endif %}
                                     </div>
                                     <div class="col-md-4 text-md-end">
-                                        <div class="fw-bold mb-2">
-                                            &euro;{{ "%.2f"|format(room.base_price_per_night) }}
-                                            <small class="text-muted fw-normal">/ night</small>
-                                        </div>
+                                        {% if item.pricing %}
+                                            <div class="fw-bold mb-1">
+                                                &euro;{{ "%.2f"|format(item.pricing.total) }}
+                                                <small class="text-muted fw-normal">total</small>
+                                            </div>
+                                            <div class="small text-muted mb-2">
+                                                &euro;{{ "%.2f"|format(item.pricing.per_night) }} / night
+                                                &middot; {{ nights }} night{{ "" if nights == 1 else "s" }}
+                                            </div>
+                                        {% else %}
+                                            <div class="fw-bold mb-2">
+                                                &euro;{{ "%.2f"|format(room.base_price_per_night) }}
+                                                <small class="text-muted fw-normal">/ night</small>
+                                            </div>
+                                        {% endif %}
                                         {% if item.remaining is none or item.remaining > 0 %}
-                                            <a href="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id) }}"
-                                               class="btn btn-sm btn-eltut-primary">Select</a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-eltut-primary select-room-btn"
+                                                    data-room-id="{{ room.id }}">
+                                                Select
+                                            </button>
                                         {% else %}
                                             <button class="btn btn-sm btn-secondary" disabled>Sold out</button>
                                         {% endif %}
@@ -289,15 +309,15 @@
                                                     <tr>
                                                         <th>Valid from</th>
                                                         <th>Valid to</th>
-                                                        <th>Adult â‚¬</th>
-                                                        <th>Child â‚¬</th>
+                                                        <th>Adult €</th>
+                                                        <th>Child €</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="small">
                                                     {% for r in item.rates %}
                                                         <tr>
-                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "â€”" }}</td>
-                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "â€”" }}</td>
+                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "—" }}</td>
+                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "—" }}</td>
                                                             <td>{{ "%.2f"|format(r.adult_price) }}</td>
                                                             <td>{{ "%.2f"|format(r.child_price) }}</td>
                                                         </tr>
@@ -308,13 +328,66 @@
                                     </div>
                                 {% endif %}
                             </div>
+
+                            {# ─── Booking panel (hidden by default, shown on Select) ─── #}
+                            <div class="booking-panel collapse"
+                                 id="booking-panel-{{ room.id }}">
+                                <div class="card-body border-top"
+                                     style="background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);">
+                                    <div class="row g-3 align-items-center">
+                                        <div class="col-md-7">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <i class="bi bi-check-circle-fill text-success"></i>
+                                                <strong>You've selected: {{ room.type }}</strong>
+                                            </div>
+                                            <div class="small text-muted mb-1">
+                                                <i class="bi bi-calendar-range"></i>
+                                                {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}
+                                            </div>
+                                            <div class="small text-muted mb-2">
+                                                <i class="bi bi-moon-stars"></i> {{ nights }} night{{ "" if nights == 1 else "s" }}
+                                                &middot;
+                                                <i class="bi bi-people"></i> {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                                {% if children %}+ {{ children }} child{{ "" if children == 1 else "ren" }}{% endif %}
+                                            </div>
+                                            {% if item.pricing %}
+                                                <div class="small">
+                                                    <span class="text-muted">Price:</span>
+                                                    <strong>&euro;{{ "%.2f"|format(item.pricing.per_night) }}</strong> / night
+                                                    <span class="text-muted mx-1">&times;</span>
+                                                    <strong>{{ nights }}</strong> night{{ "" if nights == 1 else "s" }}
+                                                    <span class="text-muted mx-1">=</span>
+                                                    <strong class="text-eltut-terracotta" style="font-size:1.1rem;">
+                                                        &euro;{{ "%.2f"|format(item.pricing.total) }}
+                                                    </strong>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-5 text-md-end">
+                                            {% if item.remaining is none or item.remaining > 0 %}
+                                                <a href="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id, check_in=check_in.isoformat(), check_out=check_out.isoformat(), adults=adults, children=children) }}"
+                                                   class="btn btn-eltut-primary btn-lg w-100 mb-2">
+                                                    <i class="bi bi-calendar-check"></i> Book now
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary btn-sm w-100 change-room-btn"
+                                                        data-room-id="{{ room.id }}">
+                                                    Change room
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-secondary btn-lg w-100" disabled>Sold out</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     {% endfor %}
                 {% else %}
                     <div class="alert alert-info mt-5">No rooms are currently available at this hotel.</div>
                 {% endif %}
 
-                {# â”€â”€â”€ Neighborhood info â”€â”€â”€ #}
+                {# ─── Neighborhood info ─── #}
                 {% if hotel.neighborhood_info %}
                     <div class="section-header icon-nile">
             <span class="icon-box"><i class="bi bi-geo-alt"></i></span>
@@ -323,7 +396,7 @@
                     <p>{{ hotel.neighborhood_info }}</p>
                 {% endif %}
 
-                {# â”€â”€â”€ Google Map â”€â”€â”€ #}
+                {# ─── Google Map ─── #}
                 {% if hotel.google_maps_url %}
                     <div class="section-header icon-nile">
             <span class="icon-box"><i class="bi bi-map"></i></span>
@@ -338,7 +411,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Useful tips â”€â”€â”€ #}
+                {# ─── Useful tips ─── #}
                 {% if hotel.useful_tips %}
                     <div class="card shadow-sm mt-5 border-0" style="background: linear-gradient(135deg, #f5e6d3, #e8d3b8);">
                         <div class="card-body p-4">
@@ -351,7 +424,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ FAQs â”€â”€â”€ #}
+                {# ─── FAQs ─── #}
                 {% if faqs %}
                     <div class="section-header icon-ink">
             <span class="icon-box"><i class="bi bi-question-circle"></i></span>
@@ -372,7 +445,7 @@
                                      class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
                                      data-bs-parent="#hotelFaqs">
                                     <div class="accordion-body" style="white-space: pre-wrap;">
-                                        {{ faq.answer or "â€”" }}
+                                        {{ faq.answer or "—" }}
                                     </div>
                                 </div>
                             </div>
@@ -380,7 +453,7 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Reviews â”€â”€â”€ #}
+                {# ─── Reviews ─── #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
                     <span class="title">
@@ -472,17 +545,34 @@
 
             </div>
 
-            {# â”€â”€â”€ Sidebar â”€â”€â”€ #}
+            {# ─── Sidebar ─── #}
             <aside class="col-lg-4">
                 <div class="card shadow-sm sticky-top" style="top: 1rem;">
 
-                    {% if min_price is not none %}
+                    {% if cheapest_total is not none %}
                         <div class="card-body border-bottom">
+                            <div class="text-muted small mb-1">
+                                <i class="bi bi-calendar-range"></i>
+                                {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}
+                            </div>
+                            <div class="text-muted small mb-2">
+                                <i class="bi bi-moon-stars"></i> {{ nights }} night{{ "" if nights == 1 else "s" }}
+                                &middot;
+                                <i class="bi bi-people"></i> {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                {% if children %}
+                                    + {{ children }} child{{ "" if children == 1 else "ren" }}
+                                {% endif %}
+                            </div>
                             <div class="text-muted small">From</div>
                             <div class="fs-3 fw-bold text-eltut-terracotta">
-                                &euro;{{ "%.2f"|format(min_price) }}
-                                <small class="text-muted fw-normal fs-6">/ night</small>
+                                &euro;{{ "%.2f"|format(cheapest_total) }}
+                                <small class="text-muted fw-normal fs-6">total</small>
                             </div>
+                            {% if cheapest_per_night %}
+                                <div class="small text-muted mt-1">
+                                    &euro;{{ "%.2f"|format(cheapest_per_night) }} / night
+                                </div>
+                            {% endif %}
                         </div>
                     {% endif %}
 
@@ -493,9 +583,9 @@
                         </h5>
 
                         {% if rooms_with_availability %}
-                            <a href="#"
+                            <a href="#rooms-section"
                                class="btn btn-eltut-primary w-100 mb-2"
-                               onclick="document.querySelector('#hotelGallery').scrollIntoView({behavior:'smooth'}); return false;">
+                               onclick="document.getElementById('rooms-section').scrollIntoView({behavior:'smooth'}); return false;">
                                 <i class="bi bi-arrow-down-circle"></i> See rooms &amp; rates
                             </a>
                         {% endif %}
@@ -520,7 +610,7 @@
             </aside>
         </div>
 
-        {# â”€â”€â”€ Related hotels â”€â”€â”€ #}
+        {# ─── Related hotels ─── #}
         {% if related %}
             <hr class="my-5">
             <div class="section-header icon-ink">
@@ -548,7 +638,7 @@
         {% endif %}
     </div>
 </section>
-{# â”€â”€â”€ Write-review modal â”€â”€â”€ #}
+{# ─── Write-review modal ─── #}
 {% if current_user.is_authenticated and not user_has_reviewed %}
 <div class="modal fade" id="writeReviewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -635,5 +725,68 @@
 </div>
 {% endif %}
 
-{% endblock %}
+{# ─── Room selection script ─── #}
+<script>
+(function() {
+    'use strict';
 
+    const selectButtons = document.querySelectorAll('.select-room-btn');
+    const changeButtons = document.querySelectorAll('.change-room-btn');
+    const allPanels = document.querySelectorAll('.booking-panel');
+    const allCards = document.querySelectorAll('.room-card');
+
+    function hideAllPanels() {
+        allPanels.forEach(p => {
+            const bsCollapse = bootstrap.Collapse.getInstance(p);
+            if (bsCollapse) {
+                bsCollapse.hide();
+            } else {
+                p.classList.remove('show');
+            }
+        });
+        allCards.forEach(c => c.classList.remove('border-primary'));
+    }
+
+    function showPanel(roomId) {
+        const panel = document.getElementById('booking-panel-' + roomId);
+        const card = document.getElementById('room-card-' + roomId);
+        if (!panel) return;
+
+        hideAllPanels();
+
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(panel, { toggle: false });
+        bsCollapse.show();
+
+        if (card) {
+            card.classList.add('border-primary');
+            setTimeout(function() {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 250);
+        }
+    }
+
+    selectButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const roomId = this.getAttribute('data-room-id');
+            showPanel(roomId);
+        });
+    });
+
+    changeButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const roomId = this.getAttribute('data-room-id');
+            const panel = document.getElementById('booking-panel-' + roomId);
+            const card = document.getElementById('room-card-' + roomId);
+            if (panel) {
+                const bsCollapse = bootstrap.Collapse.getInstance(panel);
+                if (bsCollapse) bsCollapse.hide();
+            }
+            if (card) card.classList.remove('border-primary');
+        });
+    });
+})();
+</script>
+
+{% endblock %}

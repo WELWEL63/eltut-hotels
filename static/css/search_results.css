@@ -1,0 +1,510 @@
+﻿/* ═══════════════════════════════════════════════════════════════════
+   eltut-tours-platform  |  static/css/search_results.css
+   ═══════════════════════════════════════════════════════════════════
+   Dedicated stylesheet for the search results page.
+   All classes prefixed with `.sr-` to avoid collisions with eltut.css.
+   Bootstrap 5 provides the layout primitives; this file adds the
+   visual polish — cards, price panel, gradients, hover states.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Design tokens ─────────────────────────────────────────────── */
+:root {
+    --sr-primary:        #c0392b;   /* brand red */
+    --sr-primary-dark:   #962d21;
+    --sr-primary-light:  #e74c3c;
+    --sr-accent:         #f39c12;
+    --sr-surface:        #ffffff;
+    --sr-surface-alt:    #f7f7f9;
+    --sr-border:         #e5e7eb;
+    --sr-border-hover:   #c0392b;
+    --sr-text:           #1f2937;
+    --sr-text-muted:     #6b7280;
+    --sr-shadow-sm:      0 1px 3px rgba(0,0,0,.06);
+    --sr-shadow-md:      0 4px 12px rgba(0,0,0,.08);
+    --sr-shadow-lg:      0 12px 28px rgba(0,0,0,.14);
+    --sr-shadow-hover:   0 16px 32px rgba(192,57,43,.16);
+    --sr-radius:         14px;
+    --sr-radius-sm:      8px;
+    --sr-radius-pill:    999px;
+    --sr-transition:     all .28s cubic-bezier(.4, 0, .2, 1);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   1. PAGE STRUCTURE
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-page {
+    background: var(--sr-surface-alt);
+    min-height: 60vh;
+    padding: 2.5rem 0 4rem;
+}
+
+.sr-header {
+    background: var(--sr-surface);
+    border-bottom: 1px solid var(--sr-border);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--sr-shadow-sm);
+}
+
+.sr-results-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 992px) {
+    .sr-results-grid {
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   2. SIDEBAR FILTERS
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-sidebar {
+    align-self: start;
+    position: sticky;
+    top: 1rem;
+}
+
+@media (max-width: 991.98px) {
+    .sr-sidebar {
+        position: static;
+    }
+}
+
+.sr-filter-card {
+    background: var(--sr-surface);
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius);
+    padding: 1.5rem;
+    box-shadow: var(--sr-shadow-sm);
+}
+
+.sr-filter-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--sr-text);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.sr-filter-group {
+    margin-bottom: 1.25rem;
+}
+
+.sr-filter-label {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--sr-text-muted);
+    margin-bottom: .5rem;
+    display: block;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   3. RESULT CARD
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-card {
+    background: var(--sr-surface);
+    border: 1px solid var(--sr-border);
+    border-radius: var(--sr-radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: var(--sr-transition);
+    box-shadow: var(--sr-shadow-sm);
+}
+
+.sr-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--sr-border-hover);
+    box-shadow: var(--sr-shadow-hover);
+}
+
+
+/* ─── Card image area ────────────────────────────────────────────── */
+.sr-card-media {
+    position: relative;
+    height: 210px;
+    overflow: hidden;
+    background: var(--sr-surface-alt);
+}
+
+.sr-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .6s cubic-bezier(.4, 0, .2, 1);
+}
+
+.sr-card:hover .sr-card-image {
+    transform: scale(1.06);
+}
+
+/* Gradient placeholder when no image */
+.sr-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fef3e6 0%, #fce4d4 45%, #f7c8b3 100%);
+    position: relative;
+}
+
+.sr-card-placeholder::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,.45) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255,255,255,.35) 0%, transparent 45%);
+    pointer-events: none;
+}
+
+.sr-card-placeholder-icon {
+    font-size: 4rem;
+    color: rgba(192, 57, 43, .28);
+    position: relative;
+    z-index: 1;
+}
+
+/* Badges overlaid on image */
+.sr-card-badge {
+    position: absolute;
+    background: rgba(255,255,255,.96);
+    backdrop-filter: blur(6px);
+    color: var(--sr-text);
+    border-radius: var(--sr-radius-pill);
+    padding: .35rem .75rem;
+    font-size: .75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    box-shadow: var(--sr-shadow-sm);
+}
+
+.sr-card-badge--stars {
+    top: .75rem;
+    left: .75rem;
+    color: var(--sr-accent);
+}
+
+.sr-card-badge--destination {
+    top: .75rem;
+    right: .75rem;
+}
+
+.sr-card-badge--nights {
+    bottom: .75rem;
+    right: .75rem;
+    background: rgba(31,41,55,.85);
+    color: #fff;
+    backdrop-filter: blur(6px);
+}
+
+
+/* ─── Card body ──────────────────────────────────────────────────── */
+.sr-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.sr-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--sr-text);
+    margin-bottom: .5rem;
+    /* truncate to 2 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.sr-card-address {
+    font-size: .82rem;
+    color: var(--sr-text-muted);
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .35rem;
+    line-height: 1.4;
+}
+
+.sr-card-address i {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.sr-card-stars {
+    color: var(--sr-accent);
+    font-size: .9rem;
+    letter-spacing: .05em;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.sr-card-stars .sr-stars-label {
+    color: var(--sr-text-muted);
+    font-size: .78rem;
+    letter-spacing: 0;
+}
+
+
+/* ─── Facility pills ─────────────────────────────────────────────── */
+.sr-facility-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: 1rem;
+}
+
+.sr-facility-pill {
+    background: #f3f4f6;
+    color: var(--sr-text);
+    border-radius: var(--sr-radius-pill);
+    padding: .28rem .7rem;
+    font-size: .75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    transition: background .2s;
+}
+
+.sr-facility-pill:hover {
+    background: #e5e7eb;
+}
+
+.sr-facility-pill i {
+    color: var(--sr-primary);
+    font-size: .85rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   4. PRICE PANEL — the hero element
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-price-panel {
+    margin-top: auto;
+    background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
+    border: 1px solid rgba(192, 57, 43, .14);
+    border-radius: var(--sr-radius-sm);
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.sr-price-dates {
+    font-size: .78rem;
+    color: var(--sr-text-muted);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: .35rem;
+}
+
+.sr-price-dates i {
+    color: var(--sr-primary);
+}
+
+.sr-price-party {
+    font-size: .78rem;
+    color: var(--sr-text-muted);
+    margin-bottom: .75rem;
+}
+
+.sr-price-total-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding-top: .65rem;
+    border-top: 1px dashed rgba(192, 57, 43, .18);
+}
+
+.sr-price-total {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--sr-primary);
+    letter-spacing: -.5px;
+}
+
+.sr-price-total-label {
+    font-size: .72rem;
+    color: var(--sr-text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-top: .25rem;
+}
+
+.sr-price-breakdown {
+    font-size: .75rem;
+    color: var(--sr-text-muted);
+    text-align: right;
+    line-height: 1.5;
+}
+
+.sr-price-breakdown strong {
+    color: var(--sr-text);
+    font-weight: 600;
+}
+
+/* Fallback: "from XXX" when total unavailable */
+.sr-price-fallback {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--sr-primary);
+    margin-bottom: 1rem;
+}
+
+.sr-price-on-request {
+    background: #f9fafb;
+    border: 1px dashed var(--sr-border);
+    color: var(--sr-text-muted);
+    font-size: .82rem;
+    padding: .65rem .85rem;
+    border-radius: var(--sr-radius-sm);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   5. CTA BUTTON
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    padding: .7rem 1rem;
+    border-radius: var(--sr-radius-sm);
+    background: var(--sr-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    border: none;
+    transition: var(--sr-transition);
+}
+
+.sr-cta:hover {
+    background: var(--sr-primary-dark);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(192, 57, 43, .25);
+}
+
+.sr-cta i {
+    transition: transform .25s;
+}
+
+.sr-cta:hover i {
+    transform: translateX(3px);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   6. EMPTY STATE
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-empty {
+    background: var(--sr-surface);
+    border-radius: var(--sr-radius);
+    padding: 4rem 2rem;
+    text-align: center;
+    box-shadow: var(--sr-shadow-sm);
+}
+
+.sr-empty-icon {
+    font-size: 5rem;
+    color: var(--sr-primary);
+    opacity: .28;
+    margin-bottom: 1rem;
+}
+
+.sr-empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--sr-text);
+    margin-bottom: .75rem;
+}
+
+.sr-empty-text {
+    color: var(--sr-text-muted);
+    max-width: 420px;
+    margin: 0 auto 1.5rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   7. HEADER SUMMARY BAR
+   ═══════════════════════════════════════════════════════════════════ */
+.sr-summary {
+    background: var(--sr-surface);
+    border-radius: var(--sr-radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--sr-shadow-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    align-items: center;
+}
+
+.sr-summary-item {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .88rem;
+    color: var(--sr-text);
+}
+
+.sr-summary-item i {
+    color: var(--sr-primary);
+}
+
+.sr-summary-item strong {
+    font-weight: 700;
+    color: var(--sr-text);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   8. RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 575.98px) {
+    .sr-card-media { height: 180px; }
+    .sr-card-title { font-size: 1rem; }
+    .sr-price-total { font-size: 1.4rem; }
+    .sr-price-breakdown { text-align: left; width: 100%; }
+    .sr-price-total-row { flex-direction: column; align-items: flex-start; }
+    .sr-summary { padding: .85rem 1rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   END OF FILE
+   ═══════════════════════════════════════════════════════════════════ */

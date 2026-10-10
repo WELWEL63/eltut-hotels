@@ -1,12 +1,18 @@
 ﻿"""
 services/search_service.py
+───────────────────────────
 Cross-product search for activities, hotels, and packages.
+
+v3 changes:
+  - Party size caps: adults 1-8, children 0-8 (silent cap)
+  - Hotel filter: only return hotels with a room where max_occupancy >= party_size
+  - All other behavior identical to v2
 """
 
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import Any
 
@@ -15,7 +21,7 @@ from sqlalchemy import func, select
 from extensions import db
 from models.activity import Activity, ActivityPrice
 from models.destination import Destination
-from models.hotel import Hotel
+from models.hotel import Hotel, HotelFacility, HotelImage
 from models.package import Package, PackagePrice
 from models.room import Room
 from models.room_rate import RoomRate
@@ -31,6 +37,20 @@ VALID_SORTS = {
     "activity": ("newest", "name", "price_asc", "price_desc"),
     "hotel":    ("newest", "name", "price_asc", "price_desc", "stars_desc"),
     "package":  ("newest", "name", "price_asc", "price_desc", "duration_asc"),
+}
+
+# Party size caps (silent — URL values above these are clamped, not rejected)
+MAX_ADULTS = 8
+MAX_CHILDREN = 8
+
+FACILITY_ICONS = {
+    "general":  "bi-water",
+    "dining":   "bi-egg-fried",
+    "wellness": "bi-flower1",
+    "sport":    "bi-bicycle",
+    "family":   "bi-people",
+    "business": "bi-wifi",
+    "other":    "bi-check-circle",
 }
 
 
@@ -79,9 +99,14 @@ def search(
         ignored.append("per_page")
         per_page = DEFAULT_PER_PAGE
 
+    # ── Party size: cap to safe maximums ────────────────────────────
     try:
-        adults = max(1, int(adults))
-        children = max(0, int(children))
+        raw_adults = int(adults)
+        raw_children = int(children)
+        adults = max(1, min(MAX_ADULTS, raw_adults))
+        children = max(0, min(MAX_CHILDREN, raw_children))
+        if raw_adults > MAX_ADULTS or raw_children > MAX_CHILDREN:
+            ignored.append("party_size_capped")
     except (TypeError, ValueError):
         ignored.append("party_size")
         adults, children = 1, 0
@@ -174,6 +199,20 @@ def _search_hotels(
     if query_text:
         stmt = stmt.where(Hotel.name.ilike(f"%{query_text}%"))
 
+    # ── NEW: filter by room capacity ────────────────────────────────
+    # A hotel matches only if it has at least one active room whose
+    # max_occupancy can hold the whole party.
+    party_size = adults + children
+    if party_size > 0:
+        stmt = stmt.where(
+            select(Room.id)
+            .where(Room.hotel_id == Hotel.id)
+            .where(Room.is_active.is_(True))
+            .where(Room.max_occupancy >= party_size)
+            .correlate(Hotel)
+            .exists()
+        )
+
     total = int(db.session.scalar(
         select(func.count()).select_from(stmt.subquery())
     ) or 0)
@@ -183,6 +222,7 @@ def _search_hotels(
         .where(Room.hotel_id == Hotel.id)
         .where(Room.is_active.is_(True))
         .where(Room.base_price_per_night.is_not(None))
+        .where(Room.base_price_per_night > 0)
         .correlate(Hotel)
         .scalar_subquery()
     )
@@ -211,7 +251,9 @@ def _search_hotels(
             adults=adults,
             children=children,
         )
-        image_url = _first_image_url(getattr(h, "images", None))
+
+        rich = _hotel_display_data(h.id)
+        image_url = _first_image_url(getattr(h, "images", None)) or rich["cover_image"]
 
         items.append({
             "id": h.id,
@@ -248,9 +290,136 @@ def _search_hotels(
             "check_in": check_in.isoformat() if check_in else None,
             "check_out": check_out.isoformat() if check_out else None,
             "price_basis": "per_night",
+            "stars": h.stars,
+            "address": h.address,
+            "check_in_time": h.check_in_time,
+            "check_out_time": h.check_out_time,
+            "google_maps_url": h.google_maps_url,
+            "description_snippet": (
+                (h.description or "")[:140].rsplit(" ", 1)[0] + "..."
+                if h.description and len(h.description) > 140
+                else (h.description or "")
+            ),
+            "facilities": rich["facilities"],
+            "room_count": rich["room_count"],
         })
 
     return items, total
+
+
+def _hotel_display_data(hotel_id: int) -> dict[str, Any]:
+    """Fetch cover image + top facilities + room count for a hotel."""
+    cover = db.session.scalars(
+        select(HotelImage)
+        .where(HotelImage.hotel_id == hotel_id)
+        .where(HotelImage.media_type == "image")
+        .order_by(HotelImage.sort_order.asc())
+        .limit(1)
+    ).first()
+    cover_url = cover.url if cover else None
+
+    facs = db.session.scalars(
+        select(HotelFacility)
+        .where(HotelFacility.hotel_id == hotel_id)
+        .order_by(HotelFacility.id.asc())
+        .limit(6)
+    ).all()
+    seen_types: set[str] = set()
+    picked: list[dict] = []
+    for f in facs:
+        if f.type in seen_types and len(picked) >= 3:
+            continue
+        seen_types.add(f.type)
+        picked.append({
+            "name": f.name,
+            "type": f.type,
+            "icon": FACILITY_ICONS.get(f.type, "bi-check-circle"),
+        })
+        if len(picked) >= 3:
+            break
+
+    room_count = int(db.session.scalar(
+        select(func.count(Room.id)).where(Room.hotel_id == hotel_id)
+    ) or 0)
+
+    return {
+        "cover_image": cover_url,
+        "facilities": picked,
+        "room_count": room_count,
+    }
+
+
+def _hotel_pricing_for_dates(
+    *, hotel_id: int,
+    check_in: date | None, check_out: date | None,
+    adults: int, children: int,
+) -> dict[str, Any]:
+    """Compute the hotel price picture for a stay."""
+    empty = {
+        "adult_rate": None, "child_rate": None, "nights": None,
+        "per_night": None, "total": None, "currency": "USD",
+    }
+
+    room = db.session.scalars(
+        select(Room)
+        .where(Room.hotel_id == hotel_id)
+        .where(Room.is_active.is_(True))
+        .where(Room.base_price_per_night.is_not(None))
+        .where(Room.base_price_per_night > 0)
+        .order_by(Room.base_price_per_night.asc())
+        .limit(1)
+    ).first()
+
+    if room is None:
+        return empty
+
+    nights = 1
+    if check_in is not None and check_out is not None:
+        nights = max(0, (check_out - check_in).days)
+
+    adult_rate: Decimal | None = None
+    child_rate: Decimal | None = None
+    currency = "USD"
+
+    if check_in is not None:
+        rate = db.session.scalars(
+            select(RoomRate)
+            .where(RoomRate.room_id == room.id)
+            .where(
+                (RoomRate.valid_from.is_(None))
+                | (RoomRate.valid_from <= check_in)
+            )
+            .where(
+                (RoomRate.valid_to.is_(None))
+                | (RoomRate.valid_to >= check_in)
+            )
+            .order_by(RoomRate.id.asc())
+            .limit(1)
+        ).first()
+        if rate is not None:
+            adult_rate = rate.adult_price
+            child_rate = rate.child_price
+            currency = rate.currency or "USD"
+
+    if adult_rate is None:
+        adult_rate = room.base_price_per_night
+        child_rate = Decimal("0.00")
+
+    try:
+        per_night = (adult_rate * adults) + ((child_rate or Decimal("0")) * children)
+        total = per_night * nights if nights else None
+    except Exception:
+        per_night = None
+        total = None
+
+    return {
+        "adult_rate": adult_rate,
+        "child_rate": child_rate,
+        "nights": nights,
+        "per_night": per_night,
+        "total": total,
+        "currency": currency,
+    }
 
 
 def _search_packages(
@@ -307,9 +476,7 @@ def _search_packages(
             log.debug("search availability skipped for package %s: %s", p.id, exc)
 
         dest = db.session.get(Destination, p.destination_id) if p.destination_id else None
-        pricing = _package_pricing(
-            package_id=p.id, adults=adults, children=children
-        )
+        pricing = _package_pricing(package_id=p.id, adults=adults, children=children)
         image_url = _first_image_url(getattr(p, "images", None))
 
         items.append({
@@ -344,9 +511,44 @@ def _search_packages(
             "check_in": check_in.isoformat() if check_in else None,
             "check_out": check_out.isoformat() if check_out else None,
             "price_basis": "per_person_flat",
+            "stars": None,
+            "address": None,
+            "check_in_time": None,
+            "check_out_time": None,
+            "google_maps_url": p.google_maps_url,
+            "description_snippet": (
+                (p.description or "")[:140].rsplit(" ", 1)[0] + "..."
+                if p.description and len(p.description) > 140
+                else (p.description or "")
+            ),
+            "facilities": [],
+            "room_count": None,
         })
 
     return items, total
+
+
+def _package_pricing(
+    *, package_id: int, adults: int, children: int
+) -> dict[str, Any]:
+    row = db.session.scalars(
+        select(PackagePrice)
+        .where(PackagePrice.package_id == package_id)
+        .order_by(PackagePrice.id.asc())
+        .limit(1)
+    ).first()
+    if row is None:
+        return {"adult_price": None, "child_price": None, "total": None, "currency": "USD"}
+    try:
+        total = (row.adult_price * adults) + ((row.child_price or Decimal("0")) * children)
+    except Exception:
+        total = None
+    return {
+        "adult_price": row.adult_price,
+        "child_price": row.child_price,
+        "total": total,
+        "currency": row.currency or "USD",
+    }
 
 
 def _search_activities(
@@ -401,9 +603,7 @@ def _search_activities(
             log.debug("search availability skipped for activity %s: %s", a.id, exc)
 
         dest = db.session.get(Destination, a.destination_id) if a.destination_id else None
-        pricing = _activity_pricing(
-            activity_id=a.id, adults=adults, children=children
-        )
+        pricing = _activity_pricing(activity_id=a.id, adults=adults, children=children)
         image_url = _first_image_url(getattr(a, "images", None))
 
         items.append({
@@ -421,9 +621,7 @@ def _search_activities(
             "extra": {
                 "category": a.category,
                 "difficulty": a.difficulty,
-                "duration_hours": (
-                    float(a.duration_hours) if a.duration_hours else None
-                ),
+                "duration_hours": float(a.duration_hours) if a.duration_hours else None,
             },
             "price_child": (
                 float(pricing["child_price"])
@@ -440,113 +638,21 @@ def _search_activities(
             "check_in": activity_date.isoformat() if activity_date else None,
             "check_out": None,
             "price_basis": "per_person_flat",
+            "stars": None,
+            "address": getattr(a, "meeting_point", None),
+            "check_in_time": getattr(a, "departure_time", None),
+            "check_out_time": getattr(a, "return_time", None),
+            "google_maps_url": getattr(a, "google_maps_url", None),
+            "description_snippet": (
+                (a.description or "")[:140].rsplit(" ", 1)[0] + "..."
+                if a.description and len(a.description) > 140
+                else (a.description or "")
+            ),
+            "facilities": [],
+            "room_count": None,
         })
 
     return items, total
-
-
-def _hotel_pricing_for_dates(
-    *, hotel_id: int,
-    check_in: date | None, check_out: date | None,
-    adults: int, children: int,
-) -> dict[str, Any]:
-    """Compute the hotel price picture for a stay."""
-    empty = {
-        "adult_rate": None, "child_rate": None, "nights": None,
-        "per_night": None, "total": None, "currency": "USD",
-    }
-
-    room = db.session.scalars(
-        select(Room)
-        .where(Room.hotel_id == hotel_id)
-        .where(Room.is_active.is_(True))
-        .where(Room.base_price_per_night.is_not(None))
-        .where(Room.base_price_per_night > 0)
-        .order_by(Room.base_price_per_night.asc())
-        .limit(1)
-    ).first()
-
-    if room is None:
-        return empty
-
-    nights: int | None = None
-    if check_in is not None and check_out is not None:
-        delta = (check_out - check_in).days
-        nights = max(0, delta)
-    else:
-        nights = 1
-
-    adult_rate: Decimal | None = None
-    child_rate: Decimal | None = None
-    currency = "USD"
-
-    if check_in is not None:
-        rate = db.session.scalars(
-            select(RoomRate)
-            .where(RoomRate.room_id == room.id)
-            .where(
-                (RoomRate.valid_from.is_(None))
-                | (RoomRate.valid_from <= check_in)
-            )
-            .where(
-                (RoomRate.valid_to.is_(None))
-                | (RoomRate.valid_to >= check_in)
-            )
-            .order_by(RoomRate.id.asc())
-            .limit(1)
-        ).first()
-        if rate is not None:
-            adult_rate = rate.adult_price
-            child_rate = rate.child_price
-            currency = rate.currency or "USD"
-
-    if adult_rate is None:
-        adult_rate = room.base_price_per_night
-        child_rate = Decimal("0.00")
-
-    try:
-        per_night = (adult_rate * adults) + ((child_rate or Decimal("0")) * children)
-        total = per_night * nights if nights is not None else None
-    except Exception:
-        per_night = None
-        total = None
-
-    return {
-        "adult_rate": adult_rate,
-        "child_rate": child_rate,
-        "nights": nights,
-        "per_night": per_night,
-        "total": total,
-        "currency": currency,
-    }
-
-
-def _package_pricing(
-    *, package_id: int, adults: int, children: int
-) -> dict[str, Any]:
-    row = db.session.scalars(
-        select(PackagePrice)
-        .where(PackagePrice.package_id == package_id)
-        .order_by(PackagePrice.id.asc())
-        .limit(1)
-    ).first()
-    if row is None:
-        return {
-            "adult_price": None, "child_price": None,
-            "total": None, "currency": "USD",
-        }
-    adult_price = row.adult_price
-    child_price = row.child_price
-    try:
-        total = (adult_price * adults) + ((child_price or Decimal("0")) * children)
-    except Exception:
-        total = None
-    return {
-        "adult_price": adult_price,
-        "child_price": child_price,
-        "total": total,
-        "currency": row.currency or "USD",
-    }
 
 
 def _activity_pricing(
@@ -559,19 +665,14 @@ def _activity_pricing(
         .limit(1)
     ).first()
     if row is None:
-        return {
-            "adult_price": None, "child_price": None,
-            "total": None, "currency": "USD",
-        }
-    adult_price = row.adult_price
-    child_price = row.child_price
+        return {"adult_price": None, "child_price": None, "total": None, "currency": "USD"}
     try:
-        total = (adult_price * adults) + ((child_price or Decimal("0")) * children)
+        total = (row.adult_price * adults) + ((row.child_price or Decimal("0")) * children)
     except Exception:
         total = None
     return {
-        "adult_price": adult_price,
-        "child_price": child_price,
+        "adult_price": row.adult_price,
+        "child_price": row.child_price,
         "total": total,
         "currency": row.currency or "USD",
     }
@@ -620,7 +721,7 @@ def _first_image_url(images: list | None) -> str | None:
         return None
     for img in images:
         url = getattr(img, "url", None)
-        if url:
+        if url and not url.lower().endswith(".mp4"):
             return url
     return None
 

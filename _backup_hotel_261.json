@@ -1,0 +1,73 @@
+{
+  "hotel": {
+    "id": 261,
+    "name": "1001 Nights - Alf Leila Wa Leila",
+    "slug": "1001-nights-alf-leila-wa-leila",
+    "destination_id": 27,
+    "stars": 4,
+    "address": "few munites walking from the airport",
+    "latitude": null,
+    "longitude": null,
+    "description": "great hotel",
+    "check_in_time": null,
+    "check_out_time": null,
+    "total_capacity": 1,
+    "is_active": true,
+    "useful_tips": "Book a room overlooking the courtyard for the evening lantern display.\nThe rooftop terrace is quietest in the mornings; the restaurant gets busy after 20:00.\nAsk the front desk about the shuttle to the old market — free and easy to miss.\nFriday brunch is excellent value and popular with locals.\nIf you have an early flight, request a packed breakfast the night before.",
+    "house_rules": "• Check-in: 15:00 – 23:00\n• Check-out: 12:00 (late check-out available on request)\n• No smoking in rooms; designated smoking areas only\n• Pets are not permitted\n• Quiet hours: 23:00 – 07:00\n• Children under 12 stay free when sharing with two adults\n• Outside food and beverages not permitted in restaurant areas",
+    "check_in_details": "Check-in from 15:00. Early check-in is subject to availability — contact the hotel the day before.\n\nYou will need: passport (foreign nationals), booking reference, and a credit card for incidentals.\n\nAirport transfers are available 24/7. Book at least 48 hours in advance.\n\nLuggage storage is complimentary for early arrivals and late departures.",
+    "cancellation_policy": "Free cancellation up to 48 hours before check-in.\n50% refundable between 48 and 24 hours before check-in.\nNon-refundable within 24 hours of check-in.\n\nNo-shows are charged the full first-night rate plus taxes. Refunds are processed within 7–10 business days.",
+    "neighborhood_info": "Located in a quiet residential pocket just minutes from the main promenade, the hotel offers easy access to local restaurants, shops, and the beach. A small supermarket and pharmacy are directly across the street. The airport is a short 15-minute drive away.",
+    "google_maps_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3506.5!2d34.4231!3d27.9114!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0:0x0!2zMjfCsDU0JzQxLjAiTiAzNMKwMjUnMjMuMiJF!5e0!3m2!1sen!2suk!4v1700000000000"
+  },
+  "facilities": [
+    {
+      "id": 521,
+      "name": "Swimming Pool",
+      "type": "general",
+      "quantity": null,
+      "notes": null
+    },
+    {
+      "id": 522,
+      "name": "Mine Bar",
+      "type": "general",
+      "quantity": null,
+      "notes": null
+    }
+  ],
+  "images": [
+    {
+      "id": 5,
+      "url": "/static/images/uploads/20bc9b21096522350fe26d8c72bd39ec40404f6a.png",
+      "type": "exterior",
+      "sort_order": 0,
+      "media_type": "image",
+      "poster_url": null
+    },
+    {
+      "id": 6,
+      "url": "/static/images/uploads/a4f4280305a7147abadea461bddc489c4b98e613.png",
+      "type": "exterior",
+      "sort_order": 1,
+      "media_type": "image",
+      "poster_url": null
+    },
+    {
+      "id": 8,
+      "url": "/static/images/uploads/8d81e9f412f2f072015184bd81e2fdaaa9657266.mp4",
+      "type": "exterior",
+      "sort_order": 3,
+      "media_type": "video",
+      "poster_url": null
+    },
+    {
+      "id": 10,
+      "url": "/static/images/uploads/0a0a84432d607640b82453a5fdee58bb769190e3.mp4",
+      "type": "exterior",
+      "sort_order": 4,
+      "media_type": "video",
+      "poster_url": null
+    }
+  ]
+}
