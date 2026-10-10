@@ -92,6 +92,7 @@ from blueprints.admin import review_admin     # noqa: E402,F401
 from blueprints.admin import report_routes    # noqa: E402,F401
 from blueprints.admin import media_routes     # noqa: E402,F401
 from blueprints.admin import content_admin    # noqa: E402,F401
+from blueprints.admin import airline_admin    # noqa: E402,F401
 from blueprints.admin import quote_admin      # noqa: E402,F401
 
 

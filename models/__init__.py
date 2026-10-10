@@ -152,6 +152,14 @@ from models.destination import Destination  # noqa: F401,E402
 from models.guide import Guide  # noqa: F401,E402
 from models.supplier import Supplier  # noqa: F401,E402
 
+from models.airline import (  # noqa: F401,E402
+    Airline,
+    VALID_AIRLINE_LOGO_EXT,
+    DEFAULT_AIRLINE_LOGO_EXT,
+)
+
+from models.package_option import PackageOption  # noqa: F401,E402
+
 from models.activity import (  # noqa: F401,E402
     Activity,
     ActivityImage,
@@ -363,4 +371,10 @@ __all__: list[str] = [
     "PackageTip",
     "ActivityFAQ",
     "ActivityTip",
+    # Airlines
+    "Airline",
+    "VALID_AIRLINE_LOGO_EXT",
+    "DEFAULT_AIRLINE_LOGO_EXT",
+    # Package options
+    "PackageOption",
 ]

@@ -61,6 +61,10 @@
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.content') %}active{% endif %}">
                         <i class="bi bi-pencil-square"></i> Site content
                     </a>
+                    <a href="{{ maybe_url('admin.airline_list') }}"
+                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.airline') %}active{% endif %}">
+                        <i class="bi bi-airplane"></i> Airlines
+                    </a>
                 </div>
             </div>
         </aside>
