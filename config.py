@@ -80,7 +80,7 @@ class BaseConfig:
     ADMIN_NAME: str = os.getenv("ADMIN_NAME", "ElTut Admin")
 
     UPLOAD_FOLDER: str = os.getenv("UPLOAD_FOLDER", "static/images/uploads")
-    MAX_CONTENT_LENGTH: int = _int("MAX_CONTENT_LENGTH", 16 * 1024 * 1024)
+    MAX_CONTENT_LENGTH: int = _int("MAX_CONTENT_LENGTH", 64 * 1024 * 1024)
     ITEMS_PER_PAGE: int = _int("ITEMS_PER_PAGE", 12)
 
 

@@ -1,0 +1,140 @@
+# render.yaml — Render infrastructure-as-code
+# https://render.com/docs/blueprint-spec
+#
+# Deploys ElTut Tours as TWO services sharing the same repo:
+#   1. web        — Flask app behind gunicorn (public HTTPS)
+#   2. worker     — background worker (no public port)
+#
+# Both services read the SAME environment variables (secrets are
+# synced from the parent service so they only need to be set once).
+
+services:
+  # ─── Web service ──────────────────────────────────────────────────────
+  - type: web
+    name: eltut-tours-web
+    env: python
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: |
+      pip install -r requirements.txt
+      flask db upgrade
+    startCommand: gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+    healthCheckPath: /_health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false          # set manually in Render dashboard
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: eltut_tours
+      - key: MAIL_SERVER
+        value: smtp.ionos.co.uk
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: "true"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_DEFAULT_SENDER
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_SECRET
+        sync: false
+      - key: PAYPAL_API_BASE
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_NAME
+        value: ElTut Admin
+      - key: RATELIMIT_STORAGE_URI
+        value: memory://
+      - key: LOG_LEVEL
+        value: INFO
+      - key: UPLOAD_FOLDER
+        value: static/images/uploads
+      - key: MAX_CONTENT_LENGTH
+        value: "67108864"     # 64 MB, matches config.py
+      - key: ITEMS_PER_PAGE
+        value: "12"
+
+  # ─── Background worker ────────────────────────────────────────────────
+  - type: worker
+    name: eltut-tours-worker
+    env: python
+    region: frankfurt
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m cloud_function.worker
+    envVars:
+      # Inherit every var from the web service. Keeps them in sync.
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: DATABASE_URL
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MONGO_URI
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MONGO_DB_NAME
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MAIL_SERVER
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MAIL_PORT
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MAIL_USE_TLS
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MAIL_USERNAME
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MAIL_PASSWORD
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: MAIL_DEFAULT_SENDER
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: SECRET_KEY
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: ADMIN_EMAIL
+      - fromService:
+          type: web
+          name: eltut-tours-web
+          envVarKey: ADMIN_PASSWORD
+      - key: WORKER_POLL_INTERVAL
+        value: "30"
+      - key: WORKER_BATCH_SIZE
+        value: "20"
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: LOG_LEVEL
+        value: INFO

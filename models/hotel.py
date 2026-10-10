@@ -304,6 +304,13 @@ class HotelImage(Base):
     sort_order: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
+    media_type: Mapped[str] = mapped_column(
+        String(10),
+        nullable=False,
+        default="image",
+        server_default="image",
+    )
+    poster_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     hotel: Mapped[Hotel] = relationship(back_populates="images")
 

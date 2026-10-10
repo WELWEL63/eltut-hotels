@@ -401,6 +401,16 @@ class ActivityImage(Base):
     sort_order: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
+    # WHY media_type: distinguishes still images from videos. Defaults
+    # to 'image' so existing rows and code paths keep working unchanged.
+    # WHY poster_url: videos need a preview image. NULL for stills.
+    media_type: Mapped[str] = mapped_column(
+        String(10),
+        nullable=False,
+        default="image",
+        server_default="image",
+    )
+    poster_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     activity: Mapped[Activity] = relationship(back_populates="images")
 

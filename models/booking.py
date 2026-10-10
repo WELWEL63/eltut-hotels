@@ -165,6 +165,20 @@ class Booking(Base, TimestampMixin):
     )
     cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # ─── Cloud function bookkeeping ──────────────────────────────
+    # WHY two columns: the background worker polls for confirmed
+    # bookings that have not yet been notified. notification_sent_at
+    # is set on success so the same booking is never emailed twice.
+    # notification_failed_at is set after all retries are exhausted,
+    # so admins can query "bookings we could not notify" without
+    # parsing worker logs.
+    notification_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True,
+    )
+    notification_failed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True,
+    )
+
     # ─── Relationships ─────────────────────────────────────────────
     # No order_by, no string expressions that would require the child
     # classes to already be imported. Service layer handles ordering.

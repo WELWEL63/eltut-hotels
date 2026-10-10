@@ -702,3 +702,18 @@ consideration: templates should check _error per section.
 Blockers: awaiting browser confirmation that /admin/reports now renders
 === END STATE ===
 
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 13 of 15 (cloud function) — File 2 not yet written
+Last Completed File: (pending — cloud_function dir missing)
+Next File: cloud_function/init.py
+Decisions Locked Since Last State:
+
+First attempt failed because cloud_function/ didn't exist.
+
+Fix: create the dir, then write the file.
+
+Next step: paste email_service + mongo.logs signatures so I can
+write tasks.py with the right function names.
+Blockers: awaiting directory creation + 3 signature outputs
+=== END STATE ===

@@ -59,9 +59,19 @@ from models import (
 
 # ─── Constants ───────────────────────────────────────────────────────────
 VALID_PRODUCT_TYPES = ("activity", "hotel", "package")
-ALLOWED_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
-ALLOWED_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
-MAX_BYTES = 5 * 1024 * 1024  # 5 MB — well below config MAX_CONTENT_LENGTH
+
+# Images
+IMAGE_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+# Videos (served from the same uploads directory)
+VIDEO_MIME = {"video/mp4", "video/webm", "video/quicktime"}
+VIDEO_EXT = {".mp4", ".webm", ".mov"}
+
+ALLOWED_MIME = IMAGE_MIME | VIDEO_MIME
+ALLOWED_EXT = IMAGE_EXT | VIDEO_EXT
+
+MAX_BYTES = 50 * 1024 * 1024  # 50 MB
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
@@ -476,6 +486,9 @@ def media_upload(product_type: str, parent_id: int):
         return redirect(url_for("admin.media_for_product",
                                 product_type=product_type, parent_id=parent_id))
 
+    # Detect image vs video from MIME.
+    media_type = "video" if file.mimetype in VIDEO_MIME else "image"
+
     # SHA-1 filename — dedupes, prevents traversal, no user data in path
     digest = hashlib.sha1(data).hexdigest()
     filename = f"{digest}{ext}"
@@ -491,6 +504,8 @@ def media_upload(product_type: str, parent_id: int):
     kwargs = {
         fk_col: parent_id,
         "url": public_url,
+        "media_type": media_type,
+        "poster_url": None,
     }
     if has_type:
         t = (request.form.get("type") or "").strip().lower()
