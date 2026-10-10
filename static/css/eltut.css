@@ -68,7 +68,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-lg {
-    padding: 0.875rem 1.75rem;
+    padding: 0rem 1.75rem;
     font-size: 1rem;
 }
 
@@ -117,25 +117,25 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--gradient-hero);
     color: #fff;
     overflow: hidden;
-    padding: 5rem 0 4rem;
+   
 }
 .hero-eltut > .container { position: relative; z-index: 1; }
 
 .search-widget {
-    background: #fff;
+    background: #e85405;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xl);
     overflow: hidden;
 }
 .search-widget .nav-tabs {
     border: none;
-    background: var(--eltut-sand);
+    background:  #e85405;
     padding: 0.5rem 0.75rem 0;
     gap: 0.25rem;
 }
 .search-widget .nav-tabs .nav-link {
     border: none;
-    color: var(--eltut-muted);
+    color:  #e85405;
     font-weight: 600;
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
@@ -292,9 +292,9 @@ h1, h2, h3, h4, h5, h6 {
 .hero-slideshow {
     position: relative;
     width: 100%;
-    height: 620px;
+    height: 820px;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     overflow: hidden;
     background: #f5e6d3;
     color: #fff;
@@ -392,16 +392,16 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Search widget */
 .search-widget-hero {
-    background: #fff;
+    background: #ffffff26;
     border-radius: 16px;
     box-shadow: 0 16px 48px rgba(0,0,0,0.35);
     overflow: hidden;
     margin-top: 1.75rem;
-    color: #1c1917;
+    color: #e4e1df;
 }
 
 .search-widget-hero .nav-tabs {
-    background: #f5e6d3;
+    background: #eda00743;
     border-bottom: none;
     padding: 0.5rem 0.5rem 0;
     gap: 0.2rem;
@@ -409,9 +409,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .search-widget-hero .nav-tabs .nav-link {
     border: none;
-    color: #78716c;
+    color: #ffffff;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     padding: 0.7rem 1.1rem;
     border-radius: 8px 8px 0 0;
 }
@@ -424,11 +424,11 @@ h1, h2, h3, h4, h5, h6 {
 .search-widget-hero .tab-pane { padding: 1.25rem 1.25rem 1.4rem; }
 
 .search-widget-hero .form-label {
-    font-size: 0.7rem;
+    font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #78716c;
+    color: #f7f9fc;
     margin-bottom: 0.4rem;
 }
 
@@ -436,7 +436,7 @@ h1, h2, h3, h4, h5, h6 {
 .search-widget-hero .form-select {
     border-radius: 8px;
     padding: 0.65rem 0.9rem;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 500;
     border: 1px solid rgba(28,25,23,0.15);
 }
