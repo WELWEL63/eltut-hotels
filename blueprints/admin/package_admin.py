@@ -534,3 +534,133 @@ def package_child_delete(package_id: int, child_type: str, row_id: int):
     _log("delete", child_type, row_id)
     flash(f"{cfg['label']} deleted.", "success")
     return redirect(url_for("admin.package_edit", package_id=package.id))
+
+
+# ─── Package price windows ─────────────────────────────────────────────
+@admin_bp.route("/packages/<int:package_id>/prices/new", methods=["POST"])
+@admin_required
+def package_price_new(package_id: int):
+    """Add a new seasonal price window to a package."""
+    package = db.session.get(Package, package_id)
+    if package is None:
+        abort(404)
+
+    def _dec(key, default=None):
+        raw = (request.form.get(key) or "").strip()
+        if not raw:
+            return default
+        try:
+            from decimal import Decimal as _D
+            return _D(raw)
+        except Exception:
+            return default
+
+    from datetime import datetime as _dt
+    def _date(key):
+        raw = (request.form.get(key) or "").strip()
+        if not raw:
+            return None
+        try:
+            return _dt.strptime(raw, "%Y-%m-%d").date()
+        except Exception:
+            return None
+
+    adult = _dec("adult_price")
+    child = _dec("child_price")
+    currency = (request.form.get("currency") or "EUR").strip().upper()[:3]
+    valid_from = _date("valid_from")
+    valid_to = _date("valid_to")
+
+    if adult is None or adult <= 0:
+        flash("Adult price is required and must be positive.", "danger")
+        return redirect(url_for("admin.package_edit", package_id=package.id))
+    if child is None:
+        child = adult
+    if valid_from and valid_to and valid_to < valid_from:
+        flash("Valid-to date cannot be before valid-from.", "danger")
+        return redirect(url_for("admin.package_edit", package_id=package.id))
+
+    price = PackagePrice(
+        package_id=package.id,
+        adult_price=adult,
+        child_price=child,
+        currency=currency,
+        valid_from=valid_from,
+        valid_to=valid_to,
+    )
+    db.session.add(price)
+    db.session.commit()
+    _log("create", "package_price", price.id, new=package.id)
+    flash("Price window added.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package.id))
+
+
+@admin_bp.route("/package-prices/<int:price_id>/delete", methods=["POST"])
+@admin_required
+def package_price_delete(price_id: int):
+    """Delete a package price window."""
+    price = db.session.get(PackagePrice, price_id)
+    if price is None:
+        abort(404)
+    package_id = price.package_id
+    db.session.delete(price)
+    db.session.commit()
+    _log("delete", "package_price", price_id)
+    flash("Price window deleted.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package_id))
+
+
+# ─── Package flights ───────────────────────────────────────────────────
+@admin_bp.route("/packages/<int:package_id>/flights/new", methods=["POST"])
+@admin_required
+def package_flight_new(package_id: int):
+    """Add a new flight to a package."""
+    package = db.session.get(Package, package_id)
+    if package is None:
+        abort(404)
+
+    flight_from = (request.form.get("flight_from") or "").strip()
+    flight_to = (request.form.get("flight_to") or "").strip()
+    if not flight_from or not flight_to:
+        flash("Flight from and to are required.", "danger")
+        return redirect(url_for("admin.package_edit", package_id=package.id))
+
+    # Supplier: try to look up by ID, fall back to None
+    supplier_id = None
+    raw_supplier = (request.form.get("supplier_id") or "").strip()
+    if raw_supplier:
+        try:
+            supplier_id = int(raw_supplier) or None
+        except ValueError:
+            supplier_id = None
+
+    flight = Flight(
+        package_id=package.id,
+        supplier_id=supplier_id,
+        flight_from=flight_from,
+        flight_to=flight_to,
+        airline_name=(request.form.get("airline_name") or "").strip() or None,
+        luggage_allowance=(request.form.get("luggage_allowance") or "").strip() or None,
+        included=bool(request.form.get("included")),
+        notes=(request.form.get("notes") or "").strip() or None,
+    )
+    db.session.add(flight)
+    db.session.commit()
+    _log("create", "flight", flight.id, new=package.id)
+    flash("Flight added.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package.id))
+
+
+@admin_bp.route("/flights/<int:flight_id>/delete", methods=["POST"])
+@admin_required
+def package_flight_delete(flight_id: int):
+    """Delete a package flight."""
+    flight = db.session.get(Flight, flight_id)
+    if flight is None:
+        abort(404)
+    package_id = flight.package_id
+    db.session.delete(flight)
+    db.session.commit()
+    _log("delete", "flight", flight_id)
+    flash("Flight deleted.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package_id))
