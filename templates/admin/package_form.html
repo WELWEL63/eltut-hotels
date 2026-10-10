@@ -467,5 +467,169 @@
         </div>
     </form>
 
+    {# ─── Departure options (flight + rate + date) ─── #}
+    <h5 class="mt-4">
+        <i class="bi bi-calendar-check"></i> Departure options
+    </h5>
+    <p class="text-muted small mb-2">
+        Each option is a specific purchaseable combination of flight, price,
+        and date that a customer can choose on the public page. For example:
+        "02/12/2026 · easyJet · winter rate".
+    </p>
+
+    {% if options %}
+        <div class="card shadow-sm mb-3">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Departure</th>
+                            <th>Return</th>
+                            <th>Flight</th>
+                            <th>Rate</th>
+                            <th>Label</th>
+                            <th>Active</th>
+                            <th class="text-end" style="width:100px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for opt in options %}
+                            <tr>
+                                <td>
+                                    {{ opt.departure_date.strftime("%d %b %Y") if opt.departure_date else "—" }}
+                                </td>
+                                <td>
+                                    {{ opt.return_date.strftime("%d %b %Y") if opt.return_date else "—" }}
+                                </td>
+                                <td>
+                                    {% if opt.flight %}
+                                        {{ opt.flight.flight_from }} → {{ opt.flight.flight_to }}
+                                        {% if opt.flight.airline_name %}
+                                            <div class="small text-muted">{{ opt.flight.airline_name }}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if opt.price %}
+                                        {{ opt.price.currency }} {{ "%.2f"|format(opt.price.adult_price) }}
+                                        <div class="small text-muted">
+                                            child {{ "%.2f"|format(opt.price.child_price) }}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ opt.label or "—" }}
+                                </td>
+                                <td>
+                                    {% if opt.is_active %}
+                                        <span class="badge bg-success-subtle text-success-emphasis">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis">No</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST"
+                                          action="{{ url_for('admin.package_option_delete', option_id=opt.id) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Delete this departure option?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info small mb-3">
+            No departure options set yet. Add one below to let customers pick
+            a specific flight + rate combination.
+        </div>
+    {% endif %}
+
+    {# ─── Add option ─── #}
+    <form method="POST"
+          action="{{ url_for('admin.package_option_new', package_id=package.id) }}"
+          class="card shadow-sm mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="card-body">
+            <h6 class="text-muted text-uppercase small mb-3">Add a departure option</h6>
+
+            {% if not flights and not prices %}
+                <div class="alert alert-warning small mb-0">
+                    Add at least one flight or one price above before creating an option.
+                </div>
+            {% else %}
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Flight</label>
+                        <select name="flight_id" class="form-select">
+                            <option value="">— None —</option>
+                            {% for f in flights %}
+                                <option value="{{ f.id }}">
+                                    {{ f.flight_from }} → {{ f.flight_to }}
+                                    {% if f.airline_name %}· {{ f.airline_name }}{% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small text-muted mb-1">Rate</label>
+                        <select name="price_id" class="form-select">
+                            <option value="">— None —</option>
+                            {% for p in prices %}
+                                <option value="{{ p.id }}">
+                                    {{ p.currency }} {{ "%.2f"|format(p.adult_price) }}
+                                    {% if p.valid_from or p.valid_to %}
+                                        ({{ p.valid_from.strftime("%d %b") if p.valid_from else "?" }}
+                                         – {{ p.valid_to.strftime("%d %b") if p.valid_to else "?" }})
+                                    {% else %}
+                                        (anytime)
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Departure</label>
+                        <input type="date" name="departure_date" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Return</label>
+                        <input type="date" name="return_date" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small text-muted mb-1">Label (optional)</label>
+                        <input type="text" name="label" class="form-control"
+                               maxlength="200"
+                               placeholder="e.g. Xmas special">
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="form-check">
+                                <input type="checkbox" name="is_active"
+                                       class="form-check-input" id="opt-active-new" checked>
+                                <label class="form-check-label small" for="opt-active-new">
+                                    Active (visible on public page)
+                                </label>
+                            </div>
+                            <button class="btn btn-primary ms-auto">
+                                <i class="bi bi-plus-lg"></i> Add option
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </form>
+
 {% endif %}
 {% endblock %}

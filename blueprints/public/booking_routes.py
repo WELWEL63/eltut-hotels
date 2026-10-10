@@ -53,6 +53,7 @@ from models import (
     PRODUCT_TYPE_HOTEL,
     PRODUCT_TYPE_PACKAGE,
     VALID_PRODUCT_TYPES,
+    PackageOption,
 )
 
 from services import availability_service, booking_service, payment_service, pricing_service, recommendation_service
@@ -158,7 +159,39 @@ def booking_start(product_type: str, product_id: int):
     if product is None:
         abort(404)
 
+    # ─── Optional departure option (packages only) ────────────────
+    # When the customer picked a specific flight + rate on the
+    # package page, we honour it here: the option's price is used,
+    # and the flight is displayed in the summary.
+    option = None
+    raw_option_id = (request.args.get("option_id") or "").strip()
+    if product_type == "package" and raw_option_id:
+        try:
+            option_id = int(raw_option_id)
+        except ValueError:
+            option_id = None
+        if option_id:
+            candidate = db.session.get(PackageOption, option_id)
+            if candidate and candidate.package_id == product.id and candidate.is_active:
+                option = candidate
+
     meta = _product_meta(product_type, product)
+
+    # If a valid option was selected, override meta's price fields
+    # so the booking form shows that option's price.
+    if option is not None and option.price is not None:
+        try:
+            meta["price_adult"] = float(option.price.adult_price)
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            meta["price_child"] = float(option.price.child_price)
+        except Exception:  # noqa: BLE001
+            pass
+        if option.price.currency:
+            meta["currency"] = option.price.currency
+        if option.departure_date:
+            meta["default_start"] = option.departure_date.isoformat()
 
     # Recommended add-ons (upsell)
     addons: list[dict] = []
@@ -180,12 +213,32 @@ def booking_start(product_type: str, product_id: int):
         current_app.logger.warning("recommendations failed: %s", exc)
         addons = []
 
+    # Serialise the option for the template
+    option_summary = None
+    if option is not None:
+        flight = option.flight
+        price = option.price
+        option_summary = {
+            "id": option.id,
+            "label": option.display_label,
+            "departure_date": option.departure_date,
+            "return_date": option.return_date,
+            "flight_from": flight.flight_from if flight else None,
+            "flight_to": flight.flight_to if flight else None,
+            "airline_name": flight.airline_name if flight else None,
+            "luggage_allowance": flight.luggage_allowance if flight else None,
+            "price_adult": float(price.adult_price) if price else None,
+            "price_child": float(price.child_price) if price else None,
+            "currency": price.currency if price else None,
+        }
+
     return render_template(
         "public/booking_start.html",
         product_type=product_type,
         product=product,
         meta=meta,
         addons=addons,
+        option=option_summary,
     )
 
 

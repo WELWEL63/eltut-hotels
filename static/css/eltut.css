@@ -693,3 +693,75 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+
+
+/* ─── Itinerary timeline ─── */
+.itinerary-timeline {
+    position: relative;
+    padding-left: 2.5rem;
+    margin-top: 1.5rem;
+}
+
+.itinerary-timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: linear-gradient(180deg,
+        var(--eltut-nile) 0%,
+        var(--eltut-terracotta) 100%);
+    opacity: 0.35;
+}
+
+.itinerary-day {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.itinerary-day:last-child {
+    margin-bottom: 0;
+}
+
+.itinerary-day .itinerary-marker {
+    position: absolute;
+    left: -2.5rem;
+    top: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--eltut-nile);
+    box-shadow: 0 2px 6px rgba(14, 116, 144, 0.2);
+}
+
+.itinerary-day:nth-child(even) .itinerary-marker {
+    border-color: var(--eltut-terracotta);
+    box-shadow: 0 2px 6px rgba(200, 90, 62, 0.2);
+}
+
+.itinerary-day .itinerary-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 1px 3px rgba(28, 25, 23, 0.06);
+    border: 1px solid rgba(28, 25, 23, 0.05);
+}
+
+.itinerary-day .itinerary-content::before {
+    content: attr(data-day);
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--eltut-terracotta);
+    margin-bottom: 0.35rem;
+}
+
+.itinerary-day .itinerary-content h6 {
+    color: var(--eltut-ink);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}

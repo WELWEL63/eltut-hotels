@@ -35,6 +35,7 @@ from models import (
     Room,
     PRODUCT_TYPE_PACKAGE,
     VALID_PACKAGE_TYPES,
+    PackageOption,
 )
 
 
@@ -277,9 +278,17 @@ def package_edit(package_id: int):
         .order_by(PackageTip.sort_order, PackageTip.id)
     ))
 
+    # Departure options (link flight + price + date)
+    options = list(db.session.scalars(
+        select(PackageOption)
+        .where(PackageOption.package_id == package.id)
+        .order_by(PackageOption.sort_order.asc(), PackageOption.id.asc())
+    ))
+
     return render_template(
         "admin/package_form.html",
         package=package,
+        options=options,
         destinations=destinations,
         hotels=hotels,
         rooms=rooms,
@@ -663,4 +672,103 @@ def package_flight_delete(flight_id: int):
     db.session.commit()
     _log("delete", "flight", flight_id)
     flash("Flight deleted.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package_id))
+
+
+# ─── Package options (departure + flight + rate) ───────────────────────
+def _apply_option_form(option: PackageOption) -> None:
+    """Copy editable fields from request.form onto the option row."""
+    f = request.form
+
+    def _maybe_int(key):
+        raw = (f.get(key) or "").strip()
+        if not raw:
+            return None
+        try:
+            return int(raw) or None
+        except ValueError:
+            return None
+
+    from datetime import datetime as _dt
+    def _maybe_date(key):
+        raw = (f.get(key) or "").strip()
+        if not raw:
+            return None
+        try:
+            return _dt.strptime(raw, "%Y-%m-%d").date()
+        except ValueError:
+            return None
+
+    option.flight_id = _maybe_int("flight_id")
+    option.price_id = _maybe_int("price_id")
+    option.room_id = _maybe_int("room_id")
+    option.departure_date = _maybe_date("departure_date")
+    option.return_date = _maybe_date("return_date")
+    option.label = (f.get("label") or "").strip() or None
+    option.is_active = bool(f.get("is_active", True))
+    if option.sort_order is None:
+        option.sort_order = 0
+
+
+@admin_bp.route("/packages/<int:package_id>/options/new", methods=["POST"])
+@admin_required
+def package_option_new(package_id: int):
+    """Add a departure option to a package."""
+    package = db.session.get(Package, package_id)
+    if package is None:
+        abort(404)
+
+    flight_id = (request.form.get("flight_id") or "").strip()
+    price_id = (request.form.get("price_id") or "").strip()
+    if not flight_id and not price_id:
+        flash("Pick at least a flight or a price for the option.", "danger")
+        return redirect(url_for("admin.package_edit", package_id=package.id))
+
+    option = PackageOption(package_id=package.id)
+    _apply_option_form(option)
+
+    # sort_order: append to the end
+    current_max = db.session.scalar(
+        select(func.coalesce(func.max(PackageOption.sort_order), 0))
+        .where(PackageOption.package_id == package.id)
+    ) or 0
+    option.sort_order = int(current_max) + 10
+
+    db.session.add(option)
+    db.session.commit()
+    _log("create", "package_option", option.id, new=package.id)
+    flash("Departure option added.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package.id))
+
+
+@admin_bp.route("/packages/<int:package_id>/options/<int:option_id>/update", methods=["POST"])
+@admin_required
+def package_option_update(package_id: int, option_id: int):
+    """Update a departure option inline."""
+    package = db.session.get(Package, package_id)
+    if package is None:
+        abort(404)
+    option = db.session.get(PackageOption, option_id)
+    if option is None or option.package_id != package.id:
+        abort(404)
+
+    _apply_option_form(option)
+    db.session.commit()
+    _log("update", "package_option", option.id, new=package.id)
+    flash("Departure option updated.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package.id))
+
+
+@admin_bp.route("/options/<int:option_id>/delete", methods=["POST"])
+@admin_required
+def package_option_delete(option_id: int):
+    """Delete a departure option."""
+    option = db.session.get(PackageOption, option_id)
+    if option is None:
+        abort(404)
+    package_id = option.package_id
+    db.session.delete(option)
+    db.session.commit()
+    _log("delete", "package_option", option_id)
+    flash("Departure option deleted.", "success")
     return redirect(url_for("admin.package_edit", package_id=package_id))

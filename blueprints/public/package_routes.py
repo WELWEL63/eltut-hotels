@@ -36,6 +36,8 @@ from models import (
     PackagePrice,
     Room,
     VALID_PACKAGE_TYPES,
+    PackageOption,
+    Airline,
 )
 
 
@@ -238,6 +240,47 @@ def package_detail(slug: str):
         .limit(3)
     ))
 
+    # ─── Departure options (flight + rate + date) ────────────────
+    options_rows = list(db.session.scalars(
+        select(PackageOption)
+        .where(PackageOption.package_id == package.id)
+        .where(PackageOption.is_active.is_(True))
+        .order_by(PackageOption.sort_order.asc(), PackageOption.id.asc())
+    ))
+
+    # Build a lookup of airline_name (lowercase) -> logo_url
+    airline_lookup: dict[str, str] = {}
+    try:
+        for al in db.session.scalars(select(Airline)):
+            if al.logo_url:
+                airline_lookup[al.name.strip().lower()] = al.logo_url
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.debug("airline lookup failed: %s", exc)
+
+    # Serialise options into plain dicts so the template doesn't chase
+    # relationships three levels deep
+    options: list[dict] = []
+    for opt in options_rows:
+        flight = opt.flight
+        price = opt.price
+        airline_name = flight.airline_name if flight else None
+        options.append({
+            "id": opt.id,
+            "label": opt.display_label,
+            "departure_date": opt.departure_date,
+            "return_date": opt.return_date,
+            "flight_from": flight.flight_from if flight else None,
+            "flight_to": flight.flight_to if flight else None,
+            "airline_name": airline_name,
+            "airline_logo": airline_lookup.get(
+                (airline_name or "").strip().lower()
+            ),
+            "luggage_allowance": flight.luggage_allowance if flight else None,
+            "price_adult": float(price.adult_price) if price else None,
+            "price_child": float(price.child_price) if price else None,
+            "currency": price.currency if price else None,
+        })
+
     # ─── Reviews (MongoDB, best-effort) ──────────────────────────
     reviews: list[dict] = []
     user_has_reviewed = False
@@ -281,5 +324,7 @@ def package_detail(slug: str):
         related=related,
         reviews=reviews,
         user_has_reviewed=user_has_reviewed,
+        options=options,
+        airline_lookup=airline_lookup,
     )
 

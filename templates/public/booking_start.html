@@ -20,6 +20,63 @@
 
             <div class="row g-4">
                 <div class="col-lg-8">
+                    {# ─── Selected departure option (packages) ─── #}
+                    {% if option %}
+                        <div class="card shadow-sm mb-4 border-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-calendar-check text-primary me-2" style="font-size:1.4rem;"></i>
+                                    <h5 class="card-title mb-0">Your selected departure</h5>
+                                </div>
+
+                                <div class="row g-2 small">
+                                    <div class="col-md-6">
+                                        <div class="text-muted">Dates</div>
+                                        <div class="fw-semibold">
+                                            {% if option.departure_date %}
+                                                {{ option.departure_date.strftime("%d %b %Y") }}
+                                                {% if option.return_date %}
+                                                    → {{ option.return_date.strftime("%d %b %Y") }}
+                                                {% endif %}
+                                            {% else %}
+                                                Flexible
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% if option.flight_from %}
+                                        <div class="col-md-6">
+                                            <div class="text-muted">Flight</div>
+                                            <div class="fw-semibold">
+                                                {{ option.flight_from }} → {{ option.flight_to }}
+                                                {% if option.airline_name %}
+                                                    <span class="text-muted">· {{ option.airline_name }}</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if option.luggage_allowance %}
+                                                <div class="text-muted">Luggage {{ option.luggage_allowance }}</div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if option.price_adult is not none %}
+                                        <div class="col-12 border-top pt-2 mt-2">
+                                            <div class="text-muted">Rate</div>
+                                            <div class="fw-semibold">
+                                                {{ option.currency }} {{ "%.2f"|format(option.price_adult) }} / adult
+                                                {% if option.price_child is not none %}
+                                                    · {{ option.currency }} {{ "%.2f"|format(option.price_child) }} / child
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <input type="hidden" name="option_id" value="{{ option.id }}">
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Traveller details</h5>
