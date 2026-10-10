@@ -27,9 +27,11 @@ from models import (
     Hotel,
     Package,
     PackageExclusion,
+    PackageFAQ,
     PackageInclusion,
     PackageItinerary,
     PackagePrice,
+    PackageTip,
     Room,
     PRODUCT_TYPE_PACKAGE,
     VALID_PACKAGE_TYPES,
@@ -152,6 +154,12 @@ def _apply_form_to_package(package: Package):
     package.booking_terms = (f.get("booking_terms") or "").strip() or None
     package.is_active = bool(f.get("is_active"))
 
+    # Detail-page content (details upgrade) — all optional free text.
+    package.useful_tips = (f.get("useful_tips") or "").strip() or None
+    package.what_to_bring = (f.get("what_to_bring") or "").strip() or None
+    package.things_to_know = (f.get("things_to_know") or "").strip() or None
+    package.google_maps_url = (f.get("google_maps_url") or "").strip() or None
+
 
 @admin_bp.route("/packages/new", methods=["GET", "POST"])
 @admin_required
@@ -258,6 +266,17 @@ def package_edit(package_id: int):
         select(Flight).where(Flight.package_id == package.id)
     ))
 
+    faqs = list(db.session.scalars(
+        select(PackageFAQ)
+        .where(PackageFAQ.package_id == package.id)
+        .order_by(PackageFAQ.sort_order, PackageFAQ.id)
+    ))
+    tips = list(db.session.scalars(
+        select(PackageTip)
+        .where(PackageTip.package_id == package.id)
+        .order_by(PackageTip.sort_order, PackageTip.id)
+    ))
+
     return render_template(
         "admin/package_form.html",
         package=package,
@@ -270,6 +289,8 @@ def package_edit(package_id: int):
         exclusions=exclusions,
         prices=prices,
         flights=flights,
+        faqs=faqs,
+        tips=tips,
     )
 
 
@@ -426,3 +447,90 @@ def package_exclusion_delete(exclusion_id: int):
     _log("delete", "package_exclusion", exclusion_id)
     flash("Exclusion deleted.", "success")
     return redirect(url_for("admin.package_edit", package_id=package_id))
+
+
+# --- Package child rows: FAQs / tips -----------------------------------
+# Generic helper so we don't need separate routes for each child type.
+_CHILD_TYPES: dict[str, dict] = {
+    "faqs": {"model": PackageFAQ, "field": "question", "label": "FAQ"},
+    "tips": {"model": PackageTip, "field": "tip", "label": "Tip"},
+}
+
+
+def _next_child_sort_order(Model, package_id: int) -> int:
+    """Return max(sort_order) + 1 for a package child table."""
+    current_max = db.session.scalar(
+        select(func.coalesce(func.max(Model.sort_order), 0))
+        .where(Model.package_id == package_id)
+    ) or 0
+    return int(current_max) + 1
+
+
+@admin_bp.route("/packages/<int:package_id>/children/<child_type>/new", methods=["POST"])
+@admin_required
+def package_child_new(package_id: int, child_type: str):
+    """Add one row to a package child table (FAQ or tip)."""
+    cfg = _CHILD_TYPES.get(child_type)
+    if cfg is None:
+        abort(404)
+    package = db.session.get(Package, package_id)
+    if package is None:
+        abort(404)
+
+    Model = cfg["model"]
+    field = cfg["field"]
+
+    if child_type == "faqs":
+        question = (request.form.get("question") or "").strip()
+        answer = (request.form.get("answer") or "").strip() or None
+        if not question:
+            flash("Question is required.", "danger")
+            return redirect(url_for("admin.package_edit", package_id=package.id))
+        row = Model(
+            package_id=package.id,
+            question=question,
+            answer=answer,
+            sort_order=_next_child_sort_order(Model, package.id),
+        )
+    else:
+        value = (request.form.get(field) or "").strip()
+        if not value:
+            flash(f"{cfg['label']} text is required.", "danger")
+            return redirect(url_for("admin.package_edit", package_id=package.id))
+        row = Model(
+            package_id=package.id,
+            **{field: value},
+            sort_order=_next_child_sort_order(Model, package.id),
+        )
+
+    db.session.add(row)
+    db.session.commit()
+    _log("create", child_type, row.id, new=package.id)
+    flash(f"{cfg['label']} added.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package.id))
+
+
+@admin_bp.route(
+    "/packages/<int:package_id>/children/<child_type>/<int:row_id>/delete",
+    methods=["POST"],
+)
+@admin_required
+def package_child_delete(package_id: int, child_type: str, row_id: int):
+    """Delete one row from a package child table."""
+    cfg = _CHILD_TYPES.get(child_type)
+    if cfg is None:
+        abort(404)
+    package = db.session.get(Package, package_id)
+    if package is None:
+        abort(404)
+
+    Model = cfg["model"]
+    row = db.session.get(Model, row_id)
+    if row is None or getattr(row, "package_id", None) != package.id:
+        abort(404)
+
+    db.session.delete(row)
+    db.session.commit()
+    _log("delete", child_type, row_id)
+    flash(f"{cfg['label']} deleted.", "success")
+    return redirect(url_for("admin.package_edit", package_id=package.id))

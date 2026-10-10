@@ -170,6 +170,14 @@ class Hotel(Base, SlugMixin, TimestampMixin):
         Boolean, nullable=False, default=True, server_default=true()
     )
 
+    # ─── Detail-page content (added in details upgrade) ──────────
+    useful_tips: Mapped[str | None] = mapped_column(Text, nullable=True)
+    house_rules: Mapped[str | None] = mapped_column(Text, nullable=True)
+    check_in_details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cancellation_policy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    neighborhood_info: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # ─── Relationships ─────────────────────────────────────────────
     facilities: Mapped[list["HotelFacility"]] = relationship(
         back_populates="hotel",
@@ -182,6 +190,30 @@ class Hotel(Base, SlugMixin, TimestampMixin):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="HotelImage.sort_order",
+    )
+    inclusions: Mapped[list["HotelInclusion"]] = relationship(
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="HotelInclusion.sort_order",
+    )
+    exclusions: Mapped[list["HotelExclusion"]] = relationship(
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="HotelExclusion.sort_order",
+    )
+    faqs: Mapped[list["HotelFAQ"]] = relationship(
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="HotelFAQ.sort_order",
+    )
+    tips: Mapped[list["HotelTip"]] = relationship(
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="HotelTip.sort_order",
     )
 
     # ═══════════════════════════════════════════════════════════════

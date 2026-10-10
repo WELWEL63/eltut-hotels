@@ -42,11 +42,15 @@ from models import (
     BookingItem,
     Destination,
     Hotel,
-    RoomRate,
+    HotelExclusion,
+    HotelFAQ,
     HotelImage,
+    HotelInclusion,
+    HotelTip,
     Package,
-    Room,
     PRODUCT_TYPE_HOTEL,
+    Room,
+    RoomRate,
     VALID_ROOM_MEAL_PLANS,
 )
 
@@ -147,6 +151,15 @@ def _apply_form_to_hotel(hotel: Hotel):
         hotel.total_capacity = 1
     hotel.is_active = bool(f.get("is_active"))
 
+    # Detail-page content (details upgrade) — all optional free text.
+    # Empty string coerces to None so templates can hide empty sections.
+    hotel.useful_tips = (f.get("useful_tips") or "").strip() or None
+    hotel.house_rules = (f.get("house_rules") or "").strip() or None
+    hotel.check_in_details = (f.get("check_in_details") or "").strip() or None
+    hotel.cancellation_policy = (f.get("cancellation_policy") or "").strip() or None
+    hotel.neighborhood_info = (f.get("neighborhood_info") or "").strip() or None
+    hotel.google_maps_url = (f.get("google_maps_url") or "").strip() or None
+
 
 # ─── Hotel create / edit ───────────────────────────────────────────
 @admin_bp.route("/hotels/new", methods=["GET", "POST"])
@@ -213,12 +226,38 @@ def hotel_edit(hotel_id: int):
         .order_by(HotelImage.sort_order)
     ))
 
+    # Child rows for the detail-page editor
+    inclusions = list(db.session.scalars(
+        select(HotelInclusion)
+        .where(HotelInclusion.hotel_id == hotel.id)
+        .order_by(HotelInclusion.sort_order, HotelInclusion.id)
+    ))
+    exclusions = list(db.session.scalars(
+        select(HotelExclusion)
+        .where(HotelExclusion.hotel_id == hotel.id)
+        .order_by(HotelExclusion.sort_order, HotelExclusion.id)
+    ))
+    faqs = list(db.session.scalars(
+        select(HotelFAQ)
+        .where(HotelFAQ.hotel_id == hotel.id)
+        .order_by(HotelFAQ.sort_order, HotelFAQ.id)
+    ))
+    tips = list(db.session.scalars(
+        select(HotelTip)
+        .where(HotelTip.hotel_id == hotel.id)
+        .order_by(HotelTip.sort_order, HotelTip.id)
+    ))
+
     return render_template(
         "admin/hotel_form.html",
         hotel=hotel,
         destinations=destinations,
         rooms=rooms,
         images=images,
+        inclusions=inclusions,
+        exclusions=exclusions,
+        faqs=faqs,
+        tips=tips,
         meal_plans=VALID_ROOM_MEAL_PLANS,
     )
 
@@ -447,3 +486,92 @@ def room_rate_delete(rate_id: int):
     _log("delete", "room_rate", rate_id)
     flash("Rate deleted.", "success")
     return redirect(url_for("admin.room_edit", room_id=room_id))
+
+
+# --- Hotel child rows: inclusions / exclusions / FAQs / tips -----------
+# Generic helper avoids 16 nearly-identical routes.
+_CHILD_TYPES: dict[str, dict] = {
+    "inclusions": {"model": HotelInclusion, "field": "item", "label": "Inclusion"},
+    "exclusions": {"model": HotelExclusion, "field": "item", "label": "Exclusion"},
+    "faqs":       {"model": HotelFAQ,       "field": "question", "label": "FAQ"},
+    "tips":       {"model": HotelTip,       "field": "tip", "label": "Tip"},
+}
+
+
+def _next_child_sort_order(Model, hotel_id: int) -> int:
+    """Return max(sort_order) + 1 for a hotel child table."""
+    current_max = db.session.scalar(
+        select(func.coalesce(func.max(Model.sort_order), 0))
+        .where(Model.hotel_id == hotel_id)
+    ) or 0
+    return int(current_max) + 1
+
+
+@admin_bp.route("/hotels/<int:hotel_id>/children/<child_type>/new", methods=["POST"])
+@admin_required
+def hotel_child_new(hotel_id: int, child_type: str):
+    """Add one row to a hotel child table (inclusion/exclusion/FAQ/tip)."""
+    cfg = _CHILD_TYPES.get(child_type)
+    if cfg is None:
+        abort(404)
+    hotel = db.session.get(Hotel, hotel_id)
+    if hotel is None:
+        abort(404)
+
+    Model = cfg["model"]
+    field = cfg["field"]
+
+    if child_type == "faqs":
+        question = (request.form.get("question") or "").strip()
+        answer = (request.form.get("answer") or "").strip() or None
+        if not question:
+            flash("Question is required.", "danger")
+            return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))
+        row = Model(
+            hotel_id=hotel.id,
+            question=question,
+            answer=answer,
+            sort_order=_next_child_sort_order(Model, hotel.id),
+        )
+    else:
+        value = (request.form.get(field) or "").strip()
+        if not value:
+            flash(f"{cfg['label']} text is required.", "danger")
+            return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))
+        row = Model(
+            hotel_id=hotel.id,
+            **{field: value},
+            sort_order=_next_child_sort_order(Model, hotel.id),
+        )
+
+    db.session.add(row)
+    db.session.commit()
+    _log("create", child_type, row.id, new=hotel.id)
+    flash(f"{cfg['label']} added.", "success")
+    return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))
+
+
+@admin_bp.route(
+    "/hotels/<int:hotel_id>/children/<child_type>/<int:row_id>/delete",
+    methods=["POST"],
+)
+@admin_required
+def hotel_child_delete(hotel_id: int, child_type: str, row_id: int):
+    """Delete one row from a hotel child table."""
+    cfg = _CHILD_TYPES.get(child_type)
+    if cfg is None:
+        abort(404)
+    hotel = db.session.get(Hotel, hotel_id)
+    if hotel is None:
+        abort(404)
+
+    Model = cfg["model"]
+    row = db.session.get(Model, row_id)
+    if row is None or getattr(row, "hotel_id", None) != hotel.id:
+        abort(404)
+
+    db.session.delete(row)
+    db.session.commit()
+    _log("delete", child_type, row_id)
+    flash(f"{cfg['label']} deleted.", "success")
+    return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))

@@ -40,7 +40,9 @@ from blueprints.admin import admin_bp, admin_required
 from extensions import db
 from models import (
     Activity,
+    ActivityFAQ,
     ActivityPrice,
+    ActivityTip,
     BookingItem,
     Destination,
     Guide,
@@ -190,6 +192,10 @@ def _apply_form_to_activity(activity: Activity) -> None:
     activity.special_offers = (f.get("special_offers") or "").strip() or None
     activity.is_active = bool(f.get("is_active"))
 
+    # Detail-page content (details upgrade) — all optional free text.
+    activity.useful_tips = (f.get("useful_tips") or "").strip() or None
+    activity.google_maps_url = (f.get("google_maps_url") or "").strip() or None
+
 
 def _get_form_choices():
     """Destinations + guides for the form dropdowns."""
@@ -315,6 +321,17 @@ def activity_edit(activity_id: int):
         .order_by(ActivityPrice.id)
         .limit(1)
     )
+    faqs = list(db.session.scalars(
+        select(ActivityFAQ)
+        .where(ActivityFAQ.activity_id == activity.id)
+        .order_by(ActivityFAQ.sort_order, ActivityFAQ.id)
+    ))
+    tips = list(db.session.scalars(
+        select(ActivityTip)
+        .where(ActivityTip.activity_id == activity.id)
+        .order_by(ActivityTip.sort_order, ActivityTip.id)
+    ))
+
     return render_template(
         "admin/activity_form.html",
         activity=activity,
@@ -325,6 +342,8 @@ def activity_edit(activity_id: int):
         difficulties=VALID_ACTIVITY_DIFFICULTIES,
         transports=VALID_TRANSPORT_TYPES,
         meals=VALID_MEAL_PLANS,
+        faqs=faqs,
+        tips=tips,
     )
 
 
@@ -376,3 +395,90 @@ def activity_delete(activity_id: int):
     _log("delete", activity_id, old_value=name)
     flash(f"Activity '{name}' deleted.", "success")
     return redirect(url_for("admin.activity_list"))
+
+
+# --- Activity child rows: FAQs / tips ----------------------------------
+# Generic helper so we don't need separate routes for each child type.
+_CHILD_TYPES: dict[str, dict] = {
+    "faqs": {"model": ActivityFAQ, "field": "question", "label": "FAQ"},
+    "tips": {"model": ActivityTip, "field": "tip", "label": "Tip"},
+}
+
+
+def _next_child_sort_order(Model, activity_id: int) -> int:
+    """Return max(sort_order) + 1 for an activity child table."""
+    current_max = db.session.scalar(
+        select(func.coalesce(func.max(Model.sort_order), 0))
+        .where(Model.activity_id == activity_id)
+    ) or 0
+    return int(current_max) + 1
+
+
+@admin_bp.route("/activities/<int:activity_id>/children/<child_type>/new", methods=["POST"])
+@admin_required
+def activity_child_new(activity_id: int, child_type: str):
+    """Add one row to an activity child table (FAQ or tip)."""
+    cfg = _CHILD_TYPES.get(child_type)
+    if cfg is None:
+        abort(404)
+    activity = db.session.get(Activity, activity_id)
+    if activity is None:
+        abort(404)
+
+    Model = cfg["model"]
+    field = cfg["field"]
+
+    if child_type == "faqs":
+        question = (request.form.get("question") or "").strip()
+        answer = (request.form.get("answer") or "").strip() or None
+        if not question:
+            flash("Question is required.", "danger")
+            return redirect(url_for("admin.activity_edit", activity_id=activity.id))
+        row = Model(
+            activity_id=activity.id,
+            question=question,
+            answer=answer,
+            sort_order=_next_child_sort_order(Model, activity.id),
+        )
+    else:
+        value = (request.form.get(field) or "").strip()
+        if not value:
+            flash(f"{cfg['label']} text is required.", "danger")
+            return redirect(url_for("admin.activity_edit", activity_id=activity.id))
+        row = Model(
+            activity_id=activity.id,
+            **{field: value},
+            sort_order=_next_child_sort_order(Model, activity.id),
+        )
+
+    db.session.add(row)
+    db.session.commit()
+    _log("create", row.id, new_value=activity.id)
+    flash(f"{cfg['label']} added.", "success")
+    return redirect(url_for("admin.activity_edit", activity_id=activity.id))
+
+
+@admin_bp.route(
+    "/activities/<int:activity_id>/children/<child_type>/<int:row_id>/delete",
+    methods=["POST"],
+)
+@admin_required
+def activity_child_delete(activity_id: int, child_type: str, row_id: int):
+    """Delete one row from an activity child table."""
+    cfg = _CHILD_TYPES.get(child_type)
+    if cfg is None:
+        abort(404)
+    activity = db.session.get(Activity, activity_id)
+    if activity is None:
+        abort(404)
+
+    Model = cfg["model"]
+    row = db.session.get(Model, row_id)
+    if row is None or getattr(row, "activity_id", None) != activity.id:
+        abort(404)
+
+    db.session.delete(row)
+    db.session.commit()
+    _log("delete", row_id)
+    flash(f"{cfg['label']} deleted.", "success")
+    return redirect(url_for("admin.activity_edit", activity_id=activity.id))

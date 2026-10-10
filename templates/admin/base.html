@@ -53,6 +53,14 @@
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.media') %}active{% endif %}">
                         <i class="bi bi-image"></i> Media
                     </a>
+                    <a href="{{ maybe_url('admin.quote_list') }}"
+                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.quote') %}active{% endif %}">
+                        <i class="bi bi-file-earmark-text"></i> Quotes
+                    </a>
+                    <a href="{{ maybe_url('admin.content_index') }}"
+                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.content') %}active{% endif %}">
+                        <i class="bi bi-pencil-square"></i> Site content
+                    </a>
                 </div>
             </div>
         </aside>

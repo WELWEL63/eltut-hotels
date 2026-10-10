@@ -51,6 +51,9 @@ __all__: list[str] = [
     "payment_service",
     "email_service",
     "report_service",
+    "content_service",
+    "quote_service",
+    "search_service",
 ]
 
 
@@ -88,6 +91,18 @@ SERVICE_MANIFEST: dict[str, str] = {
         "Admin dashboard aggregates: sales totals, bookings per status, "
         "top products, search analytics via the Mongo search_events "
         "collection."
+    ),
+    "content_service": (
+        "Admin-editable public page content — key/value store with "
+        "in-request cache; falls back to registry defaults."
+    ),
+    "quote_service": (
+        "Create / price / send / accept / decline quotes; "
+        "quote-request creation from public forms."
+    ),
+    "search_service": (
+        "Unified search across activities, hotels, and packages "
+        "filtered by destination, dates, and party size."
     ),
 }
 

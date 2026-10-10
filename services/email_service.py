@@ -423,3 +423,138 @@ def send_enquiry_received(enquiry: dict[str, Any]) -> bool:
         html=html,
         text=text,
     )
+
+
+# ─── Quote system emails ──────────────────────────────────────────────────
+def send_quote_request_received(enquiry: dict[str, Any]) -> bool:
+    """Tell the customer we've received their quote request."""
+    to = (enquiry or {}).get("email")
+    if not to:
+        log.warning("send_quote_request_received: no recipient")
+        return False
+
+    cfg = _cfg()
+    name = (enquiry.get("name") or "there").strip()
+
+    context = {
+        "customer_name": name,
+        "product_type": enquiry.get("product_type"),
+        "product_id": enquiry.get("product_id"),
+        "message": enquiry.get("message"),
+        "app_name": cfg["app_name"],
+        "base_url": cfg["base_url"],
+    }
+    fallback = (
+        f"Hi {name},\n\n"
+        "Thanks for requesting a quote from ElTut Tours. We have "
+        "received your request and one of our travel specialists will "
+        "reply within 24 hours with pricing and availability.\n\n"
+        "If you need to reach us sooner, just reply to this email.\n\n"
+        f"— The {cfg['app_name']} team"
+    )
+    html, text = _render_email(
+        "quote_request_received.html",
+        context=context,
+        fallback_text=fallback,
+    )
+    return send_raw(
+        to=to,
+        subject=f"{cfg['app_name']} — we received your quote request",
+        html=html,
+        text=text,
+    )
+
+
+def send_admin_quote_request(enquiry: dict[str, Any]) -> bool:
+    """Notify the admin inbox of a new quote request."""
+    to = _cfg()["admin"]
+    if not to:
+        log.info("send_admin_quote_request: no admin recipient configured")
+        return False
+
+    cfg = _cfg()
+    name = (enquiry.get("name") or "—").strip()
+    email = (enquiry.get("email") or "—").strip()
+    ptype = enquiry.get("product_type") or "—"
+    pid = enquiry.get("product_id")
+
+    context = {
+        "name": name,
+        "email": email,
+        "phone": enquiry.get("phone"),
+        "product_type": ptype,
+        "product_id": pid,
+        "message": enquiry.get("message"),
+        "enquiry_id": str(enquiry.get("_id")) if enquiry.get("_id") else None,
+        "base_url": cfg["base_url"],
+    }
+    fallback = (
+        "New quote request received.\n\n"
+        f"From:  {name} <{email}>\n"
+        f"Phone: {enquiry.get('phone') or '—'}\n"
+        f"Product: {ptype} #{pid}\n\n"
+        f"Message:\n{enquiry.get('message') or '(none)'}\n\n"
+        "Open /admin/quotes to respond."
+    )
+    html, text = _render_email(
+        "admin_quote_request.html",
+        context=context,
+        fallback_text=fallback,
+    )
+    return send_raw(
+        to=to,
+        subject=f"[{cfg['app_name']}] New quote request — {ptype} #{pid}",
+        html=html,
+        text=text,
+    )
+
+
+def send_quote_to_customer(quote: Any) -> bool:
+    """Send a priced quote to the customer with accept/decline links."""
+    if quote is None:
+        return False
+    to = getattr(quote, "customer_email", None)
+    if not to:
+        log.warning("send_quote_to_customer: quote has no customer_email")
+        return False
+
+    cfg = _cfg()
+    reference = getattr(quote, "reference", "")
+    view_url = f"{cfg['base_url']}/quote/{reference}" if cfg["base_url"] else f"/quote/{reference}"
+
+    context = {
+        "customer_name": getattr(quote, "customer_name", None) or "there",
+        "reference": reference,
+        "product_type": getattr(quote, "product_type", None),
+        "product_name": getattr(quote, "product_name_snapshot", None),
+        "price": getattr(quote, "price", None),
+        "currency": getattr(quote, "currency", "GBP"),
+        "valid_until": getattr(quote, "valid_until", None),
+        "message": getattr(quote, "message", None),
+        "image_url": getattr(quote, "image_url", None),
+        "view_url": view_url,
+        "app_name": cfg["app_name"],
+    }
+
+    price_str = f"{context['currency']} {context['price']}" if context["price"] is not None else "see link"
+    fallback = (
+        f"Hi {context['customer_name']},\n\n"
+        "Here is your personalised quote from ElTut Tours.\n\n"
+        f"Reference: {reference}\n"
+        f"Price:     {price_str}\n"
+        f"Valid until: {context['valid_until'] or 'no expiry'}\n\n"
+        f"{context['message'] or ''}\n\n"
+        f"View, accept, or decline online:\n{view_url}\n\n"
+        f"— The {cfg['app_name']} team"
+    )
+    html, text = _render_email(
+        "quote_sent.html",
+        context=context,
+        fallback_text=fallback,
+    )
+    return send_raw(
+        to=to,
+        subject=f"Your ElTut Tours quote — {reference}",
+        html=html,
+        text=text,
+    )

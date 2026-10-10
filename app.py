@@ -252,6 +252,27 @@ def create_app(config_name: str | None = None) -> Flask:
     _register_user_loader(app)
     _register_blueprints(app)
 
+    # ─── Jinja global: content() ─────────────────────────────────────
+    # WHY a Jinja global rather than a context processor: this helper
+    # is called from every template, needs to be fast, and doesn't
+    # depend on request-scoped variables. The service caches per
+    # request so N calls cost 1 query.
+    from services import content_service as _content_service
+
+    def _content(key: str, default: str | None = None) -> str:
+        """Template helper: fetch admin-editable content or fallback."""
+        try:
+            return _content_service.get(key, default) or ""
+        except Exception:
+            return default or ""
+
+    app.jinja_env.globals["content"] = _content
+
+    # Small time helpers usable from any template.
+    from datetime import date as _date, datetime as _datetime
+    app.jinja_env.globals["today"] = lambda: _date.today()
+    app.jinja_env.globals["now"] = lambda: _datetime.now()
+
     # ─── Tiny healthcheck route so we can test before blueprints land ─
     @app.route("/_health")
     def _health() -> dict[str, str]:

@@ -267,6 +267,10 @@ class Activity(Base, SlugMixin, TimestampMixin):
         Boolean, nullable=False, default=True, server_default=true()
     )
 
+    # ─── Detail-page content (added in details upgrade) ──────────
+    useful_tips: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # ─── Relationships ─────────────────────────────────────────────
     prices: Mapped[list["ActivityPrice"]] = relationship(
         back_populates="activity",
@@ -297,6 +301,18 @@ class Activity(Base, SlugMixin, TimestampMixin):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="ActivityLanguage.language",
+    )
+    faqs: Mapped[list["ActivityFAQ"]] = relationship(
+        back_populates="activity",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="ActivityFAQ.sort_order",
+    )
+    tips: Mapped[list["ActivityTip"]] = relationship(
+        back_populates="activity",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="ActivityTip.sort_order",
     )
 
     # ═══════════════════════════════════════════════════════════════

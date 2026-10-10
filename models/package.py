@@ -233,6 +233,12 @@ class Package(Base, SlugMixin, TimestampMixin):
         Boolean, nullable=False, default=True, server_default=true()
     )
 
+    # ─── Detail-page content (added in details upgrade) ──────────
+    useful_tips: Mapped[str | None] = mapped_column(Text, nullable=True)
+    what_to_bring: Mapped[str | None] = mapped_column(Text, nullable=True)
+    things_to_know: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     # ─── Relationships ─────────────────────────────────────────────
     prices: Mapped[list["PackagePrice"]] = relationship(
         back_populates="package",
@@ -263,6 +269,18 @@ class Package(Base, SlugMixin, TimestampMixin):
         cascade="all, delete-orphan",
         passive_deletes=True,
         order_by="PackageItinerary.day_number",
+    )
+    faqs: Mapped[list["PackageFAQ"]] = relationship(
+        back_populates="package",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="PackageFAQ.sort_order",
+    )
+    tips: Mapped[list["PackageTip"]] = relationship(
+        back_populates="package",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="PackageTip.sort_order",
     )
 
     # ═══════════════════════════════════════════════════════════════

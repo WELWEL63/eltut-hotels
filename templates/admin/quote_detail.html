@@ -1,0 +1,454 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ quote.reference }} — Admin{# ─── Live-total recompute ─── #}
+<script>
+(function() {
+    const adultInput = document.getElementById('price-adult');
+    const childInput = document.getElementById('price-child');
+    const adultsQty  = document.getElementById('party-adults');
+    const childrenQty = document.getElementById('party-children');
+    const totalDisplay = document.getElementById('total-display');
+    const breakdown = document.getElementById('total-breakdown');
+    const currencySelect = document.querySelector('select[name="currency"]');
+    if (!adultInput || !childInput || !adultsQty || !childrenQty) return;
+
+    function compute() {
+        const pa = parseFloat(adultInput.value) || 0;
+        const pc = parseFloat(childInput.value) || 0;
+        const na = parseInt(adultsQty.value, 10) || 0;
+        const nc = parseInt(childrenQty.value, 10) || 0;
+        const total = na * pa + nc * pc;
+        const cur = currencySelect ? currencySelect.value : '';
+        totalDisplay.textContent = cur + ' ' + total.toFixed(2);
+        let parts = na + ' × ' + pa.toFixed(2);
+        if (nc) parts += ' + ' + nc + ' × ' + pc.toFixed(2);
+        breakdown.textContent = parts;
+    }
+
+    [adultInput, childInput, adultsQty, childrenQty].forEach(function(el) {
+        el.addEventListener('input', compute);
+        el.addEventListener('change', compute);
+    });
+    if (currencySelect) currencySelect.addEventListener('change', compute);
+    compute();
+})();
+</script>
+
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a href="{{ url_for('admin.quote_list') }}" class="text-decoration-none small">
+            <i class="bi bi-arrow-left"></i> All quotes
+        </a>
+        <h1 class="mb-1">{{ quote.reference }}</h1>
+        <div>
+            {% set badge = {
+                "draft":     "secondary",
+                "sent":      "primary",
+                "accepted":  "success",
+                "declined":  "danger",
+                "expired":   "warning",
+                "cancelled": "dark"
+            }.get(quote.status, "secondary") %}
+            <span class="badge bg-{{ badge }} fs-6">{{ quote.status }}</span>
+            <span class="text-muted ms-2">
+                {{ quote.product_type|capitalize }} #{{ quote.product_id }}
+            </span>
+        </div>
+    </div>
+    <div class="text-end">
+        <div class="text-muted small">Price</div>
+        <div class="fs-4 fw-bold">
+            {{ quote.currency }} {{ "%.2f"|format(quote.price or 0) }}
+        </div>
+        {% if quote.valid_until %}
+            <div class="text-muted small">
+                valid until {{ quote.valid_until.strftime("%Y-%m-%d") }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ─── Customer / product context ─── #}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><strong>Customer</strong></div>
+            <div class="card-body">
+                <dl class="row small mb-0">
+                    <dt class="col-4 text-muted">Email</dt>
+                    <dd class="col-8">
+                        <a href="mailto:{{ quote.customer_email }}">{{ quote.customer_email }}</a>
+                    </dd>
+                    <dt class="col-4 text-muted">Name</dt>
+                    <dd class="col-8">{{ quote.customer_name or "—" }}</dd>
+                    <dt class="col-4 text-muted">Phone</dt>
+                    <dd class="col-8">
+                        {% if quote.customer_phone %}
+                            <a href="tel:{{ quote.customer_phone }}">{{ quote.customer_phone }}</a>
+                        {% else %}—{% endif %}
+                    </dd>
+                    {% if quote.enquiry_id %}
+                        <dt class="col-4 text-muted">Linked enquiry</dt>
+                        <dd class="col-8">
+                            <code class="small">{{ quote.enquiry_id }}</code>
+                        </dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><strong>Product</strong></div>
+            <div class="card-body">
+                <dl class="row small mb-0">
+                    <dt class="col-4 text-muted">Type</dt>
+                    <dd class="col-8 text-capitalize">{{ quote.product_type }}</dd>
+                    <dt class="col-4 text-muted">ID</dt>
+                    <dd class="col-8">#{{ quote.product_id }}</dd>
+                    <dt class="col-4 text-muted">Name</dt>
+                    <dd class="col-8">{{ quote.product_name_snapshot or "—" }}</dd>
+                    {% if quote.accepted_booking_id %}
+                        <dt class="col-4 text-muted">Booking</dt>
+                        <dd class="col-8">
+                            <span class="badge bg-success-subtle text-success-emphasis">
+                                #{{ quote.accepted_booking_id }}
+                            </span>
+                        </dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ─── Draft editor (only when status is draft) ─── #}
+{% if quote.status == "draft" %}
+    <form method="POST"
+          action="{{ url_for('admin.quote_detail', reference=quote.reference) }}"
+          class="card shadow-sm mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="card-header bg-white">
+            <strong>Draft editor</strong>
+            <span class="text-muted small">— fill in the quote, then save or send.</span>
+        </div>
+        <div class="card-body">
+
+            {# ─── Party composition ─── #}
+            <div class="row g-3 mb-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Party composition</label>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Adults</label>
+                    <input type="number"
+                           name="adults"
+                           id="party-adults"
+                           class="form-control"
+                           min="1"
+                           value="{{ quote.adults or 1 }}"
+                           required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Children</label>
+                    <input type="number"
+                           name="children"
+                           id="party-children"
+                           class="form-control"
+                           min="0"
+                           value="{{ quote.children or 0 }}"
+                           required>
+                </div>
+            </div>
+
+            {# ─── Per-person pricing ─── #}
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">
+                        Adult price <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="number"
+                               name="price_adult"
+                               id="price-adult"
+                               class="form-control"
+                               value="{{ '%.2f'|format(quote.price_adult or 0.01) }}"
+                               step="0.01"
+                               min="0.01"
+                               required>
+                        <select name="currency" class="form-select" style="max-width:100px;">
+                            {% for cur in ["GBP", "USD", "EUR", "EGP"] %}
+                                <option value="{{ cur }}" {% if quote.currency == cur %}selected{% endif %}>
+                                    {{ cur }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Child price</label>
+                    <input type="number"
+                           name="price_child"
+                           id="price-child"
+                           class="form-control"
+                           value="{{ '%.2f'|format(quote.price_child or 0) }}"
+                           step="0.01"
+                           min="0">
+                    <div class="form-text small">Enter 0 if children are free.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Total (computed)</label>
+                    <div class="form-control bg-light fw-bold"
+                         id="total-display"
+                         style="font-size:1.25rem;">
+                        {{ quote.currency }} {{ '%.2f'|format(quote.price or 0) }}
+                    </div>
+                    <div class="form-text small" id="total-breakdown">
+                        {{ quote.adults }} × {{ '%.2f'|format(quote.price_adult or 0) }}
+                        {% if quote.children %}
+                            + {{ quote.children }} × {{ '%.2f'|format(quote.price_child or 0) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Valid until</label>
+                    <input type="date"
+                           name="valid_until"
+                           class="form-control"
+                           value="{{ quote.valid_until.isoformat() if quote.valid_until else '' }}">
+                    <div class="form-text small">
+                        Unanswered quotes past this date auto-expire.
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <label class="form-label">Hero image (optional)</label>
+                    <input type="url"
+                           name="image_url"
+                           id="image_url_input"
+                           class="form-control"
+                           value="{{ quote.image_url or '' }}"
+                           placeholder="https://... or /static/images/...">
+                    <div class="form-text small">
+                        Attached to the quote email and page.
+                    </div>
+                </div>
+            </div>
+
+            {% if quote.image_url %}
+                <div class="mb-3">
+                    <div class="small text-muted mb-1">Current hero image</div>
+                    <img src="{{ quote.image_url }}"
+                         alt=""
+                         class="rounded border"
+                         style="max-height:180px; max-width:100%; object-fit:cover;"
+                         onerror="this.style.display='none';">
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label class="form-label">Message to the customer</label>
+                <textarea name="message"
+                          class="form-control"
+                          rows="6"
+                          placeholder="Add context: what's included, why this price, next steps...">{{ quote.message or '' }}</textarea>
+            </div>
+
+            <div class="mb-0">
+                <label class="form-label">Internal notes (not shown to the customer)</label>
+                <textarea name="internal_notes"
+                          class="form-control"
+                          rows="3">{{ quote.internal_notes or '' }}</textarea>
+            </div>
+
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between">
+            <div>
+                <button type="submit" class="btn btn-outline-primary" name="action" value="save">
+                    <i class="bi bi-save"></i> Save draft
+                </button>
+                <button type="submit"
+                        class="btn btn-primary"
+                        name="action"
+                        value="save_and_send"
+                        onclick="return confirm('Send this quote to {{ quote.customer_email }}? The customer will be able to accept or decline.');">
+                    <i class="bi bi-send"></i> Save &amp; Send to customer
+                </button>
+            </div>
+            <button type="submit"
+                    form="cancel-form"
+                    class="btn btn-outline-danger"
+                    onclick="return confirm('Cancel this quote? The customer will not receive it.');">
+                <i class="bi bi-x-circle"></i> Cancel quote
+            </button>
+        </div>
+    </form>
+
+    {# ─── Standalone send + cancel forms (separate to avoid nesting) ─── #}
+    <form id="cancel-form"
+          method="POST"
+          action="{{ url_for('admin.quote_cancel', reference=quote.reference) }}"
+          class="d-none">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="reason" value="Cancelled by admin">
+    </form>
+
+{% elif quote.status == "sent" %}
+    {# ─── Sent — read-only + cancel option ─── #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Sent to customer</strong>
+            {% if quote.sent_at %}
+                <span class="text-muted small">— {{ quote.sent_at.strftime("%Y-%m-%d %H:%M") }}</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if quote.image_url %}
+                <img src="{{ quote.image_url }}"
+                     alt=""
+                     class="rounded border mb-3"
+                     style="max-height:220px; max-width:100%; object-fit:cover;"
+                     onerror="this.style.display='none';">
+            {% endif %}
+
+            <div class="mb-3">
+                <div class="small text-muted mb-1">Message</div>
+                <div class="border-start ps-3" style="white-space:pre-wrap;">{{ quote.message or "(no message)" }}</div>
+            </div>
+
+            {% if quote.internal_notes %}
+                <div class="small">
+                    <div class="text-muted mb-1">Internal notes</div>
+                    <div class="border-start ps-3 text-muted" style="white-space:pre-wrap;">{{ quote.internal_notes }}</div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-between">
+            <div class="small text-muted">
+                <i class="bi bi-clock"></i>
+                {% if quote.valid_until %}
+                    Expires {{ quote.valid_until.strftime("%Y-%m-%d") }}
+                    {% if quote.valid_until < today() %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis">overdue</span>
+                    {% endif %}
+                {% else %}
+                    No expiry
+                {% endif %}
+            </div>
+            <form method="POST"
+                  action="{{ url_for('admin.quote_cancel', reference=quote.reference) }}"
+                  class="d-inline"
+                  onsubmit="return confirm('Cancel this quote? The customer will no longer be able to accept it.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="reason" value="Cancelled by admin after sending">
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x-circle"></i> Cancel quote
+                </button>
+            </form>
+        </div>
+    </div>
+
+{% else %}
+    {# ─── Accepted / declined / expired / cancelled — read-only ─── #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <strong>Result</strong>
+        </div>
+        <div class="card-body">
+            {% if quote.status == "accepted" %}
+                <p class="mb-2">
+                    <i class="bi bi-check-circle text-success"></i>
+                    Customer <strong>accepted</strong> this quote
+                    {% if quote.accepted_at %}on {{ quote.accepted_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}.
+                </p>
+                {% if quote.accepted_booking_id %}
+                    <a href="{{ url_for('admin.booking_detail', reference='REF-' + quote.accepted_booking_id|string) }}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-journal-check"></i> View booking #{{ quote.accepted_booking_id }}
+                    </a>
+                {% endif %}
+            {% elif quote.status == "declined" %}
+                <p class="mb-0">
+                    <i class="bi bi-x-circle text-danger"></i>
+                    Customer <strong>declined</strong> this quote
+                    {% if quote.declined_at %}on {{ quote.declined_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}.
+                </p>
+            {% elif quote.status == "expired" %}
+                <p class="mb-0">
+                    <i class="bi bi-hourglass-split text-warning"></i>
+                    This quote <strong>expired</strong> without a response.
+                </p>
+            {% elif quote.status == "cancelled" %}
+                <p class="mb-0">
+                    <i class="bi bi-slash-circle"></i>
+                    This quote was <strong>cancelled</strong>.
+                </p>
+            {% endif %}
+
+            {% if quote.message %}
+                <hr>
+                <div class="small">
+                    <div class="text-muted mb-1">Message sent</div>
+                    <div class="border-start ps-3" style="white-space:pre-wrap;">{{ quote.message }}</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+{# ─── Timeline ─── #}
+<div class="card shadow-sm">
+    <div class="card-header bg-white"><strong>Timeline</strong></div>
+    <div class="card-body">
+        <ul class="list-unstyled mb-0 small">
+            <li class="mb-2">
+                <i class="bi bi-file-earmark-plus text-muted"></i>
+                Draft created
+                {% if quote.created_at %}
+                    <span class="text-muted">— {{ quote.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                {% endif %}
+            </li>
+            {% if quote.sent_at %}
+                <li class="mb-2">
+                    <i class="bi bi-send text-primary"></i>
+                    Sent to {{ quote.customer_email }}
+                    <span class="text-muted">— {{ quote.sent_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                </li>
+            {% endif %}
+            {% if quote.accepted_at %}
+                <li class="mb-2">
+                    <i class="bi bi-check-circle text-success"></i>
+                    Accepted
+                    <span class="text-muted">— {{ quote.accepted_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                </li>
+            {% endif %}
+            {% if quote.declined_at %}
+                <li class="mb-2">
+                    <i class="bi bi-x-circle text-danger"></i>
+                    Declined
+                    <span class="text-muted">— {{ quote.declined_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                </li>
+            {% endif %}
+            {% if quote.expired_at %}
+                <li class="mb-2">
+                    <i class="bi bi-hourglass-split text-warning"></i>
+                    Expired
+                    <span class="text-muted">— {{ quote.expired_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                </li>
+            {% endif %}
+            {% if quote.cancelled_at %}
+                <li class="mb-2">
+                    <i class="bi bi-slash-circle"></i>
+                    Cancelled
+                    <span class="text-muted">— {{ quote.cancelled_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

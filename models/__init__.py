@@ -215,6 +215,55 @@ from models.payment import Payment  # noqa: F401,E402
 from models.booking_status_history import BookingStatusHistory  # noqa: F401,E402
 from models.newsletter import Newsletter  # noqa: F401,E402
 
+# ─── Product detail-page children (details upgrade) ────────────────
+from models.hotel_children import (  # noqa: F401,E402
+    HotelInclusion,
+    HotelExclusion,
+    HotelFAQ,
+    HotelTip,
+)
+from models.package_children import (  # noqa: F401,E402
+    PackageFAQ,
+    PackageTip,
+)
+from models.activity_children import (  # noqa: F401,E402
+    ActivityFAQ,
+    ActivityTip,
+)
+
+# ─── Content management + quotes (details upgrade) ─────────────────
+from models.site_content import (  # noqa: F401,E402
+    SiteContent,
+    CONTENT_TYPE_TEXT,
+    CONTENT_TYPE_HTML,
+    CONTENT_TYPE_IMAGE_URL,
+    CONTENT_TYPE_MARKDOWN,
+    VALID_CONTENT_TYPES,
+    DEFAULT_CONTENT_TYPE,
+    PAGE_HOME,
+    PAGE_ABOUT,
+    PAGE_CONTACT,
+    PAGE_FOOTER,
+    PAGE_GLOBAL,
+    VALID_PAGES,
+    DEFAULT_PAGE,
+)
+from models.quote import (  # noqa: F401,E402
+    Quote,
+    STATUS_DRAFT,
+    STATUS_SENT,
+    STATUS_ACCEPTED,
+    STATUS_DECLINED,
+    STATUS_EXPIRED,
+    STATUS_CANCELLED as STATUS_QUOTE_CANCELLED,
+    VALID_QUOTE_STATUSES,
+    DEFAULT_QUOTE_STATUS,
+    PRODUCT_TYPE_ACTIVITY as QUOTE_PRODUCT_TYPE_ACTIVITY,
+    PRODUCT_TYPE_HOTEL as QUOTE_PRODUCT_TYPE_HOTEL,
+    PRODUCT_TYPE_PACKAGE as QUOTE_PRODUCT_TYPE_PACKAGE,
+    VALID_QUOTE_PRODUCT_TYPES,
+)
+
 
 __all__: list[str] = [
     "Base",
@@ -272,4 +321,42 @@ __all__: list[str] = [
     "Payment",
     "BookingStatusHistory",
     "Newsletter",
+    # Content management
+    "SiteContent",
+    "CONTENT_TYPE_TEXT",
+    "CONTENT_TYPE_HTML",
+    "CONTENT_TYPE_IMAGE_URL",
+    "CONTENT_TYPE_MARKDOWN",
+    "VALID_CONTENT_TYPES",
+    "DEFAULT_CONTENT_TYPE",
+    "PAGE_HOME",
+    "PAGE_ABOUT",
+    "PAGE_CONTACT",
+    "PAGE_FOOTER",
+    "PAGE_GLOBAL",
+    "VALID_PAGES",
+    "DEFAULT_PAGE",
+    # Quotes
+    "Quote",
+    "STATUS_DRAFT",
+    "STATUS_SENT",
+    "STATUS_ACCEPTED",
+    "STATUS_DECLINED",
+    "STATUS_EXPIRED",
+    "STATUS_QUOTE_CANCELLED",
+    "VALID_QUOTE_STATUSES",
+    "DEFAULT_QUOTE_STATUS",
+    "QUOTE_PRODUCT_TYPE_ACTIVITY",
+    "QUOTE_PRODUCT_TYPE_HOTEL",
+    "QUOTE_PRODUCT_TYPE_PACKAGE",
+    "VALID_QUOTE_PRODUCT_TYPES",
+    # Product detail-page children
+    "HotelInclusion",
+    "HotelExclusion",
+    "HotelFAQ",
+    "HotelTip",
+    "PackageFAQ",
+    "PackageTip",
+    "ActivityFAQ",
+    "ActivityTip",
 ]
