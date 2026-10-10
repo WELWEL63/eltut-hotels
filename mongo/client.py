@@ -107,19 +107,39 @@ def ensure_indexes(app: Any = None) -> bool:
 
 
 def _create_review_indexes(db: Any) -> None:
+    """
+    Indexes for the reviews collection.
+
+    WHY the email-based unique index: reviews can be left by guests
+    (user_id=NULL). A non-sparse unique index on user_id only allows
+    ONE null value, so a second guest review of the same product would
+    fail. We enforce uniqueness on (product_type, product_id, user_email)
+    instead, which works for both logged-in users and guests.
+
+    The user_id-based index is kept (sparse) so a user's own review
+    list can be fetched fast without a scan.
+    """
     db[REVIEWS].create_indexes(
         [
+            # For listing reviews of a product, newest first.
             IndexModel(
                 [("product_type", ASCENDING), ("product_id", ASCENDING),
                  ("created_at", DESCENDING)],
                 name="ix_reviews_product_recent",
             ),
-            IndexModel([("user_id", ASCENDING)], name="ix_reviews_user"),
+            # For the "my reviews" list per user (sparse: guests skipped).
             IndexModel(
-                [("user_id", ASCENDING), ("product_type", ASCENDING),
-                 ("product_id", ASCENDING)],
-                name="ux_reviews_user_product",
+                [("user_id", ASCENDING)],
+                name="ix_reviews_user",
+                sparse=True,
+            ),
+            # Prevent the same email reviewing the same product twice.
+            IndexModel(
+                [("product_type", ASCENDING), ("product_id", ASCENDING),
+                 ("user_email", ASCENDING)],
+                name="ux_reviews_product_email",
                 unique=True,
+                sparse=True,       # sparse tolerates legacy docs without email
             ),
         ]
     )

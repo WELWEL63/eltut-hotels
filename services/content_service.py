@@ -57,6 +57,8 @@ from models import (
     PAGE_CONTACT,
     PAGE_FOOTER,
     PAGE_GLOBAL,
+    PAGE_SLIDESHOW,
+    SLIDESHOW_SLOT_COUNT,
 )
 
 
@@ -229,6 +231,21 @@ _REGISTRY: dict[str, ContentSpec] = {
     ),
 }
 
+# ─── Home slideshow slots ──────────────────────────────────────────
+# 6 slots, numbered. Each holds an image URL (or empty). The public
+# home page reads them via slideshow_slides().
+for _i in range(1, SLIDESHOW_SLOT_COUNT + 1):
+    _key = f"home.slideshow.slide.{_i}"
+    _REGISTRY[_key] = ContentSpec(
+        key=_key,
+        page=PAGE_SLIDESHOW,
+        label=f"Slideshow — image {_i}",
+        default="",
+        content_type=CONTENT_TYPE_IMAGE_URL,
+        notes="Upload from the slideshow editor or paste a URL.",
+        sort_order=_i * 10,
+    )
+
 
 def registry() -> dict[str, ContentSpec]:
     """Return a copy of the content registry."""
@@ -391,6 +408,27 @@ def set_value(key: str, value: str | None, user: Any = None) -> SiteContent:
     db.session.commit()
     clear_cache()
     return row
+
+
+# ─── Slideshow helper ─────────────────────────────────────────────────────
+def slideshow_slides() -> list[dict[str, Any]]:
+    """Return the active slideshow slides as a list of dicts.
+
+    A slide is "active" if its value (an image URL) is non-empty.
+    Order matches slot number (1..N). Each dict contains:
+        slot  (int)
+        key   (str)   e.g. "home.slideshow.slide.1"
+        url   (str)
+    """
+    values = all_values()
+    out: list[dict[str, Any]] = []
+    for i in range(1, SLIDESHOW_SLOT_COUNT + 1):
+        key = f"home.slideshow.slide.{i}"
+        url = (values.get(key) or "").strip()
+        if not url:
+            continue
+        out.append({"slot": i, "key": key, "url": url})
+    return out
 
 
 # ─── Seeding ──────────────────────────────────────────────────────────────

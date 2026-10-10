@@ -69,6 +69,7 @@ PAGE_ABOUT: str = "about"
 PAGE_CONTACT: str = "contact"
 PAGE_FOOTER: str = "footer"
 PAGE_GLOBAL: str = "global"
+PAGE_SLIDESHOW: str = "slideshow"
 
 VALID_PAGES: tuple[str, ...] = (
     PAGE_HOME,
@@ -76,7 +77,11 @@ VALID_PAGES: tuple[str, ...] = (
     PAGE_CONTACT,
     PAGE_FOOTER,
     PAGE_GLOBAL,
+    PAGE_SLIDESHOW,
 )
+
+# Number of slideshow slots. Slots beyond these are unmanaged.
+SLIDESHOW_SLOT_COUNT: int = 6
 
 DEFAULT_PAGE: str = PAGE_GLOBAL
 
@@ -92,7 +97,7 @@ class SiteContent(Base, TimestampMixin):
             name="content_type_check",
         ),
         CheckConstraint(
-            "page IN ('home','about','contact','footer','global')",
+            "page IN ('home','about','contact','footer','global','slideshow')",
             name="page_check",
         ),
     )
@@ -169,6 +174,8 @@ __all__ = [
     "PAGE_CONTACT",
     "PAGE_FOOTER",
     "PAGE_GLOBAL",
+    "PAGE_SLIDESHOW",
     "VALID_PAGES",
     "DEFAULT_PAGE",
+    "SLIDESHOW_SLOT_COUNT",
 ]

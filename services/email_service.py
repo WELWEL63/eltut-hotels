@@ -558,3 +558,47 @@ def send_quote_to_customer(quote: Any) -> bool:
         html=html,
         text=text,
     )
+
+
+# ─── Review emails ───────────────────────────────────────────────────────
+def send_review_thanks(
+    *,
+    to_email: str,
+    to_name: str,
+    product_type: str,
+    product_id: int,
+    rating: int,
+    verified: bool = False,
+) -> bool:
+    """Thank the reviewer after a successful submission."""
+    if not to_email:
+        return False
+
+    cfg = _cfg()
+    badge = "verified " if verified else ""
+    subject = f"Thanks for your {badge}review — {cfg['app_name']}"
+
+    fallback = (
+        f"Hi {to_name or 'there'},\n\n"
+        f"Thank you for leaving a {rating}-star {badge}review of "
+        f"{product_type} #{product_id} on {cfg['app_name']}.\n\n"
+        "Every review helps future travellers and our team. "
+        "If you have any issues with your booking, just reply to this email.\n\n"
+        f"— The {cfg['app_name']} team"
+    )
+
+    context = {
+        "customer_name": to_name,
+        "product_type": product_type,
+        "product_id": product_id,
+        "rating": rating,
+        "verified": verified,
+        "app_name": cfg["app_name"],
+        "base_url": cfg["base_url"],
+    }
+    html, text = _render_email(
+        "review_thanks.html",
+        context=context,
+        fallback_text=fallback,
+    )
+    return send_raw(to=to_email, subject=subject, html=html, text=text)

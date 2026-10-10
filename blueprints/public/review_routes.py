@@ -48,10 +48,19 @@ def review_submit():
 
     if current_user.is_authenticated:
         user_id = current_user.id
-        user_name = current_user.full_name
+        user_name = (request.form.get("guest_name") or current_user.full_name or "").strip()
+        user_email = (request.form.get("guest_email") or getattr(current_user, "email", "") or "").strip().lower()
     else:
         user_id = None
-        user_name = (request.form.get("guest_name") or "").strip() or "Guest"
+        user_name = (request.form.get("guest_name") or "").strip()
+        user_email = (request.form.get("guest_email") or "").strip().lower()
+
+    if not user_name:
+        flash("Please provide your name.", "danger")
+        return redirect(request.referrer or url_for("public.index"))
+    if not user_email or "@" not in user_email:
+        flash("Please provide a valid email address.", "danger")
+        return redirect(request.referrer or url_for("public.index"))
 
     try:
         from mongo.reviews import create_review, ReviewAlreadyExists
@@ -66,6 +75,7 @@ def review_submit():
             product_id=product_id,
             user_id=user_id,
             user_name=user_name,
+            user_email=user_email,
             rating=rating,
             title=title,
             body=body,

@@ -110,12 +110,23 @@ def _validate_product_type(product_type: str) -> None:
 
 
 # ─── Write operations ──────────────────────────────────────────────
+def _validate_email(value: str | None) -> str:
+    """Email is required for every review (used for dedupe + admin)."""
+    if not value or not isinstance(value, str):
+        raise InvalidReviewInput("email is required")
+    email = value.strip().lower()
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise InvalidReviewInput("email must be a valid address")
+    return email
+
+
 def create_review(
     *,
     product_type: ProductType,
     product_id: int,
     user_id: int | None,
     user_name: str,
+    user_email: str,
     rating: int,
     title: str | None = None,
     body: str | None = None,
@@ -123,20 +134,32 @@ def create_review(
     verified_booking: bool = False,
 ) -> dict[str, Any]:
     """
-    Insert a new review. Raises ReviewAlreadyExists if the unique index
-    (user_id, product_type, product_id) is violated.
+    Insert a new review.
+
+    Uniqueness is enforced on (product_type, product_id, user_email)
+    via a unique index — this works for both logged-in users and
+    guests, unlike a user_id-based index (which is sparse because
+    guests have user_id=None).
+
+    Raises ReviewAlreadyExists on duplicate.
     """
     _validate_product_type(product_type)
     _validate_rating(rating)
     if not isinstance(product_id, int) or product_id <= 0:
         raise InvalidReviewInput("product_id must be a positive int")
 
+    clean_email = _validate_email(user_email)
+    clean_name = (user_name or "").strip()
+    if not clean_name:
+        raise InvalidReviewInput("name is required")
+
     now = _now_utc()
     doc: dict[str, Any] = {
         "product_type": product_type,
         "product_id": product_id,
         "user_id": user_id,
-        "user_name": (user_name or "").strip(),
+        "user_name": clean_name,
+        "user_email": clean_email,
         "rating": rating,
         "title": (title or "").strip() or None,
         "body": (body or "").strip() or None,

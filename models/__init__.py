@@ -245,8 +245,10 @@ from models.site_content import (  # noqa: F401,E402
     PAGE_CONTACT,
     PAGE_FOOTER,
     PAGE_GLOBAL,
+    PAGE_SLIDESHOW,
     VALID_PAGES,
     DEFAULT_PAGE,
+    SLIDESHOW_SLOT_COUNT,
 )
 from models.quote import (  # noqa: F401,E402
     Quote,
@@ -334,8 +336,10 @@ __all__: list[str] = [
     "PAGE_CONTACT",
     "PAGE_FOOTER",
     "PAGE_GLOBAL",
+    "PAGE_SLIDESHOW",
     "VALID_PAGES",
     "DEFAULT_PAGE",
+    "SLIDESHOW_SLOT_COUNT",
     # Quotes
     "Quote",
     "STATUS_DRAFT",

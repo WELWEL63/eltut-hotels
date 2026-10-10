@@ -35,8 +35,12 @@ from sqlalchemy import select
 
 from blueprints.admin import admin_bp, admin_required
 from extensions import db
-from models import SiteContent
+from models import SiteContent, SLIDESHOW_SLOT_COUNT
 from services import content_service
+import hashlib
+from pathlib import Path
+from flask import current_app
+from werkzeug.utils import secure_filename
 
 
 # ─── Logging ──────────────────────────────────────────────────────────────
@@ -184,3 +188,175 @@ def content_seed():
     else:
         flash("No missing keys to seed.", "info")
     return redirect(url_for("admin.content_index"))
+
+
+# ─── Home slideshow editor ─────────────────────────────────────────────
+ALLOWED_SLIDESHOW_MIME = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+ALLOWED_SLIDESHOW_EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+MAX_SLIDESHOW_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _slideshow_dir() -> Path:
+    """Return the upload directory and ensure it exists."""
+    rel = current_app.config.get("UPLOAD_FOLDER", "static/images/uploads")
+    path = Path(current_app.root_path) / rel
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@admin_bp.route("/content/slideshow")
+@admin_required
+def content_slideshow():
+    """Dedicated editor for the home page hero slideshow."""
+    # Ensure every slot has a row
+    rows_by_slot = {}
+    for i in range(1, SLIDESHOW_SLOT_COUNT + 1):
+        key = f"home.slideshow.slide.{i}"
+        row = db.session.scalars(
+            select(SiteContent).where(SiteContent.key == key)
+        ).first()
+        if row is None:
+            row = SiteContent(
+                key=key,
+                page="slideshow",
+                label=f"Slideshow — image {i}",
+                content_type="image_url",
+                sort_order=i * 10,
+            )
+            db.session.add(row)
+        rows_by_slot[i] = row
+    db.session.commit()
+    content_service.clear_cache()
+
+    return render_template(
+        "admin/content_slideshow.html",
+        rows_by_slot=rows_by_slot,
+        slot_count=SLIDESHOW_SLOT_COUNT,
+        active_count=len([r for r in rows_by_slot.values() if r.value]),
+    )
+
+
+@admin_bp.route("/content/slideshow/<int:slot>/upload", methods=["POST"])
+@admin_required
+def content_slideshow_upload(slot: int):
+    """Upload or replace the image for one slideshow slot."""
+    if slot < 1 or slot > SLIDESHOW_SLOT_COUNT:
+        abort(404)
+
+    file = request.files.get("file")
+    if file is None or not file.filename:
+        flash("Please choose a file.", "danger")
+        return redirect(url_for("admin.content_slideshow"))
+
+    if file.mimetype not in ALLOWED_SLIDESHOW_MIME:
+        flash(f"Unsupported MIME type: {file.mimetype}", "danger")
+        return redirect(url_for("admin.content_slideshow"))
+
+    ext = Path(secure_filename(file.filename)).suffix.lower()
+    if ext not in ALLOWED_SLIDESHOW_EXT:
+        flash(f"Unsupported extension: {ext}", "danger")
+        return redirect(url_for("admin.content_slideshow"))
+
+    data = file.read()
+    if not data:
+        flash("File is empty.", "danger")
+        return redirect(url_for("admin.content_slideshow"))
+
+    if len(data) > MAX_SLIDESHOW_BYTES:
+        flash(f"File too large (>{MAX_SLIDESHOW_BYTES} bytes).", "danger")
+        return redirect(url_for("admin.content_slideshow"))
+
+    digest = hashlib.sha1(data).hexdigest()
+    filename = f"{digest}{ext}"
+    target = _slideshow_dir() / filename
+    if not target.exists():
+        target.write_bytes(data)
+
+    public_url = f"/static/images/uploads/{filename}"
+
+    key = f"home.slideshow.slide.{slot}"
+    row = db.session.scalars(
+        select(SiteContent).where(SiteContent.key == key)
+    ).first()
+    if row is None:
+        row = SiteContent(
+            key=key,
+            page="slideshow",
+            label=f"Slideshow — image {slot}",
+            content_type="image_url",
+            sort_order=slot * 10,
+        )
+        db.session.add(row)
+
+    old = row.value
+    row.value = public_url
+    if current_user and getattr(current_user, "id", None):
+        row.updated_by_user_id = current_user.id
+    db.session.commit()
+    content_service.clear_cache()
+
+    _log("slideshow.upload", key, old=old, new=public_url)
+    flash(f"Slide {slot} updated.", "success")
+    return redirect(url_for("admin.content_slideshow"))
+
+
+@admin_bp.route("/content/slideshow/<int:slot>/delete", methods=["POST"])
+@admin_required
+def content_slideshow_delete(slot: int):
+    """Clear the image for one slideshow slot."""
+    if slot < 1 or slot > SLIDESHOW_SLOT_COUNT:
+        abort(404)
+
+    key = f"home.slideshow.slide.{slot}"
+    row = db.session.scalars(
+        select(SiteContent).where(SiteContent.key == key)
+    ).first()
+    if row is None:
+        flash("That slot is already empty.", "info")
+        return redirect(url_for("admin.content_slideshow"))
+
+    old = row.value
+    row.value = None
+    if current_user and getattr(current_user, "id", None):
+        row.updated_by_user_id = current_user.id
+    db.session.commit()
+    content_service.clear_cache()
+
+    _log("slideshow.delete", key, old=old, new=None)
+    flash(f"Slide {slot} cleared.", "success")
+    return redirect(url_for("admin.content_slideshow"))
+
+
+@admin_bp.route("/content/slideshow/<int:slot>/update-url", methods=["POST"])
+@admin_required
+def content_slideshow_update_url(slot: int):
+    """Set a slot to a manual image URL (alternative to uploading)."""
+    if slot < 1 or slot > SLIDESHOW_SLOT_COUNT:
+        abort(404)
+
+    new_url = (request.form.get("image_url") or "").strip() or None
+
+    key = f"home.slideshow.slide.{slot}"
+    row = db.session.scalars(
+        select(SiteContent).where(SiteContent.key == key)
+    ).first()
+    if row is None:
+        row = SiteContent(
+            key=key,
+            page="slideshow",
+            label=f"Slideshow — image {slot}",
+            content_type="image_url",
+            sort_order=slot * 10,
+        )
+        db.session.add(row)
+
+    old = row.value
+    row.value = new_url
+    if current_user and getattr(current_user, "id", None):
+        row.updated_by_user_id = current_user.id
+    db.session.commit()
+    content_service.clear_cache()
+
+    _log("slideshow.update_url", key, old=old, new=new_url)
+    flash(f"Slide {slot} updated.", "success")
+    return redirect(url_for("admin.content_slideshow"))

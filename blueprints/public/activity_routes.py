@@ -232,6 +232,29 @@ def activity_detail(slug: str):
         .limit(3)
     ))
 
+    # ─── Reviews (MongoDB, best-effort) ──────────────────────────
+    reviews: list[dict] = []
+    user_has_reviewed = False
+    try:
+        from flask_login import current_user  # noqa: PLC0415
+        from mongo.reviews import (  # noqa: PLC0415
+            list_reviews_for_product,
+            has_reviewed,
+        )
+        reviews = list_reviews_for_product(
+            product_type="activity",
+            product_id=activity.id,
+            limit=20,
+        )
+        if current_user.is_authenticated:
+            user_has_reviewed = has_reviewed(
+                user_id=current_user.id,
+                product_type="activity",
+                product_id=activity.id,
+            )
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.debug("activity reviews unavailable: %s", exc)
+
     return render_template(
         "public/activity_detail.html",
         activity=activity,
@@ -248,4 +271,6 @@ def activity_detail(slug: str):
         review_count=review_count,
         remaining=remaining,
         related=related,
+        reviews=reviews,
+        user_has_reviewed=user_has_reviewed,
     )

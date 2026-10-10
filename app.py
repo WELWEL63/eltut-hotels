@@ -273,6 +273,39 @@ def create_app(config_name: str | None = None) -> Flask:
     app.jinja_env.globals["today"] = lambda: _date.today()
     app.jinja_env.globals["now"] = lambda: _datetime.now()
 
+    # Cached list of destinations for search widget dropdowns.
+    # Uses a request-scoped cache so N widgets per page cost 1 query.
+    def _search_destinations():
+        try:
+            from flask import g
+            cached = getattr(g, "_search_destinations_cache", None)
+            if cached is not None:
+                return cached
+            from services import search_service
+            dests = search_service.destinations_for_widget()
+            g._search_destinations_cache = dests
+            return dests
+        except Exception:
+            return []
+
+    app.jinja_env.globals["search_destinations"] = _search_destinations
+
+    # Home page slideshow slides — cached per request.
+    def _slideshow_slides():
+        try:
+            from flask import g
+            cached = getattr(g, "_slideshow_slides_cache", None)
+            if cached is not None:
+                return cached
+            from services import content_service
+            slides = content_service.slideshow_slides()
+            g._slideshow_slides_cache = slides
+            return slides
+        except Exception:
+            return []
+
+    app.jinja_env.globals["slideshow_slides"] = _slideshow_slides
+
     # ─── Tiny healthcheck route so we can test before blueprints land ─
     @app.route("/_health")
     def _health() -> dict[str, str]:

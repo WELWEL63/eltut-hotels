@@ -41,6 +41,11 @@ from models import (
     Room,
     RoomImage,
     VALID_ROOM_MEAL_PLANS,
+
+    HotelExclusion,
+    HotelFAQ,
+    HotelInclusion,
+    HotelTip,
 )
 
 
@@ -282,8 +287,64 @@ def hotel_detail(slug: str):
         .limit(3)
     ))
 
+    # New detail-page content (Phase 6.7)
+    inclusions = list(db.session.scalars(
+        select(HotelInclusion)
+        .where(HotelInclusion.hotel_id == hotel.id)
+        .order_by(HotelInclusion.sort_order, HotelInclusion.id)
+    ))
+    exclusions = list(db.session.scalars(
+        select(HotelExclusion)
+        .where(HotelExclusion.hotel_id == hotel.id)
+        .order_by(HotelExclusion.sort_order, HotelExclusion.id)
+    ))
+    faqs = list(db.session.scalars(
+        select(HotelFAQ)
+        .where(HotelFAQ.hotel_id == hotel.id)
+        .order_by(HotelFAQ.sort_order, HotelFAQ.id)
+    ))
+
+    # Cheapest base room price for the "From €X / night" sidebar
+    min_price = None
+    try:
+        min_price = db.session.scalar(
+            select(func.min(Room.base_price_per_night))
+            .where(Room.hotel_id == hotel.id, Room.is_active.is_(True))
+        )
+    except Exception:
+        min_price = None
+
+    # ─── Reviews (from MongoDB, best-effort) ──────────────────────
+    reviews: list[dict] = []
+    user_has_reviewed = False
+    try:
+        from flask_login import current_user  # noqa: PLC0415
+        from mongo.reviews import (
+            list_reviews_for_product,  # noqa: PLC0415
+            has_reviewed,  # noqa: PLC0415
+        )
+        reviews = list_reviews_for_product(
+            product_type="hotel",
+            product_id=hotel.id,
+            limit=20,
+        )
+        if current_user.is_authenticated:
+            user_has_reviewed = has_reviewed(
+                user_id=current_user.id,
+                product_type="hotel",
+                product_id=hotel.id,
+            )
+    except Exception as exc:  # noqa: BLE001
+        current_app.logger.debug("hotel reviews unavailable: %s", exc)
+
     return render_template(
         "public/hotel_detail.html",
+        inclusions=inclusions,
+        exclusions=exclusions,
+        faqs=faqs,
+        min_price=min_price,
+        reviews=reviews,
+        user_has_reviewed=user_has_reviewed,
         hotel=hotel,
         destination=destination,
         facilities=facilities,
