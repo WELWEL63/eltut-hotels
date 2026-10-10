@@ -79,6 +79,14 @@ class Flight(Base, TimestampMixin):
         index=True,
     )
 
+    # Structured airline reference (preferred). Falls back to free-text
+    # airline_name when NULL, so legacy flights still render.
+    airline_id: Mapped[int | None] = mapped_column(
+        ForeignKey("airlines.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
     # ─── Itinerary ─────────────────────────────────────────────────
     flight_from: Mapped[str] = mapped_column(String(150), nullable=False)
     flight_to: Mapped[str] = mapped_column(String(150), nullable=False)

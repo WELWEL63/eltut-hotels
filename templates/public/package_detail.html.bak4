@@ -1,0 +1,974 @@
+{% extends "base.html" %}
+{% block title %}{{ package.name }} — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+
+{# ═══════════════════════════════════════════════════════════════════
+   PACKAGE DETAIL — hero + gallery + options + itinerary + reviews
+   ═══════════════════════════════════════════════════════════════════ #}
+<section class="pt-4">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('public.package_list') }}">Packages</a></li>
+                <li class="breadcrumb-item active">{{ package.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            {# ─── MAIN COLUMN ─── #}
+            <div class="col-lg-8">
+
+                {# ─── Hero card ─── #}
+                <div class="card shadow-sm mb-4 border-0">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                            <div class="flex-grow-1">
+                                <div class="mb-2">
+                                    <span class="badge bg-warning text-dark">
+                                        {{ package.package_type|title }}
+                                    </span>
+                                    {% if package.code %}
+                                        <span class="badge bg-light text-dark border ms-1">
+                                            {{ package.code }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h1 class="mb-2">{{ package.name }}</h1>
+                                <div class="d-flex flex-wrap gap-3 text-muted small">
+                                    {% if destination %}
+                                        <span><i class="bi bi-geo-alt"></i> {{ destination.name }}</span>
+                                    {% endif %}
+                                    <span><i class="bi bi-moon-stars"></i> {{ package.duration_nights }} night{{ "" if package.duration_nights == 1 else "s" }}</span>
+                                    <span><i class="bi bi-people"></i> up to {{ package.capacity }} guests</span>
+                                    {% if avg_rating and review_count %}
+                                        <span class="stars">
+                                            {% for _ in range(avg_rating|round(0, 'floor')|int) %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% endfor %}
+                                            <span class="text-muted ms-1">
+                                                {{ "%.1f"|format(avg_rating) }}
+                                                ({{ review_count }} review{{ "" if review_count == 1 else "s" }})
+                                            </span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if price_adult %}
+                                <div class="text-end">
+                                    <div class="text-muted small">From</div>
+                                    <div class="fs-3 fw-bold text-eltut-terracotta">
+                                        {{ currency }} {{ "%.0f"|format(price_adult) }}
+                                    </div>
+                                    <div class="text-muted small">per adult</div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            {% if options %}
+                                <a href="#departures" class="btn btn-eltut-primary">
+                                    <i class="bi bi-calendar-check"></i> See departures &amp; prices
+                                </a>
+                            {% elif remaining is none or remaining > 0 %}
+                                <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?{% if check_in %}check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
+                                   class="btn btn-eltut-primary">
+                                    <i class="bi bi-check-circle"></i> Book now
+                                </a>
+                            {% endif %}
+
+                            <a href="{{ url_for('public.quote_request', product_type='package', product_id=package.id, product_name=package.name) }}"
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-file-earmark-text"></i> Request a quote
+                            </a>
+
+                            <a href="{{ url_for('public.contact') }}"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-headset"></i> Ask a question
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {# ─── Gallery ─── #}
+                {% set visible_images = [] %}
+                {% for img in images %}
+                    {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
+                        {% set _ = visible_images.append(img) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if visible_images %}
+                    <div id="pkgGallery" class="carousel slide mb-2 rounded-3 overflow-hidden">
+                        {% if visible_images|length > 1 %}
+                            <div class="carousel-indicators">
+                                {% for img in visible_images %}
+                                    <button type="button" data-bs-target="#pkgGallery"
+                                            data-bs-slide-to="{{ loop.index0 }}"
+                                            {% if loop.first %}class="active"{% endif %}></button>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="carousel-inner">
+                            {% for img in visible_images %}
+                                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                                    {% if img.media_type == 'video' %}
+                                        <video class="d-block w-100"
+                                               style="height: 460px; object-fit: cover; background:#000;"
+                                               controls preload="metadata"
+                                               {% if img.poster_url %}poster="{{ img.poster_url }}"{% endif %}>
+                                            <source src="{{ img.url }}">
+                                        </video>
+                                    {% else %}
+                                        <img src="{{ img.url }}" class="d-block w-100"
+                                             style="height: 460px; object-fit: cover;"
+                                             alt="{{ package.name }} — photo {{ loop.index }}">
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if visible_images|length > 1 %}
+                            <button class="carousel-control-prev" type="button" data-bs-target="#pkgGallery" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#pkgGallery" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% if visible_images|length > 1 %}
+                        <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
+                            {% for img in visible_images %}
+                                <a href="#pkgGallery" data-bs-slide-to="{{ loop.index0 }}"
+                                   class="flex-shrink-0" style="text-decoration:none;">
+                                    {% if img.media_type == 'video' %}
+                                        <div class="d-flex align-items-center justify-content-center"
+                                             style="width:90px; height:65px; background:#000;
+                                                    border-radius:6px; border:2px solid
+                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};">
+                                            <i class="bi bi-play-circle-fill text-white" style="font-size:1.8rem;"></i>
+                                        </div>
+                                    {% else %}
+                                        <img src="{{ img.url }}" alt=""
+                                             style="width:90px; height:65px; object-fit:cover;
+                                                    border-radius:6px; border:2px solid
+                                                    {% if loop.first %}var(--bs-primary){% else %}transparent{% endif %};">
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="rounded-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center mb-4" style="height: 400px;">
+                        <i class="bi bi-suitcase-lg text-secondary" style="font-size: 4rem;"></i>
+                    </div>
+                {% endif %}
+
+                {# ─── Departure options — radio-selectable ─── #}
+                {% if options %}
+                    <div class="section-header icon-nile mt-2" id="departures">
+                        <span class="icon-box"><i class="bi bi-calendar-check"></i></span>
+                        <span class="title">
+                            Available departures
+                            <span class="subtitle">
+                                Pick the flight that suits you — price updates automatically.
+                            </span>
+                        </span>
+                    </div>
+
+                    <div class="row g-3 mb-4" id="options-grid">
+                        {% for opt in options %}
+                            <div class="col-md-6 col-lg-4">
+                                <label class="card h-100 shadow-sm border-0 option-card"
+                                       data-option-id="{{ opt.id }}"
+                                       data-adult-price="{{ opt.price_adult or 0 }}"
+                                       data-child-price="{{ opt.price_child or 0 }}"
+                                       data-currency="{{ opt.currency or 'EUR' }}"
+                                       data-airline="{{ opt.airline_name or '' }}"
+                                       data-airline-slug="{{ (opt.airline_name or '')|lower|replace(' ', '') }}"
+                                       data-from="{{ opt.flight_from or '' }}"
+                                       data-to="{{ opt.flight_to or '' }}"
+                                       data-departure="{{ opt.departure_date.isoformat() if opt.departure_date else '' }}"
+                                       data-return="{{ opt.return_date.isoformat() if opt.return_date else '' }}">
+                                    <input type="radio" name="selected_option"
+                                           value="{{ opt.id }}" class="option-radio"
+                                           {% if loop.first %}checked{% endif %}
+                                           style="position:absolute; opacity:0; pointer-events:none;">
+
+                                    <div class="card-body d-flex flex-column">
+                                        {# Selected indicator (top-right) #}
+                                        <div class="option-selected-badge">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <div class="small text-muted">Departure</div>
+                                            <div class="fw-semibold">
+                                                {% if opt.departure_date %}
+                                                    {{ opt.departure_date.strftime("%d %b %Y") }}
+                                                    {% if opt.return_date %}
+                                                        <span class="text-muted">→ {{ opt.return_date.strftime("%d %b %Y") }}</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    Flexible
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        {% if opt.airline_name or opt.airline_logo %}
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                {% if opt.airline_logo %}
+                                                    <img src="{{ opt.airline_logo }}" alt=""
+                                                         style="height:28px; max-width:70px; object-fit:contain;"
+                                                         onerror="this.style.display='none';">
+                                                {% endif %}
+                                                <div class="small">
+                                                    <div class="fw-semibold">{{ opt.airline_name or "Multiple" }}</div>
+                                                    {% if opt.luggage_allowance %}
+                                                        <div class="text-muted">{{ opt.luggage_allowance }} luggage</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if opt.flight_from and opt.flight_to %}
+                                            <div class="small text-muted mb-3">
+                                                <i class="bi bi-airplane"></i>
+                                                {{ opt.flight_from }} → {{ opt.flight_to }}
+                                            </div>
+                                        {% else %}
+                                            <div class="small text-muted mb-3">
+                                                <i class="bi bi-house"></i> Land only
+                                            </div>
+                                        {% endif %}
+
+                                        {% if opt.price_adult is not none %}
+                                            <div class="mt-auto pt-3 border-top">
+                                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                                    <span class="price-pill">
+                                                        <span class="price-amount">{{ opt.currency }} {{ "%.0f"|format(opt.price_adult) }}</span>
+                                                        <span class="text-muted small fw-normal ms-1">/ adult</span>
+                                                    </span>
+                                                </div>
+                                                {% if opt.price_child is not none %}
+                                                    <div class="small text-muted mb-3">
+                                                        {{ opt.currency }} {{ "%.0f"|format(opt.price_child) }} / child
+                                                    </div>
+                                                {% endif %}
+                                                <div class="btn btn-outline-primary w-100 select-hint">
+                                                    <i class="bi bi-circle"></i>
+                                                    <span class="select-hint-idle">Click to select</span>
+                                                    <span class="select-hint-active"><i class="bi bi-check-circle-fill me-1"></i>Selected</span>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="mt-auto pt-3 border-top">
+                                                <div class="text-muted small mb-3">Price on request</div>
+                                                <a href="{{ url_for('public.quote_request', product_type='package', product_id=package.id, product_name=package.name) }}"
+                                                   class="btn btn-outline-primary w-100"
+                                                   onclick="event.stopPropagation();">
+                                                    Request a quote
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ─── Description ─── #}
+                {% if package.description %}
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-info-circle"></i></span>
+                        <span class="title">About this package</span>
+                    </div>
+                    <p>{{ package.description }}</p>
+                {% endif %}
+
+                {# ─── Itinerary as timeline ─── #}
+                {% if itineraries %}
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-signpost-split"></i></span>
+                        <span class="title">
+                            Day-by-day itinerary
+                            <span class="subtitle">{{ itineraries|length }} day{{ "" if itineraries|length == 1 else "s" }}</span>
+                        </span>
+                    </div>
+
+                    <div class="itinerary-timeline mb-4">
+                        {% for day in itineraries %}
+                            <div class="itinerary-day">
+                                <div class="itinerary-marker"></div>
+                                <div class="itinerary-content" data-day="Day {{ day.day_number }}">
+                                    <h6 class="mb-1">{{ day.title }}</h6>
+                                    {% if day.description %}
+                                        <p class="mb-0 small text-muted">{{ day.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ─── Flights included ─── #}
+                {% if flights %}
+                    <div class="section-header icon-gold mt-4">
+                        <span class="icon-box"><i class="bi bi-airplane"></i></span>
+                        <span class="title">
+                            Flights included
+                            <span class="subtitle">These flights are part of the package price</span>
+                        </span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        {% for f in flights %}
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                {% set _key = (f.airline_name or "")|lower|replace(" ", "") %}
+                                                {% set _al = airline_lookup.get(_key) if airline_lookup else None %}
+                                                {% if _al and _al.logo_url %}
+                                                    <img src="{{ _al.logo_url }}" alt=""
+                                                         style="height:26px; max-width:70px; object-fit:contain;"
+                                                         onerror="this.style.display='none';">
+                                                {% endif %}
+                                                <div>
+                                                    <div class="fw-semibold">
+                                                        {{ f.flight_from }} → {{ f.flight_to }}
+                                                    </div>
+                                                    {% if f.airline_name %}
+                                                        <div class="small text-muted">{{ f.airline_name }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% if f.included %}
+                                                <span class="badge bg-success-subtle text-success-emphasis">Included</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary-subtle text-secondary-emphasis">Extra</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if f.luggage_allowance %}
+                                            <div class="small text-muted">
+                                                <i class="bi bi-suitcase"></i> {{ f.luggage_allowance }} luggage
+                                            </div>
+                                        {% endif %}
+                                        {% if f.notes %}
+                                            <div class="small text-muted mt-1">{{ f.notes }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ─── Inclusions / Exclusions ─── #}
+                {% if inclusions or exclusions %}
+                    <div class="row g-3 mb-4">
+                        {% if inclusions %}
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-header bg-white">
+                                        <span class="icon-box-sm icon-success"><i class="bi bi-check-lg"></i></span>
+                                        <strong>What's included</strong>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        {% for inc in inclusions %}
+                                            <li class="list-group-item small">
+                                                <i class="bi bi-check-lg text-success me-2"></i>{{ inc.item }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if exclusions %}
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-header bg-white">
+                                        <span class="icon-box-sm icon-danger"><i class="bi bi-x-lg"></i></span>
+                                        <strong>Not included</strong>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        {% for exc in exclusions %}
+                                            <li class="list-group-item small">
+                                                <i class="bi bi-dash-lg text-danger me-2"></i>{{ exc.item }}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {# ─── Hotel + Room ─── #}
+                {% if hotel or room %}
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-building"></i></span>
+                        <span class="title">Your accommodation</span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        {% if hotel %}
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-body">
+                                        <div class="mb-1">
+                                            {% for _ in range(hotel.stars or 0) %}
+                                                <i class="bi bi-star-fill text-warning small"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <h6 class="mb-1">{{ hotel.name }}</h6>
+                                        {% if hotel.address %}
+                                            <div class="small text-muted">{{ hotel.address }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if room %}
+                            <div class="col-md-6">
+                                <div class="card shadow-sm h-100 border-0">
+                                    <div class="card-body">
+                                        <div class="small text-muted">Room type</div>
+                                        <h6 class="mb-1">{{ room.type }}</h6>
+                                        <div class="small text-muted">
+                                            <i class="bi bi-egg-fried"></i>
+                                            {{ room.meal_plan|replace("_", " ")|title }}
+                                        </div>
+                                        <div class="small text-muted">
+                                            <i class="bi bi-people"></i>
+                                            Up to {{ room.max_occupancy }} guests
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {# ─── Reviews ─── #}
+                <div class="section-header icon-gold mt-5" id="reviews">
+                    <span class="icon-box"><i class="bi bi-star-fill"></i></span>
+                    <span class="title">
+                        Guest reviews
+                        {% if review_count and avg_rating %}
+                            <span class="subtitle">
+                                {{ "%.1f"|format(avg_rating) }} average from
+                                {{ review_count }} review{{ "" if review_count == 1 else "s" }}
+                            </span>
+                        {% endif %}
+                    </span>
+                    {% if current_user.is_authenticated and not user_has_reviewed %}
+                        <button class="btn btn-eltut-primary ms-auto"
+                                data-bs-toggle="modal"
+                                data-bs-target="#writeReviewModal">
+                            <i class="bi bi-pencil-square"></i> Write a review
+                        </button>
+                    {% endif %}
+                </div>
+
+                {% if reviews %}
+                    <div class="row g-3">
+                        {% for r in reviews %}
+                            <div class="col-12">
+                                <div class="card shadow-sm border-0">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div>
+                                                <div class="stars mb-1">
+                                                    {% for _ in range(r.rating) %}
+                                                        <i class="bi bi-star-fill"></i>
+                                                    {% endfor %}
+                                                    {% for _ in range(5 - r.rating) %}
+                                                        <i class="bi bi-star"></i>
+                                                    {% endfor %}
+                                                </div>
+                                                {% if r.title %}
+                                                    <h6 class="mb-1">{{ r.title }}</h6>
+                                                {% endif %}
+                                            </div>
+                                            <small class="text-muted text-nowrap">
+                                                {{ r.created_at.strftime("%b %Y") if r.created_at else "" }}
+                                            </small>
+                                        </div>
+                                        {% if r.body %}
+                                            <p class="mb-2">{{ r.body }}</p>
+                                        {% endif %}
+                                        <div class="d-flex justify-content-between align-items-center small text-muted">
+                                            <span>
+                                                <i class="bi bi-person-circle"></i>
+                                                {{ r.user_name or "Guest" }}
+                                                {% if r.verified_booking %}
+                                                    <span class="badge bg-success-subtle text-success-emphasis ms-1">
+                                                        <i class="bi bi-patch-check"></i> Verified stay
+                                                    </span>
+                                                {% endif %}
+                                            </span>
+                                            <span>
+                                                <i class="bi bi-hand-thumbs-up"></i>
+                                                {{ r.helpful_count or 0 }} found this helpful
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center py-4 text-muted">
+                            <i class="bi bi-chat-square-text" style="font-size:2.5rem;"></i>
+                            <p class="mt-3 mb-0">No reviews yet. Be the first to share your experience.</p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if not current_user.is_authenticated %}
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i>
+                        <a href="{{ url_for('auth.login', next=request.path) }}">Sign in</a>
+                        to leave a review.
+                    </div>
+                {% elif user_has_reviewed %}
+                    <div class="alert alert-secondary mt-3">
+                        <i class="bi bi-check-circle"></i>
+                        You've already submitted a review for this package.
+                    </div>
+                {% endif %}
+
+            </div>
+
+            {# ─── SIDEBAR ─── #}
+            <aside class="col-lg-4">
+                <div class="card shadow-sm sticky-top border-0 overflow-hidden" style="top: 1rem;">
+
+                    {# ─── Hero image ─── #}
+                    <div class="sidebar-hero">
+                        {% if images %}
+                            <img src="{{ images[0].url }}" alt="{{ package.name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="sidebar-hero-fallback" style="display:none;">
+                                <i class="bi bi-suitcase-lg"></i>
+                            </div>
+                        {% else %}
+                            <div class="sidebar-hero-fallback">
+                                <i class="bi bi-suitcase-lg"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# ─── Selected flight summary (JS-updated) ─── #}
+                    {% if options %}
+                        <div class="card-body border-bottom" id="selected-flight-summary">
+                            <div class="small fw-semibold text-uppercase text-muted mb-2"
+                                 style="letter-spacing:.05em; font-size:.7rem;">
+                                Your selected flight
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <img id="sel-airline-logo" src="" alt=""
+                                     style="height:32px; max-width:70px; object-fit:contain; display:none;"
+                                     onerror="this.style.display='none';">
+                                <div>
+                                    <div class="fw-semibold" id="sel-airline-name">—</div>
+                                    <div class="small text-muted" id="sel-route">—</div>
+                                </div>
+                            </div>
+                            <div class="small text-muted" id="sel-dates">—</div>
+                        </div>
+                    {% endif %}
+
+                    {# ─── Dates + party + price breakdown ─── #}
+                    {% if sidebar_pricing and sidebar_pricing.total is not none %}
+                        <div class="card-body border-bottom">
+                            {% if check_in and check_out %}
+                                <div class="small mb-1">
+                                    <i class="bi bi-calendar-range text-eltut-terracotta"></i>
+                                    <strong>{{ check_in.strftime("%d %b %Y") }}</strong>
+                                    →
+                                    <strong>{{ check_out.strftime("%d %b %Y") }}</strong>
+                                </div>
+                            {% endif %}
+                            <div class="small text-muted mb-3">
+                                <i class="bi bi-moon-stars"></i> {{ nights }} night{{ "" if nights == 1 else "s" }}
+                                ·
+                                <i class="bi bi-people"></i>
+                                {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                {% if children %}
+                                    + {{ children }} child{{ "" if children == 1 else "ren" }}
+                                {% endif %}
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em; font-size:.7rem;">
+                                    Price breakdown
+                                </div>
+                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 small"
+                                        data-bs-toggle="collapse" data-bs-target="#pkg-price-breakdown"
+                                        aria-expanded="true">
+                                    <span class="collapse-label">Hide</span>
+                                </button>
+                            </div>
+
+                            <div class="collapse show" id="pkg-price-breakdown">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">
+                                        Adult — <span id="breakdown-adult-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.adult_rate or 0) }}</span> × {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                    </span>
+                                </div>
+                                {% if children %}
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            Child — <span id="breakdown-child-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.child_rate or 0) }}</span> × {{ children }} child{{ "" if children == 1 else "ren" }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+
+                                <hr class="my-2">
+
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <span class="fw-bold">Total</span>
+                                    <span class="fs-5 fw-bold text-eltut-terracotta" id="sidebar-total">
+                                        {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.total) }}
+                                    </span>
+                                </div>
+
+                                <div class="small text-muted text-end mt-1">
+                                    for the full {{ nights }}-night package
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-calendar-check"></i> Ready to book?
+                        </h5>
+
+                        {% if options %}
+                            <a href="#" id="book-departure-btn"
+                               class="btn btn-eltut-primary w-100 mb-2">
+                                <i class="bi bi-check-circle"></i> Book this departure
+                            </a>
+                        {% elif remaining is none or remaining > 0 %}
+                            <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?{% if check_in %}check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
+                               class="btn btn-eltut-primary w-100 mb-2">
+                                <i class="bi bi-check-circle"></i> Book this package
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary w-100 mb-2" disabled>
+                                <i class="bi bi-x-circle"></i> Sold out
+                            </button>
+                        {% endif %}
+
+                        <a href="{{ url_for('public.quote_request', product_type='package', product_id=package.id, product_name=package.name) }}"
+                           class="btn btn-outline-primary w-100 mb-2">
+                            <i class="bi bi-file-earmark-text"></i> Request a quote
+                        </a>
+
+                        <a href="{{ url_for('public.contact') }}"
+                           class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-headset"></i> Contact us
+                        </a>
+
+                        <hr class="my-3">
+                        <p class="small text-muted mb-0">
+                            Our team replies within a few hours. Ask about group
+                            discounts, transfers, or custom add-ons.
+                        </p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        {# ─── Related packages ─── #}
+        {% if related %}
+            <hr class="my-5">
+            <div class="section-header icon-ink mb-4">
+                <span class="icon-box"><i class="bi bi-grid"></i></span>
+                <span class="title">More packages in {{ destination.name if destination else "this destination" }}</span>
+            </div>
+            <div class="row g-4">
+                {% for rel in related %}
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body">
+                                <span class="badge bg-warning text-dark mb-2">
+                                    {{ rel.package_type|title }}
+                                </span>
+                                <h6 class="card-title">{{ rel.name }}</h6>
+                                <div class="small text-muted mb-3">
+                                    <i class="bi bi-moon-stars"></i>
+                                    {{ rel.duration_nights }} night{{ "" if rel.duration_nights == 1 else "s" }}
+                                </div>
+                                <a href="{{ url_for('public.package_detail', slug=rel.slug) }}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View package <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{# ─── Write-review modal ─── #}
+{% if current_user.is_authenticated and not user_has_reviewed %}
+<div class="modal fade" id="writeReviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('public.review_submit') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="product_type" value="package">
+                <input type="hidden" name="product_id" value="{{ package.id }}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil-square"></i> Write a review
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="btn-group w-100" role="group">
+                            {% for n in [5, 4, 3, 2, 1] %}
+                                <input type="radio" class="btn-check"
+                                       name="rating" id="pkg-rating-{{ n }}"
+                                       value="{{ n }}"
+                                       {% if n == 5 %}checked{% endif %}>
+                                <label class="btn btn-outline-warning" for="pkg-rating-{{ n }}">
+                                    {{ n }} <i class="bi bi-star-fill"></i>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Your name <span class="text-danger">*</span></label>
+                            <input type="text" name="guest_name" class="form-control" required
+                                   maxlength="150"
+                                   value="{{ current_user.full_name if current_user.is_authenticated else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="guest_email" class="form-control" required
+                                   maxlength="255"
+                                   value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                            <div class="form-text small">
+                                <i class="bi bi-shield-lock"></i> Never shown publicly.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Title (optional)</label>
+                        <input type="text" name="title" class="form-control" maxlength="150">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Your review</label>
+                        <textarea name="body" class="form-control" rows="5"
+                                  maxlength="2000" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-eltut-primary">
+                        <i class="bi bi-send"></i> Publish review
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Sidebar hero image */
+.sidebar-hero {
+    width: 100%;
+    height: 170px;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+.sidebar-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sidebar-hero-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: 3rem;
+    background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
+}
+
+/* Option card selection */
+.option-card {
+    cursor: pointer;
+    position: relative;
+    transition: all .2s ease;
+    border: 2px solid #e5e7eb !important;
+}
+.option-card:hover {
+    border-color: #c0392b !important;
+    box-shadow: 0 6px 20px rgba(192, 57, 43, .1);
+}
+.option-card.is-selected {
+    border-color: #c0392b !important;
+    background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
+    box-shadow: 0 8px 24px rgba(192, 57, 43, .15);
+}
+.option-selected-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: #198754;
+    font-size: 1.6rem;
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 1;
+}
+.option-card.is-selected .option-selected-badge {
+    opacity: 1;
+}
+.select-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    pointer-events: none;
+}
+.select-hint-active {
+    display: none;
+}
+.option-card.is-selected .select-hint-active {
+    display: inline;
+}
+.option-card.is-selected .select-hint-idle {
+    display: none;
+}
+.option-card.is-selected .select-hint {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+</style>
+
+<script>
+(function() {
+    'use strict';
+
+    // ─── Server-side data for JS ───
+    const ADULTS = {{ adults }};
+    const CHILDREN = {{ children }};
+    const CHECK_IN = "{{ check_in.isoformat() if check_in else '' }}";
+    const CHECK_OUT = "{{ check_out.isoformat() if check_out else '' }}";
+    const BOOK_URL = "{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}";
+
+    // Airline logos by normalized name
+    const AIRLINE_LOGOS = {
+        {% for name, data in airline_lookup.items() %}
+            "{{ name }}": "{{ data.logo_url or '' }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function fmt(v, currency) {
+        return (currency || 'EUR') + ' ' + Number(v || 0).toFixed(2);
+    }
+
+    function selectOption(card) {
+        // Update visual selection
+        document.querySelectorAll('.option-card').forEach(c => c.classList.remove('is-selected'));
+        card.classList.add('is-selected');
+
+        const radio = card.querySelector('.option-radio');
+        if (radio) radio.checked = true;
+
+        // Extract data
+        const airlineName = card.dataset.airline || '';
+        const airlineSlug = card.dataset.airlineSlug || '';
+        const from = card.dataset.from || '';
+        const to = card.dataset.to || '';
+        const dep = card.dataset.departure || '';
+        const ret = card.dataset.return || '';
+        const adultPrice = parseFloat(card.dataset.adultPrice) || 0;
+        const childPrice = parseFloat(card.dataset.childPrice) || 0;
+        const currency = card.dataset.currency || 'EUR';
+        const optionId = card.dataset.optionId;
+
+        // Update sidebar summary
+        document.getElementById('sel-airline-name').textContent = airlineName || '—';
+        document.getElementById('sel-route').textContent = (from && to) ? `${from} → ${to}` : 'Land only';
+        document.getElementById('sel-dates').textContent = dep && ret ? `${dep} → ${ret}` : 'Flexible dates';
+
+        // Logo lookup
+        const logoEl = document.getElementById('sel-airline-logo');
+        const logo = AIRLINE_LOGOS[airlineSlug] || '';
+        if (logo) {
+            logoEl.src = logo;
+            logoEl.style.display = 'block';
+        } else {
+            logoEl.style.display = 'none';
+        }
+
+        // Update price breakdown
+        const adultPriceEl = document.getElementById('breakdown-adult-price');
+        const childPriceEl = document.getElementById('breakdown-child-price');
+        if (adultPriceEl) adultPriceEl.textContent = fmt(adultPrice, currency);
+        if (childPriceEl) childPriceEl.textContent = fmt(childPrice, currency);
+
+        // Recompute total
+        const total = (adultPrice * ADULTS) + (childPrice * CHILDREN);
+        const totalEl = document.getElementById('sidebar-total');
+        if (totalEl) totalEl.textContent = fmt(total, currency);
+
+        // Update Book button href
+        const bookBtn = document.getElementById('book-departure-btn');
+        if (bookBtn) {
+            const params = new URLSearchParams();
+            params.set('option_id', optionId);
+            if (CHECK_IN) params.set('check_in', CHECK_IN);
+            if (CHECK_OUT) params.set('check_out', CHECK_OUT);
+            params.set('adults', ADULTS);
+            params.set('children', CHILDREN);
+            bookBtn.href = BOOK_URL + '?' + params.toString();
+        }
+    }
+
+    // Wire up option cards
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Ignore clicks on inner links (e.g., "Request a quote")
+            if (e.target.closest('a')) return;
+            selectOption(card);
+        });
+    });
+
+    // Auto-select first on page load
+    const first = document.querySelector('.option-card');
+    if (first) selectOption(first);
+
+    // Collapse toggle label
+    const collapse = document.getElementById('pkg-price-breakdown');
+    if (collapse) {
+        collapse.addEventListener('show.bs.collapse', function() {
+            const label = document.querySelector('.collapse-label');
+            if (label) label.textContent = 'Hide';
+        });
+        collapse.addEventListener('hide.bs.collapse', function() {
+            const label = document.querySelector('.collapse-label');
+            if (label) label.textContent = 'Show';
+        });
+    }
+})();
+</script>
+
+{% endblock %}

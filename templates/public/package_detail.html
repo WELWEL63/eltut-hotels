@@ -167,23 +167,45 @@
                     </div>
                 {% endif %}
 
-                {# ─── Departure options ─── #}
+                {# ─── Departure options — radio-selectable ─── #}
                 {% if options %}
                     <div class="section-header icon-nile mt-2" id="departures">
                         <span class="icon-box"><i class="bi bi-calendar-check"></i></span>
                         <span class="title">
                             Available departures
                             <span class="subtitle">
-                                Pick the flight and rate that suit you — each option has its own price.
+                                Pick the flight that suits you — price updates automatically.
                             </span>
                         </span>
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <div class="row g-3 mb-4" id="options-grid">
                         {% for opt in options %}
                             <div class="col-md-6 col-lg-4">
-                                <div class="card h-100 shadow-sm border-0">
+                                <label class="card h-100 shadow-sm border-0 option-card"
+                                       data-option-id="{{ opt.id }}"
+                                       data-adult-price="{{ opt.price_adult or 0 }}"
+                                       data-child-price="{{ opt.price_child or 0 }}"
+                                       data-currency="{{ opt.currency or 'EUR' }}"
+                                       data-airline="{{ opt.airline_name or '' }}"
+                                       data-airline-slug="{{ (opt.airline_name or '')|lower|replace(' ', '') }}"
+                                       data-airline-logo="{{ opt.airline_logo or '' }}"
+                                       data-from="{{ opt.flight_from or '' }}"
+                                       data-to="{{ opt.flight_to or '' }}"
+                                       data-luggage="{{ opt.luggage_allowance or '' }}"
+                                       data-departure="{{ opt.departure_date.isoformat() if opt.departure_date else '' }}"
+                                       data-return="{{ opt.return_date.isoformat() if opt.return_date else '' }}">
+                                    <input type="radio" name="selected_option"
+                                           value="{{ opt.id }}" class="option-radio"
+                                           {% if loop.first %}checked{% endif %}
+                                           style="position:absolute; opacity:0; pointer-events:none;">
+
                                     <div class="card-body d-flex flex-column">
+                                        {# Selected indicator (top-right) #}
+                                        <div class="option-selected-badge">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+
                                         <div class="mb-2">
                                             <div class="small text-muted">Departure</div>
                                             <div class="fw-semibold">
@@ -238,24 +260,79 @@
                                                         {{ opt.currency }} {{ "%.0f"|format(opt.price_child) }} / child
                                                     </div>
                                                 {% endif %}
-                                                <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?option_id={{ opt.id }}{% if check_in %}&check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
-                                                   class="btn btn-eltut-primary w-100">
-                                                    Book this option <i class="bi bi-arrow-right"></i>
-                                                </a>
+                                                <div class="btn btn-outline-primary w-100 select-hint">
+                                                    <i class="bi bi-circle"></i>
+                                                    <span class="select-hint-idle">Click to select</span>
+                                                    <span class="select-hint-active"><i class="bi bi-check-circle-fill me-1"></i>Selected</span>
+                                                </div>
                                             </div>
                                         {% else %}
                                             <div class="mt-auto pt-3 border-top">
                                                 <div class="text-muted small mb-3">Price on request</div>
                                                 <a href="{{ url_for('public.quote_request', product_type='package', product_id=package.id, product_name=package.name) }}"
-                                                   class="btn btn-outline-primary w-100">
+                                                   class="btn btn-outline-primary w-100"
+                                                   onclick="event.stopPropagation();">
                                                     Request a quote
                                                 </a>
                                             </div>
                                         {% endif %}
                                     </div>
-                                </div>
+                                </label>
                             </div>
                         {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ─── Your selected flight (live-updating panel) ─── #}
+                {% if options %}
+                    <div class="section-header icon-gold mt-4" id="selected-flight-panel">
+                        <span class="icon-box"><i class="bi bi-airplane"></i></span>
+                        <span class="title">
+                            Your selected flight
+                            <span class="subtitle">Updates when you pick a different departure above</span>
+                        </span>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center g-3">
+                                {# Airline logo + name #}
+                                <div class="col-md-3 d-flex align-items-center gap-3">
+                                    <div class="sf-logo-wrap">
+                                        <img id="sf-logo" src="" alt=""
+                                             style="max-height:44px; max-width:90px; object-fit:contain; display:none;"
+                                             onerror="this.style.display='none';">
+                                        <i id="sf-logo-fallback" class="bi bi-airplane"
+                                           style="font-size:2rem; color:#9ca3af;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" id="sf-airline">—</div>
+                                        <div class="small text-muted" id="sf-luggage">—</div>
+                                    </div>
+                                </div>
+
+                                {# Route #}
+                                <div class="col-md-3">
+                                    <div class="small text-muted">Route</div>
+                                    <div class="fw-semibold" id="sf-route">—</div>
+                                </div>
+
+                                {# Departure #}
+                                <div class="col-md-3">
+                                    <div class="small text-muted">Departure</div>
+                                    <div class="fw-semibold" id="sf-departure">—</div>
+                                </div>
+
+                                {# Return + Status #}
+                                <div class="col-md-3">
+                                    <div class="small text-muted">Return</div>
+                                    <div class="fw-semibold" id="sf-return">—</div>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success-subtle text-success-emphasis">Included</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 {% endif %}
 
@@ -287,59 +364,6 @@
                                     {% if day.description %}
                                         <p class="mb-0 small text-muted">{{ day.description }}</p>
                                     {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                {# ─── Flights ─── #}
-                {% if flights %}
-                    <div class="section-header icon-gold mt-4">
-                        <span class="icon-box"><i class="bi bi-airplane"></i></span>
-                        <span class="title">
-                            Flights included
-                            <span class="subtitle">These flights are part of the package price</span>
-                        </span>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        {% for f in flights %}
-                            <div class="col-md-6">
-                                <div class="card shadow-sm h-100 border-0">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div class="d-flex align-items-center gap-2">
-                                                {% set _logo = airline_lookup.get((f.airline_name or "").strip().lower()) if airline_lookup else None %}
-                                                {% if _logo %}
-                                                    <img src="{{ _logo }}" alt=""
-                                                         style="height:26px; max-width:70px; object-fit:contain;"
-                                                         onerror="this.style.display='none';">
-                                                {% endif %}
-                                                <div>
-                                                    <div class="fw-semibold">
-                                                        {{ f.flight_from }} → {{ f.flight_to }}
-                                                    </div>
-                                                    {% if f.airline_name %}
-                                                        <div class="small text-muted">{{ f.airline_name }}</div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            {% if f.included %}
-                                                <span class="badge bg-success-subtle text-success-emphasis">Included</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary-subtle text-secondary-emphasis">Extra</span>
-                                            {% endif %}
-                                        </div>
-                                        {% if f.luggage_allowance %}
-                                            <div class="small text-muted">
-                                                <i class="bi bi-suitcase"></i> {{ f.luggage_allowance }} luggage
-                                            </div>
-                                        {% endif %}
-                                        {% if f.notes %}
-                                            <div class="small text-muted mt-1">{{ f.notes }}</div>
-                                        {% endif %}
-                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
@@ -543,6 +567,26 @@
                         {% endif %}
                     </div>
 
+                    {# ─── Selected flight summary (JS-updated) ─── #}
+                    {% if options %}
+                        <div class="card-body border-bottom" id="selected-flight-summary">
+                            <div class="small fw-semibold text-uppercase text-muted mb-2"
+                                 style="letter-spacing:.05em; font-size:.7rem;">
+                                Your selected flight
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <img id="sel-airline-logo" src="" alt=""
+                                     style="height:32px; max-width:70px; object-fit:contain; display:none;"
+                                     onerror="this.style.display='none';">
+                                <div>
+                                    <div class="fw-semibold" id="sel-airline-name">—</div>
+                                    <div class="small text-muted" id="sel-route">—</div>
+                                </div>
+                            </div>
+                            <div class="small text-muted" id="sel-dates">—</div>
+                        </div>
+                    {% endif %}
+
                     {# ─── Dates + party + price breakdown ─── #}
                     {% if sidebar_pricing and sidebar_pricing.total is not none %}
                         <div class="card-body border-bottom">
@@ -578,13 +622,13 @@
                             <div class="collapse show" id="pkg-price-breakdown">
                                 <div class="d-flex justify-content-between small mb-1">
                                     <span class="text-muted">
-                                        Adult — {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.adult_rate or 0) }} × {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                        Adult — <span id="breakdown-adult-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.adult_rate or 0) }}</span> × {{ adults }} adult{{ "" if adults == 1 else "s" }}
                                     </span>
                                 </div>
-                                {% if sidebar_pricing.child_rate and sidebar_pricing.child_rate > 0 and children %}
+                                {% if children %}
                                     <div class="d-flex justify-content-between small mb-1">
                                         <span class="text-muted">
-                                            Child — {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.child_rate) }} × {{ children }} child{{ "" if children == 1 else "ren" }}
+                                            Child — <span id="breakdown-child-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.child_rate or 0) }}</span> × {{ children }} child{{ "" if children == 1 else "ren" }}
                                         </span>
                                     </div>
                                 {% endif %}
@@ -593,7 +637,7 @@
 
                                 <div class="d-flex justify-content-between align-items-baseline">
                                     <span class="fw-bold">Total</span>
-                                    <span class="fs-5 fw-bold text-eltut-terracotta">
+                                    <span class="fs-5 fw-bold text-eltut-terracotta" id="sidebar-total">
                                         {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.total) }}
                                     </span>
                                 </div>
@@ -603,19 +647,6 @@
                                 </div>
                             </div>
                         </div>
-                    {% elif price_adult %}
-                        <div class="card-body border-bottom">
-                            <div class="text-muted small">Starting from</div>
-                            <div class="fs-3 fw-bold text-eltut-terracotta">
-                                {{ currency }} {{ "%.0f"|format(price_adult) }}
-                                <small class="text-muted fw-normal fs-6">/ adult</small>
-                            </div>
-                            {% if price_child %}
-                                <div class="small text-muted mt-1">
-                                    {{ currency }} {{ "%.0f"|format(price_child) }} / child
-                                </div>
-                            {% endif %}
-                        </div>
                     {% endif %}
 
                     <div class="card-body">
@@ -624,8 +655,9 @@
                         </h5>
 
                         {% if options %}
-                            <a href="#departures" class="btn btn-eltut-primary w-100 mb-2">
-                                <i class="bi bi-list-check"></i> Choose a departure
+                            <a href="#" id="book-departure-btn"
+                               class="btn btn-eltut-primary w-100 mb-2">
+                                <i class="bi bi-check-circle"></i> Book this departure
                             </a>
                         {% elif remaining is none or remaining > 0 %}
                             <a href="{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}?{% if check_in %}check_in={{ check_in.isoformat() }}{% endif %}{% if check_out %}&check_out={{ check_out.isoformat() }}{% endif %}&adults={{ adults }}&children={{ children }}"
@@ -778,10 +810,191 @@
     color: #9ca3af; font-size: 3rem;
     background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
 }
+
+/* Option card selection */
+.option-card {
+    cursor: pointer;
+    position: relative;
+    transition: all .2s ease;
+    border: 2px solid #e5e7eb !important;
+}
+.option-card:hover {
+    border-color: #c0392b !important;
+    box-shadow: 0 6px 20px rgba(192, 57, 43, .1);
+}
+.option-card.is-selected {
+    border-color: #c0392b !important;
+    background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
+    box-shadow: 0 8px 24px rgba(192, 57, 43, .15);
+}
+.option-selected-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    color: #198754;
+    font-size: 1.6rem;
+    opacity: 0;
+    transition: opacity .2s;
+    z-index: 1;
+}
+.option-card.is-selected .option-selected-badge {
+    opacity: 1;
+}
+.select-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    pointer-events: none;
+}
+.select-hint-active {
+    display: none;
+}
+.option-card.is-selected .select-hint-active {
+    display: inline;
+}
+.option-card.is-selected .select-hint-idle {
+    display: none;
+}
+.option-card.is-selected .select-hint {
+    background: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+/* Selected flight panel logo wrap */
+.sf-logo-wrap {
+    width: 90px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
 </style>
 
 <script>
 (function() {
+    'use strict';
+
+    // ─── Server-side data for JS ───
+    const ADULTS = {{ adults }};
+    const CHILDREN = {{ children }};
+    const CHECK_IN = "{{ check_in.isoformat() if check_in else '' }}";
+    const CHECK_OUT = "{{ check_out.isoformat() if check_out else '' }}";
+    const BOOK_URL = "{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}";
+
+    // Airline logos by normalized name
+    const AIRLINE_LOGOS = {
+        {% for name, data in airline_lookup.items() %}
+            "{{ name }}": "{{ data.logo_url or '' }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function fmt(v, currency) {
+        return (currency || 'EUR') + ' ' + Number(v || 0).toFixed(2);
+    }
+
+    function selectOption(card) {
+        // Update visual selection
+        document.querySelectorAll('.option-card').forEach(c => c.classList.remove('is-selected'));
+        card.classList.add('is-selected');
+
+        const radio = card.querySelector('.option-radio');
+        if (radio) radio.checked = true;
+
+        // Extract data
+        const airlineName = card.dataset.airline || '';
+        const airlineSlug = card.dataset.airlineSlug || '';
+        const airlineLogo = card.dataset.airlineLogo || '';
+        const from = card.dataset.from || '';
+        const to = card.dataset.to || '';
+        const luggage = card.dataset.luggage || '';
+        const dep = card.dataset.departure || '';
+        const ret = card.dataset.return || '';
+        const adultPrice = parseFloat(card.dataset.adultPrice) || 0;
+        const childPrice = parseFloat(card.dataset.childPrice) || 0;
+        const currency = card.dataset.currency || 'EUR';
+        const optionId = card.dataset.optionId;
+
+        // ─── Update SIDEBAR summary ───
+        document.getElementById('sel-airline-name').textContent = airlineName || '—';
+        document.getElementById('sel-route').textContent = (from && to) ? `${from} → ${to}` : 'Land only';
+        document.getElementById('sel-dates').textContent = dep && ret ? `${dep} → ${ret}` : 'Flexible dates';
+
+        const sidebarLogoEl = document.getElementById('sel-airline-logo');
+        const sidebarLogo = airlineLogo || AIRLINE_LOGOS[airlineSlug] || '';
+        if (sidebarLogo) {
+            sidebarLogoEl.src = sidebarLogo;
+            sidebarLogoEl.style.display = 'block';
+        } else {
+            sidebarLogoEl.style.display = 'none';
+        }
+
+        // ─── Update SELECTED FLIGHT panel (main column) ───
+        const sfAirline = document.getElementById('sf-airline');
+        const sfRoute = document.getElementById('sf-route');
+        const sfDeparture = document.getElementById('sf-departure');
+        const sfReturn = document.getElementById('sf-return');
+        const sfLuggage = document.getElementById('sf-luggage');
+
+        if (sfAirline) sfAirline.textContent = airlineName || 'Multiple airlines';
+        if (sfRoute) sfRoute.textContent = (from && to) ? `${from} → ${to}` : 'Land only';
+        if (sfDeparture) sfDeparture.textContent = dep || 'Flexible';
+        if (sfReturn) sfReturn.textContent = ret || 'Flexible';
+        if (sfLuggage) sfLuggage.textContent = luggage ? `${luggage} luggage` : '';
+
+        const sfLogo = document.getElementById('sf-logo');
+        const sfFallback = document.getElementById('sf-logo-fallback');
+        const panelLogo = airlineLogo || AIRLINE_LOGOS[airlineSlug] || '';
+        if (sfLogo && sfFallback) {
+            if (panelLogo) {
+                sfLogo.src = panelLogo;
+                sfLogo.style.display = 'inline-block';
+                sfFallback.style.display = 'none';
+            } else {
+                sfLogo.style.display = 'none';
+                sfFallback.style.display = 'inline-block';
+            }
+        }
+
+        // ─── Update price breakdown ───
+        const adultPriceEl = document.getElementById('breakdown-adult-price');
+        const childPriceEl = document.getElementById('breakdown-child-price');
+        if (adultPriceEl) adultPriceEl.textContent = fmt(adultPrice, currency);
+        if (childPriceEl) childPriceEl.textContent = fmt(childPrice, currency);
+
+        // Recompute total
+        const total = (adultPrice * ADULTS) + (childPrice * CHILDREN);
+        const totalEl = document.getElementById('sidebar-total');
+        if (totalEl) totalEl.textContent = fmt(total, currency);
+
+        // Update Book button href
+        const bookBtn = document.getElementById('book-departure-btn');
+        if (bookBtn) {
+            const params = new URLSearchParams();
+            params.set('option_id', optionId);
+            if (CHECK_IN) params.set('check_in', CHECK_IN);
+            if (CHECK_OUT) params.set('check_out', CHECK_OUT);
+            params.set('adults', ADULTS);
+            params.set('children', CHILDREN);
+            bookBtn.href = BOOK_URL + '?' + params.toString();
+        }
+    }
+
+    // Wire up option cards
+    document.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('a')) return;
+            selectOption(card);
+        });
+    });
+
+    // Auto-select first on page load
+    const first = document.querySelector('.option-card');
+    if (first) selectOption(first);
+
+    // Collapse toggle label
     const collapse = document.getElementById('pkg-price-breakdown');
     if (collapse) {
         collapse.addEventListener('show.bs.collapse', function() {

@@ -352,13 +352,15 @@
         </div>
     </form>
 
-    {# ─── Flights editor (multi-row) ─── #}
+    {# ─── Flights editor ─── #}
     <h5 class="mt-4">
         <i class="bi bi-airplane"></i> Flights
     </h5>
     <p class="text-muted small mb-2">
         Add every flight leg that is part of the package — e.g. outbound and
-        return, or flights from multiple origins.
+        return, or flights from multiple origins. Each flight can optionally
+        link to an <a href="{{ url_for('admin.airline_list') }}" target="_blank">Airline</a>
+        from the master list so the correct logo appears on the public page.
     </p>
 
     {% if flights %}
@@ -380,7 +382,12 @@
                             <tr>
                                 <td>{{ f.flight_from }}</td>
                                 <td>{{ f.flight_to }}</td>
-                                <td>{{ f.airline_name or "—" }}</td>
+                                <td>
+                                    {{ f.airline_name or "—" }}
+                                    {% if f.airline_id %}
+                                        <span class="badge bg-info-subtle text-info-emphasis ms-1">Linked</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ f.luggage_allowance or "—" }}</td>
                                 <td>
                                     {% if f.included %}
@@ -421,6 +428,25 @@
             <h6 class="text-muted text-uppercase small mb-3">Add a flight</h6>
             <div class="row g-2 align-items-end">
                 <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">
+                        Airline <span class="text-muted">(master)</span>
+                    </label>
+                    <select name="airline_id" class="form-select">
+                        <option value="">— None / free text —</option>
+                        {% for al in airlines %}
+                            <option value="{{ al.id }}">{{ al.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small text-muted mb-1">
+                        Airline <span class="text-muted">(free text)</span>
+                    </label>
+                    <input type="text" name="airline_name" class="form-control"
+                           maxlength="150"
+                           placeholder="e.g. easyJet">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small text-muted mb-1">From</label>
                     <input type="text" name="flight_from" class="form-control"
                            maxlength="150" required
@@ -431,12 +457,6 @@
                     <input type="text" name="flight_to" class="form-control"
                            maxlength="150" required
                            placeholder="e.g. Hurghada">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-muted mb-1">Airline</label>
-                    <input type="text" name="airline_name" class="form-control"
-                           maxlength="150"
-                           placeholder="e.g. easyJet">
                 </div>
                 <div class="col-md-1">
                     <label class="form-label small text-muted mb-1">Luggage</label>
@@ -449,14 +469,9 @@
                                class="form-check-input" id="flight-included-new"
                                checked>
                         <label class="form-check-label small" for="flight-included-new">
-                            Included
+                            Incl.
                         </label>
                     </div>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-muted mb-1">Notes (optional)</label>
-                    <input type="text" name="notes" class="form-control"
-                           placeholder="e.g. 1 stopover">
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary w-100">
@@ -464,10 +479,16 @@
                     </button>
                 </div>
             </div>
+            <div class="form-text mt-2">
+                <i class="bi bi-info-circle"></i>
+                Pick from the <strong>Airline master</strong> to attach a logo.
+                Or type a free-text name (no logo). If both are given, the master
+                takes priority.
+            </div>
         </div>
     </form>
 
-    {# ─── Departure options (flight + rate + date) ─── #}
+    {# ─── Departure options ─── #}
     <h5 class="mt-4">
         <i class="bi bi-calendar-check"></i> Departure options
     </h5>
