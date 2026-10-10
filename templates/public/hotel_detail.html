@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ hotel.name }} — {{ config.APP_NAME }}{% endblock %}
+﻿{% extends "base.html" %}
+{% block title %}{{ hotel.name }} â€” {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <section class="py-4">
@@ -15,7 +15,7 @@
         <div class="row g-4">
             <div class="col-lg-8">
 
-                {# ─── Gallery carousel ─── #}
+                {# â”€â”€â”€ Gallery carousel â”€â”€â”€ #}
                 {% set visible_images = [] %}
                 {% for img in images %}
                     {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
@@ -47,7 +47,7 @@
                                     {% else %}
                                         <img src="{{ img.url }}" class="d-block w-100"
                                              style="height: 480px; object-fit: cover;"
-                                             alt="{{ hotel.name }} — photo {{ loop.index }}">
+                                             alt="{{ hotel.name }} â€” photo {{ loop.index }}">
                                     {% endif %}
                                     {% if img.type %}
                                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
@@ -95,7 +95,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Title block ─── #}
+                {# â”€â”€â”€ Title block â”€â”€â”€ #}
                 <h1 class="mb-2">{{ hotel.name }}</h1>
 
                 <div class="mb-3">
@@ -112,7 +112,7 @@
                     {% endif %}
                 </div>
 
-                {# ─── Description ─── #}
+                {# â”€â”€â”€ Description â”€â”€â”€ #}
                 {% if hotel.description %}
                     <div class="section-header icon-ink">
             <span class="icon-box"><i class="bi bi-info-circle"></i></span>
@@ -121,7 +121,7 @@
                     <p>{{ hotel.description }}</p>
                 {% endif %}
 
-                {# ─── Facilities ─── #}
+                {# â”€â”€â”€ Facilities â”€â”€â”€ #}
                 {% if facilities %}
                     <div class="section-header icon-nile">
             <span class="icon-box"><i class="bi bi-stars"></i></span>
@@ -136,7 +136,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Inclusions / Exclusions ─── #}
+                {# â”€â”€â”€ Inclusions / Exclusions â”€â”€â”€ #}
                 {% if inclusions or exclusions %}
                     <div class="row g-3 mt-4">
                         {% if inclusions %}
@@ -174,7 +174,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── House rules + Check-in details ─── #}
+                {# â”€â”€â”€ House rules + Check-in details â”€â”€â”€ #}
                 {% if hotel.house_rules or hotel.check_in_details %}
                     <div class="section-header icon-gold">
             <span class="icon-box"><i class="bi bi-lightbulb"></i></span>
@@ -204,7 +204,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Cancellation policy ─── #}
+                {# â”€â”€â”€ Cancellation policy â”€â”€â”€ #}
                 {% if hotel.cancellation_policy %}
                     <div class="alert alert-info mt-4">
                         <h6 class="alert-heading d-flex align-items-center gap-2">
@@ -215,7 +215,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Rooms & rates ─── #}
+                {# â”€â”€â”€ Rooms & rates â”€â”€â”€ #}
                 {% if rooms_with_availability %}
                     <div class="section-header icon-ink">
             <span class="icon-box"><i class="bi bi-door-open"></i></span>
@@ -289,15 +289,15 @@
                                                     <tr>
                                                         <th>Valid from</th>
                                                         <th>Valid to</th>
-                                                        <th>Adult €</th>
-                                                        <th>Child €</th>
+                                                        <th>Adult â‚¬</th>
+                                                        <th>Child â‚¬</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="small">
                                                     {% for r in item.rates %}
                                                         <tr>
-                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "—" }}</td>
-                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "—" }}</td>
+                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "â€”" }}</td>
+                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "â€”" }}</td>
                                                             <td>{{ "%.2f"|format(r.adult_price) }}</td>
                                                             <td>{{ "%.2f"|format(r.child_price) }}</td>
                                                         </tr>
@@ -314,7 +314,7 @@
                     <div class="alert alert-info mt-5">No rooms are currently available at this hotel.</div>
                 {% endif %}
 
-                {# ─── Neighborhood info ─── #}
+                {# â”€â”€â”€ Neighborhood info â”€â”€â”€ #}
                 {% if hotel.neighborhood_info %}
                     <div class="section-header icon-nile">
             <span class="icon-box"><i class="bi bi-geo-alt"></i></span>
@@ -323,7 +323,7 @@
                     <p>{{ hotel.neighborhood_info }}</p>
                 {% endif %}
 
-                {# ─── Google Map ─── #}
+                {# â”€â”€â”€ Google Map â”€â”€â”€ #}
                 {% if hotel.google_maps_url %}
                     <div class="section-header icon-nile">
             <span class="icon-box"><i class="bi bi-map"></i></span>
@@ -338,7 +338,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Useful tips ─── #}
+                {# â”€â”€â”€ Useful tips â”€â”€â”€ #}
                 {% if hotel.useful_tips %}
                     <div class="card shadow-sm mt-5 border-0" style="background: linear-gradient(135deg, #f5e6d3, #e8d3b8);">
                         <div class="card-body p-4">
@@ -351,7 +351,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── FAQs ─── #}
+                {# â”€â”€â”€ FAQs â”€â”€â”€ #}
                 {% if faqs %}
                     <div class="section-header icon-ink">
             <span class="icon-box"><i class="bi bi-question-circle"></i></span>
@@ -372,7 +372,7 @@
                                      class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
                                      data-bs-parent="#hotelFaqs">
                                     <div class="accordion-body" style="white-space: pre-wrap;">
-                                        {{ faq.answer or "—" }}
+                                        {{ faq.answer or "â€”" }}
                                     </div>
                                 </div>
                             </div>
@@ -380,7 +380,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Reviews ─── #}
+                {# â”€â”€â”€ Reviews â”€â”€â”€ #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
                     <span class="title">
@@ -472,7 +472,7 @@
 
             </div>
 
-            {# ─── Sidebar ─── #}
+            {# â”€â”€â”€ Sidebar â”€â”€â”€ #}
             <aside class="col-lg-4">
                 <div class="card shadow-sm sticky-top" style="top: 1rem;">
 
@@ -520,7 +520,7 @@
             </aside>
         </div>
 
-        {# ─── Related hotels ─── #}
+        {# â”€â”€â”€ Related hotels â”€â”€â”€ #}
         {% if related %}
             <hr class="my-5">
             <div class="section-header icon-ink">
@@ -548,7 +548,7 @@
         {% endif %}
     </div>
 </section>
-{# ─── Write-review modal ─── #}
+{# â”€â”€â”€ Write-review modal â”€â”€â”€ #}
 {% if current_user.is_authenticated and not user_has_reviewed %}
 <div class="modal fade" id="writeReviewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -636,3 +636,4 @@
 {% endif %}
 
 {% endblock %}
+
