@@ -131,6 +131,13 @@ def _to_public_dict(
 ) -> dict:
     """Convert an Activity ORM object into a plain dict for templates."""
     adult_price, child_price, currency = _first_price_for(activity.id)
+    # Trim description for the modal (first 400 chars, word boundary)
+    desc_raw = activity.description or ""
+    if len(desc_raw) > 400:
+        desc_short = desc_raw[:400].rsplit(" ", 1)[0] + "..."
+    else:
+        desc_short = desc_raw
+
     return {
         "id": activity.id,
         "code": activity.code,
@@ -151,6 +158,14 @@ def _to_public_dict(
         "image_url": _first_image_url(activity.id),
         "avg_rating": avg_rating,
         "score": _score(avg_rating, activity.capacity or 0),
+        # Modal fields
+        "description": desc_short,
+        "departure_time": activity.departure_time,
+        "return_time": activity.return_time,
+        "meeting_point": activity.meeting_point,
+        "what_to_bring": activity.what_to_bring,
+        "min_age": activity.min_age,
+        "max_age": activity.max_age,
     }
 
 

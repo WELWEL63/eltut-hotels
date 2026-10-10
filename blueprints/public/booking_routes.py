@@ -125,10 +125,13 @@ def _product_meta(product_type: str, product) -> dict:
             .where(ActivityPrice.activity_id == product.id)
             .order_by(ActivityPrice.id).limit(1)
         )
+        img_url = product.images[0].url if product.images else None
+        if img_url and not (img_url.startswith("http") or img_url.startswith("/static")):
+            img_url = "/static" + (img_url if img_url.startswith("/") else "/" + img_url)
         return {
             "name": product.name,
             "slug": product.slug,
-            "image": product.images[0].url if product.images else None,
+            "image": img_url,
             "adult_price": float(price_row.adult_price) if price_row else None,
             "child_price": float(price_row.child_price) if price_row else None,
             "currency": price_row.currency if price_row else "EUR",
@@ -158,14 +161,24 @@ def _product_meta(product_type: str, product) -> dict:
             .where(PackagePrice.package_id == product.id)
             .order_by(PackagePrice.id).limit(1)
         )
+        dest = None
+        if product.destination_id:
+            from models import Destination  # noqa: PLC0415
+            dest = db.session.get(Destination, product.destination_id)
+        img_url = product.images[0].url if product.images else None
+        if img_url and not (img_url.startswith("http") or img_url.startswith("/static")):
+            img_url = "/static" + (img_url if img_url.startswith("/") else "/" + img_url)
         return {
             "name": product.name,
             "slug": product.slug,
-            "image": product.images[0].url if product.images else None,
+            "image": img_url,
             "adult_price": float(price_row.adult_price) if price_row else None,
             "child_price": float(price_row.child_price) if price_row else None,
             "currency": price_row.currency if price_row else "EUR",
             "location": product.destination_id,
+            "hotel": None,
+            "room": None,
+            "destination": dest.name if dest else None,
         }
     return {}
 

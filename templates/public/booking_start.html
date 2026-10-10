@@ -18,7 +18,7 @@
             <input type="hidden" name="product_type" value="{{ product_type }}">
             <input type="hidden" name="product_id" value="{{ product.id }}">
 
-            {# Hidden inputs for party size + dates (set from URL, submitted silently) #}
+            {# Hidden inputs — party size + dates #}
             <input type="hidden" name="adults" value="{{ form_defaults.adults }}">
             <input type="hidden" name="children" value="{{ form_defaults.children }}">
             {% if product_type == 'hotel' %}
@@ -41,9 +41,7 @@
             <div class="row g-4">
                 <div class="col-lg-8">
 
-                    {# ═══════════════════════════════════════════════ #}
-                    {# STEP 1 — Guest details                            #}
-                    {# ═══════════════════════════════════════════════ #}
+                    {# ═══════════════ STEP 1 — Your details ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3 d-flex align-items-center gap-2">
@@ -111,9 +109,7 @@
                         </div>
                     </div>
 
-                    {# ═══════════════════════════════════════════════ #}
-                    {# STEP 2 — Traveller names                          #}
-                    {# ═══════════════════════════════════════════════ #}
+                    {# ═══════════════ STEP 2 — Traveller names ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3 d-flex align-items-center gap-2">
@@ -139,9 +135,7 @@
                         </div>
                     </div>
 
-                    {# ═══════════════════════════════════════════════ #}
-                    {# STEP 3 — Add-ons (optional)                        #}
-                    {# ═══════════════════════════════════════════════ #}
+                    {# ═══════════════ STEP 3 — Add-ons (optional) ═══════════════ #}
                     {% if addons %}
                         <div class="card shadow-sm mb-4">
                             <div class="card-body">
@@ -158,7 +152,7 @@
                                 <div class="row g-3">
                                     {% for a in addons %}
                                         <div class="col-md-6">
-                                            <label class="addon-card" for="addon_{{ a.id }}">
+                                            <div class="addon-card">
                                                 <input type="checkbox"
                                                        class="addon-checkbox form-check-input"
                                                        name="addon_{{ a.id }}"
@@ -170,55 +164,79 @@
                                                        data-currency="{{ a.currency or 'EUR' }}"
                                                        data-name="{{ a.name }}">
 
-                                                <div class="addon-thumb">
-                                                    {% if a.image_url %}
-                                                        <img src="{{ a.image_url }}" alt="{{ a.name }}" loading="lazy"
-                                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                        <div class="addon-thumb-fallback" style="display:none;">
-                                                            <i class="bi bi-compass"></i>
+                                                <label class="addon-card-label" for="addon_{{ a.id }}">
+                                                    <div class="addon-thumb">
+                                                        {% if a.image_url %}
+                                                            <img src="{{ a.image_url }}" alt="{{ a.name }}" loading="lazy"
+                                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                            <div class="addon-thumb-fallback" style="display:none;">
+                                                                <i class="bi bi-compass"></i>
+                                                            </div>
+                                                        {% else %}
+                                                            <div class="addon-thumb-fallback">
+                                                                <i class="bi bi-compass"></i>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="addon-body">
+                                                        <div class="addon-name">{{ a.name }}</div>
+
+                                                        <div class="addon-meta">
+                                                            {% if a.category %}
+                                                                <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                                                    {{ a.category|title }}
+                                                                </span>
+                                                            {% endif %}
+                                                            {% if a.duration_hours %}
+                                                                <span class="text-muted small">
+                                                                    <i class="bi bi-clock"></i> {{ a.duration_hours }}h
+                                                                </span>
+                                                            {% endif %}
                                                         </div>
-                                                    {% else %}
-                                                        <div class="addon-thumb-fallback">
-                                                            <i class="bi bi-compass"></i>
+
+                                                        <div class="addon-prices">
+                                                            <span class="addon-price adult">
+                                                                {{ a.currency }} {{ "%.2f"|format(a.price_adult or 0) }}
+                                                                <small>/ adult</small>
+                                                            </span>
+                                                            {% if a.price_child and a.price_child > 0 %}
+                                                                <span class="addon-price child">
+                                                                    {{ a.currency }} {{ "%.2f"|format(a.price_child) }}
+                                                                    <small>/ child</small>
+                                                                </span>
+                                                            {% endif %}
                                                         </div>
-                                                    {% endif %}
-                                                </div>
 
-                                                <div class="addon-body">
-                                                    <div class="addon-name">{{ a.name }}</div>
-
-                                                    <div class="addon-meta">
-                                                        {% if a.category %}
-                                                            <span class="badge bg-secondary-subtle text-secondary-emphasis">
-                                                                {{ a.category|title }}
-                                                            </span>
-                                                        {% endif %}
-                                                        {% if a.duration_hours %}
-                                                            <span class="text-muted small">
-                                                                <i class="bi bi-clock"></i> {{ a.duration_hours }}h
-                                                            </span>
-                                                        {% endif %}
+                                                        <div class="addon-contribution" style="display:none;">
+                                                            <i class="bi bi-check-circle-fill"></i>
+                                                            Adding <strong class="addon-contribution-value">—</strong>
+                                                        </div>
                                                     </div>
+                                                </label>
 
-                                                    <div class="addon-prices">
-                                                        <span class="addon-price adult">
-                                                            {{ a.currency }} {{ "%.2f"|format(a.price_adult or 0) }}
-                                                            <small>/ adult</small>
-                                                        </span>
-                                                        {% if a.price_child and a.price_child > 0 %}
-                                                            <span class="addon-price child">
-                                                                {{ a.currency }} {{ "%.2f"|format(a.price_child) }}
-                                                                <small>/ child</small>
-                                                            </span>
-                                                        {% endif %}
-                                                    </div>
-
-                                                    <div class="addon-contribution" style="display:none;">
-                                                        <i class="bi bi-check-circle-fill"></i>
-                                                        Adding <strong class="addon-contribution-value">—</strong>
-                                                    </div>
-                                                </div>
-                                            </label>
+                                                <button type="button"
+                                                        class="addon-details-btn"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#addonModal"
+                                                        data-name="{{ a.name }}"
+                                                        data-category="{{ a.category or '' }}"
+                                                        data-duration="{{ a.duration_hours or '' }}"
+                                                        data-difficulty="{{ a.difficulty or '' }}"
+                                                        data-description="{{ (a.description or '')|e }}"
+                                                        data-departure-time="{{ a.departure_time or '' }}"
+                                                        data-return-time="{{ a.return_time or '' }}"
+                                                        data-meeting-point="{{ a.meeting_point or '' }}"
+                                                        data-what-to-bring="{{ (a.what_to_bring or '')|e }}"
+                                                        data-min-age="{{ a.min_age or '' }}"
+                                                        data-max-age="{{ a.max_age or '' }}"
+                                                        data-price-adult="{{ a.price_adult or 0 }}"
+                                                        data-price-child="{{ a.price_child or 0 }}"
+                                                        data-currency="{{ a.currency or 'EUR' }}"
+                                                        data-image="{{ a.image_url or '' }}">
+                                                    <i class="bi bi-info-circle"></i> View details
+                                                </button>
+                                            </div>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -226,9 +244,7 @@
                         </div>
                     {% endif %}
 
-                    {# ═══════════════════════════════════════════════ #}
-                    {# STEP 4 — Payment method                            #}
-                    {# ═══════════════════════════════════════════════ #}
+                    {# ═══════════════ STEP 4 — Payment method ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3 d-flex align-items-center gap-2">
@@ -290,16 +306,29 @@
 
                 </div>
 
-                {# ═══════════════════════════════════════════════ #}
-                {# SIDEBAR — Full price summary with breakdown        #}
-                {# ═══════════════════════════════════════════════ #}
+                {# ═══════════════ SIDEBAR ═══════════════ #}
                 <aside class="col-lg-4">
-                    <div class="card shadow-sm sticky-top" style="top: 1rem;">
+                    <div class="card shadow-sm sticky-top overflow-hidden" style="top: 1rem;">
 
-                        {# ─── Hotel/Room header ─── #}
+                        {# Hero image #}
+                        <div class="sidebar-hero">
+                            {% if meta.image %}
+                                <img src="{{ meta.image }}" alt="{{ meta.name }}"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="sidebar-hero-fallback" style="display:none;">
+                                    <i class="bi bi-{% if product_type == 'hotel' %}building{% elif product_type == 'package' %}suitcase-lg{% else %}compass{% endif %}"></i>
+                                </div>
+                            {% else %}
+                                <div class="sidebar-hero-fallback">
+                                    <i class="bi bi-{% if product_type == 'hotel' %}building{% elif product_type == 'package' %}suitcase-lg{% else %}compass{% endif %}"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Header — hotel/room/destination #}
                         <div class="card-body border-bottom pb-3">
                             <div class="d-flex align-items-start gap-2 mb-2">
-                                <i class="bi bi-building text-eltut-terracotta" style="font-size:1.4rem;"></i>
+                                <i class="bi bi-{% if product_type == 'hotel' %}building{% elif product_type == 'package' %}suitcase-lg{% else %}compass{% endif %} text-eltut-terracotta" style="font-size:1.4rem;"></i>
                                 <div class="flex-grow-1">
                                     <div class="fw-bold small">{{ hotel or meta.name }}</div>
                                     {% if room %}
@@ -314,7 +343,7 @@
                             {% endif %}
                         </div>
 
-                        {# ─── Dates + party (read-only) ─── #}
+                        {# Dates + party #}
                         <div class="card-body border-bottom pb-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div>
@@ -349,7 +378,7 @@
                             </div>
                         </div>
 
-                        {# ─── Price breakdown (collapsible) ─── #}
+                        {# Price breakdown (collapsible) #}
                         {% if pricing and pricing.total is not none %}
                             <div class="card-body pb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -364,22 +393,24 @@
                                 </div>
 
                                 <div class="collapse show" id="price-breakdown">
-                                    {# Room line #}
                                     <div class="d-flex justify-content-between small mb-1">
                                         <span class="text-muted">
-                                            Room — {{ pricing.currency }} {{ "%.2f"|format(pricing.adult_rate or 0) }} × {{ form_defaults.adults }} adult{{ "" if form_defaults.adults == 1 else "s" }}
-                                            {% if form_defaults.children and pricing.child_rate and pricing.child_rate > 0 %}
-                                                + {{ pricing.currency }} {{ "%.2f"|format(pricing.child_rate) }} × {{ form_defaults.children }} child{{ "" if form_defaults.children == 1 else "ren" }}
+                                            {% if product_type == 'hotel' %}
+                                                Room — {{ pricing.currency }} {{ "%.2f"|format(pricing.adult_rate or 0) }} × {{ form_defaults.adults }} adult{{ "" if form_defaults.adults == 1 else "s" }}
+                                                {% if form_defaults.children and pricing.child_rate and pricing.child_rate > 0 %}
+                                                    + {{ pricing.currency }} {{ "%.2f"|format(pricing.child_rate) }} × {{ form_defaults.children }} child{{ "" if form_defaults.children == 1 else "ren" }}
+                                                {% endif %}
+                                                {% if pricing.nights %} × {{ pricing.nights }} night{{ "" if pricing.nights == 1 else "s" }}{% endif %}
+                                            {% else %}
+                                                Package — per person
                                             {% endif %}
-                                            {% if pricing.nights %} × {{ pricing.nights }} night{{ "" if pricing.nights == 1 else "s" }}{% endif %}
                                         </span>
                                     </div>
                                     <div class="d-flex justify-content-between small mb-2">
-                                        <span class="text-muted">Room subtotal</span>
+                                        <span class="text-muted">Subtotal</span>
                                         <strong>{{ pricing.currency }} {{ "%.2f"|format(pricing.total or 0) }}</strong>
                                     </div>
 
-                                    {# Add-ons list (populated by JS) #}
                                     <div id="addons-breakdown" style="display:none;">
                                         <div class="small text-muted fw-semibold mt-3 mb-1">Add-ons</div>
                                         <div id="addons-list" class="small"></div>
@@ -389,7 +420,6 @@
                                         </div>
                                     </div>
 
-                                    {# Grand total #}
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between align-items-baseline">
                                         <span class="fw-bold">Total</span>
@@ -406,7 +436,7 @@
                             </div>
                         {% endif %}
 
-                        {# ─── CTA ─── #}
+                        {# CTA #}
                         <div class="card-body pt-0">
                             <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
                                 <i class="bi bi-check-circle"></i> Complete booking
@@ -424,6 +454,83 @@
         </form>
     </div>
 </section>
+
+{# ─── Add-on details modal ─── #}
+<div class="modal fade" id="addonModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content overflow-hidden">
+            <div class="addon-modal-hero">
+                <img id="addonModalImage" src="" alt=""
+                     onerror="this.style.display='none'; document.getElementById('addonModalFallback').style.display='flex';">
+                <div id="addonModalFallback" class="addon-modal-fallback" style="display:none;">
+                    <i class="bi bi-compass"></i>
+                </div>
+            </div>
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h4 class="modal-title mb-1" id="addonModalName">—</h4>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis" id="addonModalCategory">—</span>
+                        <span class="small text-muted" id="addonModalDuration"></span>
+                        <span class="small text-muted" id="addonModalDifficulty"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="text-muted" id="addonModalDescription"></p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="info-tile">
+                            <div class="info-tile-label"><i class="bi bi-clock-history"></i> Departure</div>
+                            <div class="info-tile-value" id="addonModalDeparture">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-tile">
+                            <div class="info-tile-label"><i class="bi bi-clock"></i> Return</div>
+                            <div class="info-tile-value" id="addonModalReturn">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-tile">
+                            <div class="info-tile-label"><i class="bi bi-geo-alt"></i> Meeting point</div>
+                            <div class="info-tile-value" id="addonModalMeeting">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-tile">
+                            <div class="info-tile-label"><i class="bi bi-people"></i> Age range</div>
+                            <div class="info-tile-value" id="addonModalAge">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3" id="addonModalBringWrapper">
+                    <div class="info-tile-label mb-1"><i class="bi bi-bag-check"></i> What to bring</div>
+                    <div class="small text-muted" id="addonModalBring">—</div>
+                </div>
+
+                <div class="price-callout">
+                    <div>
+                        <div class="small text-muted mb-1">Price per person</div>
+                        <div id="addonModalPrice">
+                            <span class="price-adult">—</span>
+                            <span class="text-muted small"> / adult</span>
+                            <span class="mx-2 text-muted">·</span>
+                            <span class="price-child">—</span>
+                            <span class="text-muted small"> / child</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-eltut-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check-circle"></i> Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {# ─── Terms modal ─── #}
 <div class="modal fade" id="termsModal" tabindex="-1">
@@ -464,12 +571,27 @@
     font-size: .85rem;
 }
 
+/* Sidebar hero image */
+.sidebar-hero {
+    width: 100%;
+    height: 170px;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+.sidebar-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sidebar-hero-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: 3rem;
+    background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
+}
+
+/* Add-on card */
 .addon-card {
     display: grid;
-    grid-template-columns: 72px 1fr;
-    gap: 12px;
-    align-items: start;
-    cursor: pointer;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 8px 12px;
     border: 2px solid #e5e7eb;
     border-radius: 12px;
     padding: 12px;
@@ -484,7 +606,24 @@
     background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
     box-shadow: 0 4px 14px rgba(25, 135, 84, .15);
 }
-.addon-checkbox { position: absolute; top: 14px; right: 14px; margin: 0; width: 20px; height: 20px; z-index: 2; cursor: pointer; }
+.addon-card-label {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 12px;
+    align-items: start;
+    cursor: pointer;
+    grid-column: 1 / -1;
+}
+.addon-checkbox {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    z-index: 3;
+    cursor: pointer;
+}
 .addon-thumb { width: 72px; height: 72px; border-radius: 10px; overflow: hidden; background: #f3f4f6; flex-shrink: 0; }
 .addon-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .addon-thumb-fallback {
@@ -499,8 +638,28 @@
 .addon-price.adult { color: #c0392b; font-weight: 600; }
 .addon-price.child { color: #6b7280; }
 .addon-price small { color: #9ca3af; font-weight: 400; }
-.addon-contribution { margin-top: 6px; font-size: .8rem; color: #198754; }
+.addon-contribution { margin-top: 6px; font-size: .8rem; color: #198754; grid-column: 1 / -1; }
 
+.addon-details-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .25rem .65rem;
+    background: transparent;
+    border: 1px solid #c0392b;
+    color: #c0392b;
+    border-radius: 6px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-top: .5rem;
+}
+.addon-details-btn:hover { background: #c0392b; color: #fff; }
+
+/* Payment options */
 .payment-option {
     display: flex;
     align-items: center;
@@ -528,9 +687,58 @@
 
 .traveller-row { padding: .5rem 0; }
 .traveller-label { font-size: .8rem; color: #6b7280; margin-bottom: .25rem; }
+
+/* Add-on modal */
+.addon-modal-hero {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    background: #f3f4f6;
+    position: relative;
+}
+.addon-modal-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.addon-modal-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: 5rem;
+    background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
+}
+
+.info-tile {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: .75rem;
+    background: #f9fafb;
+}
+.info-tile-label {
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6b7280;
+    margin-bottom: .25rem;
+}
+.info-tile-value {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.price-callout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
+    border: 1px solid rgba(192, 57, 43, .15);
+    border-radius: 10px;
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.price-callout .price-adult { font-size: 1.1rem; font-weight: 700; color: #c0392b; }
+.price-callout .price-child { font-size: 1rem; font-weight: 600; color: #6b7280; }
 </style>
 
-{# ─── JS: traveller name inputs + live add-on math + total updates ─── #}
 <script>
 (function() {
     'use strict';
@@ -546,7 +754,7 @@
         return (currency || ROOM_CURRENCY) + ' ' + v.toFixed(2);
     }
 
-    // ─── Populate traveller name inputs ───
+    // ─── Traveller name inputs ───
     (function renderTravellers() {
         const container = document.getElementById('traveller-names');
         if (!container) return;
@@ -574,7 +782,7 @@
         }
     })();
 
-    // ─── Live add-on + total math ───
+    // ─── Live add-on math ───
     function recalc() {
         let addonTotal = 0;
         let addonCurrency = null;
@@ -613,7 +821,6 @@
             }
         });
 
-        // Update breakdown section
         const breakdownSection = document.getElementById('addons-breakdown');
         const listEl = document.getElementById('addons-list');
         const subtotalEl = document.getElementById('addons-subtotal');
@@ -627,7 +834,6 @@
             if (breakdownSection) breakdownSection.style.display = 'none';
         }
 
-        // Grand total
         if (grandTotal) {
             if (selectedCount > 0 && addonCurrency && addonCurrency !== ROOM_CURRENCY) {
                 grandTotal.innerHTML =
@@ -653,6 +859,94 @@
             if (label) label.textContent = 'Show';
         });
     }
+
+    // ─── Add-on modal population ───
+    (function() {
+        const modal = document.getElementById('addonModal');
+        if (!modal) return;
+
+        modal.addEventListener('show.bs.modal', function(event) {
+            const btn = event.relatedTarget;
+            if (!btn) return;
+
+            const set = (id, val, fallback) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = (val && String(val).trim()) ? String(val) : (fallback || '—');
+            };
+
+            const name = btn.dataset.name || '—';
+            const category = btn.dataset.category || '';
+            const duration = btn.dataset.duration;
+            const difficulty = btn.dataset.difficulty || '';
+            const description = btn.dataset.description || 'No description available.';
+            const departure = btn.dataset.departureTime;
+            const returnTime = btn.dataset.returnTime;
+            const meeting = btn.dataset.meetingPoint;
+            const bring = btn.dataset.whatToBring;
+            const minAge = btn.dataset.minAge;
+            const maxAge = btn.dataset.maxAge;
+            const priceAdult = parseFloat(btn.dataset.priceAdult) || 0;
+            const priceChild = parseFloat(btn.dataset.priceChild) || 0;
+            const currency = btn.dataset.currency || 'EUR';
+            const image = btn.dataset.image || '';
+
+            document.getElementById('addonModalName').textContent = name;
+
+            const catEl = document.getElementById('addonModalCategory');
+            if (category) {
+                catEl.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                catEl.style.display = '';
+            } else {
+                catEl.style.display = 'none';
+            }
+
+            const durEl = document.getElementById('addonModalDuration');
+            durEl.innerHTML = duration ? `<i class="bi bi-clock"></i> ${duration}h` : '';
+
+            const diffEl = document.getElementById('addonModalDifficulty');
+            diffEl.innerHTML = difficulty ? `<i class="bi bi-bar-chart"></i> ${difficulty}` : '';
+
+            document.getElementById('addonModalDescription').textContent = description;
+
+            set('addonModalDeparture', departure, 'Flexible');
+            set('addonModalReturn', returnTime, 'Flexible');
+            set('addonModalMeeting', meeting, 'To be confirmed');
+
+            if (minAge || maxAge) {
+                set('addonModalAge', `${minAge || '0'} – ${maxAge || '+'}`, 'All ages');
+            } else {
+                set('addonModalAge', '', 'All ages');
+            }
+
+            const bringWrapper = document.getElementById('addonModalBringWrapper');
+            if (bring) {
+                document.getElementById('addonModalBring').textContent = bring;
+                bringWrapper.style.display = '';
+            } else {
+                bringWrapper.style.display = 'none';
+            }
+
+            const priceEl = document.getElementById('addonModalPrice');
+            priceEl.querySelector('.price-adult').textContent = `${currency} ${priceAdult.toFixed(2)}`;
+            if (priceChild > 0) {
+                priceEl.querySelector('.price-child').textContent = `${currency} ${priceChild.toFixed(2)}`;
+            } else {
+                priceEl.querySelector('.price-child').textContent = 'N/A';
+            }
+
+            const imgEl = document.getElementById('addonModalImage');
+            const fallbackEl = document.getElementById('addonModalFallback');
+            if (image) {
+                imgEl.src = image;
+                imgEl.style.display = 'block';
+                fallbackEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                fallbackEl.style.display = 'flex';
+            }
+        });
+    })();
 
     recalc();
 })();
