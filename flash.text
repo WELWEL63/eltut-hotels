@@ -1,0 +1,452 @@
+================================================================
+ELTUT TOURS PLATFORM — CONTINUATION HANDOFF
+Flask Coursework — Systems Development (COMP6075)
+================================================================
+
+You are CONTINUING a nearly-complete Flask project, NOT starting
+a new one. Read this entire document before writing any code.
+
+================================================================
+1. PROJECT STATUS — 92% COMPLETE
+================================================================
+
+Project root:  C:\Users\washo\eltut-tours-platform
+Python files:  111 files, ~21,200 lines
+Neon DB:       28 tables live (30,144 rows seeded)
+MongoDB Atlas: 5 collections with indexes
+Deployment:    render.yaml + Procfile present, not yet deployed
+
+ALL IMPORTS PASS (verified via smoke test):
+  models:               OK
+  services:             OK
+  mongo:                OK
+  blueprints.public:    OK
+  blueprints.auth:      OK
+  blueprints.account:   OK
+  blueprints.admin:     OK
+  blueprints.api:       OK
+  app.py:               OK
+
+================================================================
+2. WHAT IS ALREADY BUILT (DO NOT REBUILD)
+================================================================
+
+MODELS (24 files, 28+ tables):
+  Base, TimestampMixin, SlugMixin in models/__init__.py
+  user, destination, guide, supplier
+  activity (+ prices, images, inclusions, exclusions, languages,
+            activity_children.py → FAQ, Tip)
+  hotel (+ facilities, images, hotel_children.py → inclusions,
+         exclusions, FAQ, Tip)
+  room (+ images), room_rate
+  package (+ prices, images, inclusions, exclusions, itineraries,
+           package_children.py → FAQ, Tip)
+  package_option (flight+price+room combos)
+  flight, airline
+  booking, booking_item, booking_traveller, payment,
+  booking_status_history
+  quote, site_content, newsletter
+
+MONGO (5 collections, all with validators + indexes):
+  reviews, enquiries, activity_logs (TTL 90d),
+  search_events (TTL 180d), hotel_dynamic_facilities
+  All return clean dicts with _id stringified.
+
+SERVICES (12):
+  auth_service          — register, login, reset, verify,
+                          claim_guest_bookings, rate limiting
+  booking_service       — create/cancel/mark_confirmed/completed/
+                          refunded, 5-table transactions
+  pricing_service       — activity, hotel (seasonal), package,
+                          addons, format_currency
+  availability_service  — activity/hotel/package capacity checks
+                          (half-open interval overlap)
+  recommendation_service — add-on ranking (0.7*rating + 0.3*cap)
+  payment_service       — PayPal create/execute/refund/webhook
+  email_service         — 15 email types via IONOS SMTP
+  report_service        — 9 aggregate functions
+  search_service        — cross-product search + filters
+  content_service       — SiteContent key/value CMS
+  quote_service         — quote request lifecycle
+
+PUBLIC BLUEPRINT (10 files):
+  /, /about, /contact
+  /activities, /activities/<slug>
+  /hotels, /hotels/<slug>
+  /packages, /packages/<slug>
+  /search, /search/results
+  /quote/request, /quote/<ref>, /quote/<ref>/accept|decline
+  /booking/start/<type>/<id>, /booking/create,
+  /booking/paypal/return, /booking/paypal/cancel,
+  /booking/confirmation/<ref>
+  /enquiries/new, /enquiries
+  /reviews/submit
+
+AUTH BLUEPRINT (4 files):
+  /register, /login, /logout, /verify-email/<token>
+  /forgot-password, /reset-password/<token>
+
+ACCOUNT BLUEPRINT (3 files, @login_required):
+  /account/, /account/bookings, /account/bookings/<ref>,
+  /account/bookings/<ref>/cancel, /account/profile
+
+ADMIN BLUEPRINT (12 modules, @admin_required):
+  activities, hotels (rooms, rates, children), packages
+  (itinerary, inclusions, exclusions, prices, flights, options,
+  children), airlines, bookings, users, reviews, enquiries,
+  quotes, content (CMS + slideshow), media, reports
+
+API BLUEPRINT (5 files):
+  activities_api, hotels_api, packages_api,
+  bookings_api, payments_api
+
+CLOUD FUNCTION (3 files):
+  cloud_function/worker.py   — polls pending bookings, retries
+                               with backoff (5s/25s/125s)
+  cloud_function/tasks.py    — process_booking(booking_id) →
+                               send customer email, admin email,
+                               log to Mongo, append history
+
+TEMPLATES (53):
+  base.html, public/*, auth/*, account/*, admin/*
+  MISSING: templates/emails/*.html  (service has plaintext fallback)
+  MISSING: templates/errors/*.html  (Flask defaults in use)
+
+MIGRATIONS (11 versions):
+  660bf441c996_initial_schema_28_tables
+  3d06a807b617_add_detail_content_columns
+  6063bba994dc_add_room_rates_table
+  692f68cad115_add_airlines_master_list
+  80b58a92c6c3_add_detail_children_site_content_quotes
+  825673d7150e_add_notification_tracking_to_bookings
+  a1b2c3d4e5f6_add_slideshow_page_check
+  ef8ff8cfed4a_add_media_type_and_poster_url
+  f13d4c55bfe1_add_package_options_table
+  3656e6880fd2_add_party_pricing_to_quotes
+  relax_room_rates_validity
+
+SCRIPTS:
+  seed_from_csv.py       (30,144 rows)
+  create_admin.py
+  reset_db.py
+  backfill_hotel_slugs.py
+
+================================================================
+3. WHAT IS MISSING (THE REMAINING 8%)
+================================================================
+
+Priority 1 — REQUIRED FOR COURSEWORK:
+  A. tests/ folder (0 files) — need pytest suite with 70%+ coverage
+  B. templates/emails/*.html — welcome, verify, reset, booking_*,
+     enquiry, quote, review (14+ templates)
+  C. templates/errors/*.html — 400, 403, 404, 500
+  D. Deployment: Render web service + background worker live
+  E. README.md polished with setup/deploy instructions
+
+Priority 2 — NICE FOR VIDEO:
+  F. Clean up testing/ folder (ad-hoc scripts)
+  G. Rotate Neon password + Mongo password in .env
+  H. Better git history (more granular commits going forward)
+
+Priority 3 — STRETCH:
+  I. Cloud function deployed as Render background worker
+  J. Rate-limit tuning based on real traffic
+  K. Coverage reports published
+
+================================================================
+4. STACK (LOCKED — DO NOT CHANGE)
+================================================================
+
+Framework:      Flask 3.0.3
+ORM:            SQLAlchemy 2.0.32 + Flask-SQLAlchemy 3.1.1
+Migrations:     Flask-Migrate 4.0.7 + alembic 1.13.2
+SQL DB:         Neon Postgres (28 tables, seeded)
+NoSQL DB:       MongoDB Atlas (5 collections)
+Auth:           Flask-Login 0.6.3 + bcrypt 4.2.0
+Forms:          Flask-WTF 1.2.1 + WTForms 3.1.2
+Email:          Flask-Mail 0.10.0 (IONOS SMTP)
+Payments:       paypalrestsdk 1.13.3
+Templates:      Jinja2 3.1.4 + Bootstrap 5
+Testing:        pytest 8.3.2 + pytest-flask 1.3.0 + pytest-cov 5.0.0
+Linting:        ruff 0.6.2 + black 24.8.0
+Deployment:     Render (web + worker)
+Config:         python-dotenv 1.0.1 + config.py
+Python:         3.11
+
+requirements.txt already exists and is correct.
+DO NOT modify it unless adding a new dependency.
+
+================================================================
+5. LOCKED PATTERNS (FROM PROJECT_STATE.md)
+================================================================
+
+These patterns are already established. DO NOT deviate.
+
+1.  SQLAlchemy 2.x: DeclarativeBase + Mapped[T] + mapped_column()
+2.  Suffix-only constraint names (naming_convention adds ck_<table>_)
+3.  Instance defaults in __init__ via kwargs.setdefault(...)
+4.  Strip free-text strings in __init__; lowercase emails
+5.  Never Mapped[object] — always real type
+6.  Cross-file relationships on parent side with backref
+7.  Every new model file must be exported in models/__init__.py
+8.  Services take/return plain data — no Flask request imports
+9.  Mongo repos return dicts with _id stringified — no BSON leaks
+10. Validators run BEFORE Mongo (testable without live connection)
+11. Aggregations use pipelines, never read-modify-write
+12. Counter updates use atomic $inc / $push / $pull
+13. ensure_indexes() graceful — returns False if Mongo not ready
+14. TTL indexes for automatic expiry — no cron
+15. Booking creation = one transaction across 5 tables
+16. Money always Decimal, never float
+17. Half-open interval overlap for hotel availability
+18. Filters item_type='primary' so add-ons don't count toward
+    parent capacity
+19. Best-effort Mongo reads — never break page if Mongo is down
+20. Payment/email services detect placeholder credentials and
+    graceful no-op
+
+================================================================
+6. FILE-BY-FILE DELIVERY RULES
+================================================================
+
+CRITICAL — the previous session ran out of context because it
+tried to write multiple large files per reply. New rules:
+
+1.  ONE file per reply. Full content. No "... rest of code".
+2.  If a file is over 250 lines, split into:
+       Reply N:    Part 1 of 2 (with clear continuation marker)
+       Reply N+1:  Part 2 of 2 (continues exactly where left off)
+3.  Every reply ends with:
+       === PROJECT STATE ===
+       Project: eltut-tours-platform
+       Current Step: <step name>
+       Last Completed File: <path>
+       Next File: <path>
+       Decisions Locked: <bullet list>
+       Blockers: <none or list>
+       === END STATE ===
+4.  Never write a file without stating:
+       "This file DOES NOT exist — creating it" OR
+       "This file EXISTS — here is my plan to modify it,
+        preserving X, Y, Z"
+5.  Never modify a file that another chat session might be
+    working on. Ask first.
+6.  Test after every 3-4 files: run `python -c "import app"` or
+    `flask shell` to confirm imports still work.
+7.  No hardcoding. All config via config.py + .env.
+8.  No raw SQL. Always SQLAlchemy.
+9.  Docstrings on every class and public function.
+10. Type hints where sensible.
+
+================================================================
+7. INTERFACE CONTRACTS (DO NOT BREAK)
+================================================================
+
+MODELS — every model has:
+  - .to_dict() method returning plain dict
+  - TimestampMixin provides created_at, updated_at
+  - SlugMixin provides slug (auto-unique)
+
+SERVICES — public signatures you MUST preserve:
+
+  auth_service:
+    register_user(email, password, full_name, phone=None,
+                  role="customer") -> User
+    authenticate(email, password) -> User | None
+    request_password_reset(email, ttl_minutes=30) -> str | None
+    reset_password(token, new_password) -> User
+    verify_email(token) -> User
+    claim_guest_bookings(user) -> int
+
+  booking_service:
+    generate_reference(year=None) -> str
+    create_booking(...) -> Booking
+    cancel_booking(booking, by_user=None, reason=None) -> Booking
+    mark_confirmed(booking, by_user=None) -> Booking
+    mark_completed(booking, by_user=None) -> Booking
+    mark_refunded(booking, by_user=None) -> Booking
+    get_booking_by_reference(ref) -> Booking | None
+    list_bookings_for_user(user) -> list[Booking]
+
+  pricing_service:
+    price_activity(activity_id, adults, children=0) -> Decimal
+    price_hotel(hotel_id, room_id, check_in, check_out,
+                adults, children=0) -> Decimal
+    price_package(package_id, adults, children=0) -> Decimal
+    price_addons(addons) -> Decimal
+    compute_booking_total(...) -> Decimal
+    format_currency(amount, currency="USD") -> str
+
+  availability_service:
+    activity_availability(activity_id, target_date) -> int
+    hotel_room_availability(room_id, check_in, check_out,
+                            rooms_requested=1) -> AvailabilityResult
+    package_availability(package_id, target_date) -> int
+    check_availability(product_type, product_id, ...) -> AvailabilityResult
+    activity_is_bookable(activity_id, date) -> bool
+    room_is_bookable(room_id, check_in, check_out, rooms=1) -> bool
+    package_is_bookable(package_id, date) -> bool
+
+  recommendation_service:
+    recommend_addons_for_hotel(hotel_id, check_in, check_out,
+                                adults, children=0, limit=6) -> list[dict]
+    recommend_addons_for_package(package_id, ...) -> list[dict]
+    recommend_addons_for_booking(booking, limit=6) -> list[dict]
+
+  payment_service:
+    is_configured() -> bool
+    create_payment(payment) -> tuple[str, str]
+    execute_payment(payment, payer_id) -> dict
+    refund_payment(payment, amount=None) -> dict
+    verify_webhook(headers, raw_body) -> bool
+
+  email_service:
+    is_configured() -> bool
+    send_welcome(user, verify_token=None) -> bool
+    send_verify_email(user, token) -> bool
+    send_password_reset(user, token) -> bool
+    send_booking_confirmation(booking) -> bool
+    send_booking_confirmed(booking) -> bool
+    send_booking_cancelled(booking, reason=None) -> bool
+    send_admin_new_booking(booking) -> bool
+    send_enquiry_received(enquiry: dict) -> bool
+    send_quote_request_received(enquiry: dict) -> bool
+    send_admin_quote_request(enquiry: dict) -> bool
+    send_quote_to_customer(quote) -> bool
+    send_review_thanks(...) -> bool
+
+  report_service:
+    summary() -> dict
+    revenue_by_product_type() -> dict[str, Decimal]
+    bookings_by_status() -> dict[str, int]
+    revenue_by_month(months=12) -> list[dict]
+    top_products(limit=10) -> list[dict]
+    customer_stats() -> dict
+    top_rated_activities(limit=10) -> list[dict]
+    search_analytics(days=30) -> dict
+    enquiry_stats() -> dict
+
+  search_service:
+    search(query="", product_type=None, destination=None,
+           min_price=None, max_price=None, sort="relevance",
+           page=1, per_page=12) -> dict
+    destinations_for_widget() -> list[dict]
+
+  content_service:
+    get(key, default=None) -> str | None
+    all_values() -> dict[str, str]
+    set_value(key, value, user=None) -> SiteContent
+    slideshow_slides() -> list[dict]
+    seed_defaults(session=None) -> int
+
+  quote_service:
+    create_quote_request(...) -> Quote
+    send_quote(quote, user=None) -> Quote
+    accept_quote(...) -> Quote
+    decline_quote(quote, reason=None) -> Quote
+    expire_all_overdue() -> int
+    get_quote_by_reference(ref) -> Quote | None
+
+MONGO — public functions you MUST preserve:
+  reviews.create_review(...) -> dict
+  reviews.list_reviews_for_product(...) -> list[dict]
+  reviews.rating_summary(product_type, product_id) -> dict
+  reviews.has_reviewed(user_id, product_type, product_id) -> bool
+  reviews.increment_helpful(review_id) -> int
+
+  enquiries.create_enquiry(...) -> dict
+  enquiries.list_enquiries(...) -> tuple[list[dict], int]
+  enquiries.mark_handled(id) -> dict | None
+
+  logs.log_action(...) -> dict
+  logs.log_change(...) -> dict
+  logs.list_recent_actions(...) -> list[dict]
+
+  search_events.record_search(...) -> dict
+  search_events.record_click(...) -> dict
+  search_events.top_destinations(...) -> list[dict]
+
+  facilities_extras.get_extras(hotel_id) -> dict | None
+  facilities_extras.upsert_extras(...) -> dict
+
+================================================================
+8. THE NEXT TASK — TESTS
+================================================================
+
+BUILD: tests/ folder with a proper pytest suite.
+
+Target: 70%+ coverage on services and models.
+
+Structure:
+  tests/
+  ├── __init__.py
+  ├── conftest.py              ← fixtures (app, client, db, mongo)
+  ├── test_models/
+  │   ├── __init__.py
+  │   ├── test_user.py
+  │   ├── test_booking.py
+  │   ├── test_activity.py
+  │   ├── test_hotel.py
+  │   └── test_package.py
+  ├── test_services/
+  │   ├── __init__.py
+  │   ├── test_auth_service.py
+  │   ├── test_booking_service.py
+  │   ├── test_pricing_service.py
+  │   ├── test_availability_service.py
+  │   ├── test_recommendation_service.py
+  │   └── test_payment_service.py
+  ├── test_auth/
+  │   ├── __init__.py
+  │   ├── test_register.py
+  │   ├── test_login.py
+  │   └── test_password_reset.py
+  ├── test_account/
+  │   ├── __init__.py
+  │   └── test_my_bookings.py
+  ├── test_api/
+  │   ├── __init__.py
+  │   ├── test_activities_api.py
+  │   ├── test_hotels_api.py
+  │   └── test_bookings_api.py
+  └── test_booking_flow.py     ← end-to-end
+
+Rules for tests:
+  - Use pytest (not unittest)
+  - Use SQLite in-memory for test DB (SQLALCHEMY_DATABASE_URL override)
+  - Use mongomock or skip Mongo tests if not available
+  - Fixtures in conftest.py: app, client, db_session, auth_client,
+    admin_client
+  - Each test independent (rollback after each)
+  - Aim for 70%+ coverage
+  - Run: pytest --cov=services --cov=models --cov-report=term-missing
+
+Start with tests/conftest.py in the next reply, then work through
+test files one at a time.
+
+================================================================
+9. RULES FOR THIS CHAT
+================================================================
+
+1.  One file per reply. Complete. No truncation.
+2.  End every reply with the state block.
+3.  Never write a file without checking if it exists first.
+4.  Follow the pattern discipline listed in section 5.
+5.  Preserve interface contracts in section 7.
+6.  When in doubt, ASK before writing.
+7.  Never touch files outside the current step's scope.
+8.  Test after every 3-4 files (python -c "import app").
+9.  The user pastes state blocks manually between chats —
+    assume continuity is lost between sessions.
+
+================================================================
+10. START NOW
+================================================================
+
+Step 1: Create tests/ folder structure + tests/__init__.py
+Step 2: Create tests/conftest.py with fixtures
+
+DO NOT write anything else yet. Just conftest.py + __init__.py.
+Then wait for confirmation.
+
+End of handoff. Begin Step 1.

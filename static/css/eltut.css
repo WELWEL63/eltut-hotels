@@ -68,7 +68,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-lg {
-    padding: 0rem 1.75rem;
+    padding: 0.875rem 1.75rem;
     font-size: 1rem;
 }
 
@@ -117,7 +117,7 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--gradient-hero);
     color: #fff;
     overflow: hidden;
-   
+    padding: 5rem 0 4rem;
 }
 .hero-eltut > .container { position: relative; z-index: 1; }
 
@@ -292,9 +292,9 @@ h1, h2, h3, h4, h5, h6 {
 .hero-slideshow {
     position: relative;
     width: 100%;
-    height: 820px;
+    height: 720px;
     margin: 0;
-    padding: 20px;
+    padding: 0;
     overflow: hidden;
     background: #f5e6d3;
     color: #fff;
@@ -428,7 +428,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #f7f9fc;
+    color: #fbf8f5;
     margin-bottom: 0.4rem;
 }
 
@@ -436,7 +436,7 @@ h1, h2, h3, h4, h5, h6 {
 .search-widget-hero .form-select {
     border-radius: 8px;
     padding: 0.65rem 0.9rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
     border: 1px solid rgba(28,25,23,0.15);
 }

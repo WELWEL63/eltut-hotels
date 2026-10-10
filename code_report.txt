@@ -1,0 +1,1214 @@
+﻿======================================================
+ELTUT TOURS — CODE REPORT
+Generated: 2026-10-10 13:48:27
+======================================================
+
+========== 1. MODELS ==========
+
+### FILE: models\__init__.py
+class Base(DeclarativeBase):
+class TimestampMixin:
+    created_at: Mapped[datetime] = mapped_column(
+    updated_at: Mapped[datetime] = mapped_column(
+class SlugMixin:
+    slug: Mapped[str | None] = mapped_column(
+
+### FILE: models\activity.py
+class Activity(Base, SlugMixin, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
+    destination_id: Mapped[int] = mapped_column(
+    guide_id: Mapped[int | None] = mapped_column(
+    category: Mapped[str] = mapped_column(
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    duration_hours: Mapped[Decimal] = mapped_column(
+    difficulty: Mapped[str] = mapped_column(
+    min_age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    schedule: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    meeting_point: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    departure_time: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    return_time: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    capacity: Mapped[int] = mapped_column(
+    transportation_type: Mapped[str] = mapped_column(
+    meals_included: Mapped[str] = mapped_column(
+    what_to_bring: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cancellation_policy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    accessibility: Mapped[str | None] = mapped_column(Text, nullable=True)
+    special_offers: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+    useful_tips: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    prices: Mapped[list["ActivityPrice"]] = relationship(
+    images: Mapped[list["ActivityImage"]] = relationship(
+    inclusions: Mapped[list["ActivityInclusion"]] = relationship(
+    exclusions: Mapped[list["ActivityExclusion"]] = relationship(
+    languages: Mapped[list["ActivityLanguage"]] = relationship(
+    faqs: Mapped[list["ActivityFAQ"]] = relationship(
+    tips: Mapped[list["ActivityTip"]] = relationship(
+class ActivityPrice(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    adult_price: Mapped[Decimal] = mapped_column(
+    child_price: Mapped[Decimal] = mapped_column(
+    currency: Mapped[str] = mapped_column(
+    valid_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    valid_to: Mapped[date | None] = mapped_column(Date, nullable=True)
+    activity: Mapped[Activity] = relationship(back_populates="prices")
+class ActivityImage(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    caption: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    sort_order: Mapped[int] = mapped_column(
+    media_type: Mapped[str] = mapped_column(
+    poster_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    activity: Mapped[Activity] = relationship(back_populates="images")
+class ActivityInclusion(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    item: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    activity: Mapped[Activity] = relationship(back_populates="inclusions")
+class ActivityExclusion(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    item: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    activity: Mapped[Activity] = relationship(back_populates="exclusions")
+class ActivityLanguage(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    language: Mapped[str] = mapped_column(String(60), nullable=False)
+    activity: Mapped[Activity] = relationship(back_populates="languages")
+
+### FILE: models\activity_children.py
+class ActivityFAQ(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    question: Mapped[str] = mapped_column(String(500), nullable=False)
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(
+    activity: Mapped["Activity"] = relationship(back_populates="faqs")  # noqa: F821
+class ActivityTip(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    activity_id: Mapped[int] = mapped_column(
+    tip: Mapped[str] = mapped_column(Text, nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    activity: Mapped["Activity"] = relationship(back_populates="tips")  # noqa: F821
+
+### FILE: models\airline.py
+class Airline(Base, SlugMixin, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(
+    logo_url: Mapped[str | None] = mapped_column(
+    country: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+
+### FILE: models\booking.py
+class Booking(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reference: Mapped[str] = mapped_column(
+    user_id: Mapped[int | None] = mapped_column(
+    guest_email: Mapped[str | None] = mapped_column(
+    guest_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    guest_phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    product_type: Mapped[str] = mapped_column(
+    product_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    status: Mapped[str] = mapped_column(
+    check_in_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    check_out_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    activity_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    travellers_adults: Mapped[int] = mapped_column(
+    travellers_children: Mapped[int] = mapped_column(
+    total_amount: Mapped[Decimal] = mapped_column(
+    currency: Mapped[str] = mapped_column(
+    special_requests: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cancelled_at: Mapped[datetime | None] = mapped_column(
+    cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notification_sent_at: Mapped[datetime | None] = mapped_column(
+    notification_failed_at: Mapped[datetime | None] = mapped_column(
+    items: Mapped[list["BookingItem"]] = relationship(  # noqa: F821
+    travellers: Mapped[list["BookingTraveller"]] = relationship(  # noqa: F821
+
+### FILE: models\booking_item.py
+class BookingItem(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(
+    item_type: Mapped[str] = mapped_column(
+    product_type: Mapped[str] = mapped_column(
+    product_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    product_name_snapshot: Mapped[str | None] = mapped_column(
+    quantity: Mapped[int] = mapped_column(
+    unit_price: Mapped[Decimal] = mapped_column(
+    line_total: Mapped[Decimal] = mapped_column(
+    currency: Mapped[str] = mapped_column(
+    added_during_booking: Mapped[bool] = mapped_column(
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+### FILE: models\booking_status_history.py
+class BookingStatusHistory(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(
+    from_status: Mapped[str | None] = mapped_column(
+    to_status: Mapped[str] = mapped_column(
+    changed_by_user_id: Mapped[int | None] = mapped_column(
+    changed_by_role: Mapped[str] = mapped_column(
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+
+### FILE: models\booking_traveller.py
+class BookingTraveller(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(
+    full_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    date_of_birth: Mapped[date | None] = mapped_column(Date, nullable=True)
+    age_at_booking: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    traveller_type: Mapped[str] = mapped_column(
+    passport_number: Mapped[str | None] = mapped_column(
+    nationality: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    special_needs: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_lead_traveller: Mapped[bool] = mapped_column(
+    sort_order: Mapped[int] = mapped_column(
+
+### FILE: models\destination.py
+class Destination(Base, SlugMixin, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(
+    country: Mapped[str] = mapped_column(
+    region: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    hero_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    latitude: Mapped[Decimal | None] = mapped_column(
+    longitude: Mapped[Decimal | None] = mapped_column(
+
+### FILE: models\flight.py
+class Flight(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    supplier_id: Mapped[int | None] = mapped_column(
+    flight_from: Mapped[str] = mapped_column(String(150), nullable=False)
+    flight_to: Mapped[str] = mapped_column(String(150), nullable=False)
+    airline_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    luggage_allowance: Mapped[str | None] = mapped_column(
+    included: Mapped[bool] = mapped_column(
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+
+### FILE: models\guide.py
+class Guide(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    full_name: Mapped[str] = mapped_column(
+    licence_number: Mapped[str] = mapped_column(
+    languages: Mapped[list[str]] = mapped_column(
+    bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    years_experience: Mapped[int] = mapped_column(
+    is_active: Mapped[bool] = mapped_column(
+
+### FILE: models\hotel.py
+class Hotel(Base, SlugMixin, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(
+    destination_id: Mapped[int] = mapped_column(
+    stars: Mapped[int] = mapped_column(
+    address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    latitude: Mapped[Decimal | None] = mapped_column(
+    longitude: Mapped[Decimal | None] = mapped_column(
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    check_in_time: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    check_out_time: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    total_capacity: Mapped[int] = mapped_column(
+    is_active: Mapped[bool] = mapped_column(
+    useful_tips: Mapped[str | None] = mapped_column(Text, nullable=True)
+    house_rules: Mapped[str | None] = mapped_column(Text, nullable=True)
+    check_in_details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cancellation_policy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    neighborhood_info: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    facilities: Mapped[list["HotelFacility"]] = relationship(
+    images: Mapped[list["HotelImage"]] = relationship(
+    inclusions: Mapped[list["HotelInclusion"]] = relationship(
+    exclusions: Mapped[list["HotelExclusion"]] = relationship(
+    faqs: Mapped[list["HotelFAQ"]] = relationship(
+    tips: Mapped[list["HotelTip"]] = relationship(
+class HotelFacility(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    type: Mapped[str] = mapped_column(
+    quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notes: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    hotel: Mapped[Hotel] = relationship(back_populates="facilities")
+class HotelImage(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    type: Mapped[str] = mapped_column(
+    sort_order: Mapped[int] = mapped_column(
+    media_type: Mapped[str] = mapped_column(
+    poster_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    hotel: Mapped[Hotel] = relationship(back_populates="images")
+
+### FILE: models\hotel_children.py
+class HotelInclusion(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    item: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    hotel: Mapped["Hotel"] = relationship(back_populates="inclusions")  # noqa: F821
+class HotelExclusion(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    item: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    hotel: Mapped["Hotel"] = relationship(back_populates="exclusions")  # noqa: F821
+class HotelFAQ(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    question: Mapped[str] = mapped_column(String(500), nullable=False)
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(
+    hotel: Mapped["Hotel"] = relationship(back_populates="faqs")  # noqa: F821
+class HotelTip(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    tip: Mapped[str] = mapped_column(Text, nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    hotel: Mapped["Hotel"] = relationship(back_populates="tips")  # noqa: F821
+
+### FILE: models\newsletter.py
+class Newsletter(Base, SlugMixin, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    header_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    body_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    video: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    footer_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_published: Mapped[bool] = mapped_column(
+    published_at: Mapped[datetime | None] = mapped_column(
+    is_active: Mapped[bool] = mapped_column(
+    author_user_id: Mapped[int | None] = mapped_column(
+
+### FILE: models\package.py
+class Package(Base, SlugMixin, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
+    hotel_id: Mapped[int] = mapped_column(
+    room_id: Mapped[int] = mapped_column(
+    destination_id: Mapped[int] = mapped_column(
+    package_type: Mapped[str] = mapped_column(
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    duration_nights: Mapped[int] = mapped_column(
+    min_age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    capacity: Mapped[int] = mapped_column(
+    deposit_required: Mapped[bool] = mapped_column(
+    deposit_percentage: Mapped[Decimal | None] = mapped_column(
+    payment_deadline_days: Mapped[int | None] = mapped_column(
+    visa_required: Mapped[bool] = mapped_column(
+    visa_fee: Mapped[Decimal | None] = mapped_column(
+    cancellation_policy: Mapped[str | None] = mapped_column(Text, nullable=True)
+    booking_terms: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+    useful_tips: Mapped[str | None] = mapped_column(Text, nullable=True)
+    what_to_bring: Mapped[str | None] = mapped_column(Text, nullable=True)
+    things_to_know: Mapped[str | None] = mapped_column(Text, nullable=True)
+    google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    prices: Mapped[list["PackagePrice"]] = relationship(
+    images: Mapped[list["PackageImage"]] = relationship(
+    inclusions: Mapped[list["PackageInclusion"]] = relationship(
+    exclusions: Mapped[list["PackageExclusion"]] = relationship(
+    itineraries: Mapped[list["PackageItinerary"]] = relationship(
+    faqs: Mapped[list["PackageFAQ"]] = relationship(
+    tips: Mapped[list["PackageTip"]] = relationship(
+class PackagePrice(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    adult_price: Mapped[Decimal] = mapped_column(
+    child_price: Mapped[Decimal] = mapped_column(
+    currency: Mapped[str] = mapped_column(
+    valid_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    valid_to: Mapped[date | None] = mapped_column(Date, nullable=True)
+    package: Mapped[Package] = relationship(back_populates="prices")
+class PackageImage(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    type: Mapped[str] = mapped_column(
+    sort_order: Mapped[int] = mapped_column(
+    media_type: Mapped[str] = mapped_column(
+    poster_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    package: Mapped[Package] = relationship(back_populates="images")
+class PackageInclusion(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    item: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    package: Mapped[Package] = relationship(back_populates="inclusions")
+class PackageExclusion(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    item: Mapped[str] = mapped_column(String(255), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    package: Mapped[Package] = relationship(back_populates="exclusions")
+class PackageItinerary(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    day_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    package: Mapped[Package] = relationship(back_populates="itineraries")
+
+### FILE: models\package_children.py
+class PackageFAQ(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    question: Mapped[str] = mapped_column(String(500), nullable=False)
+    answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(
+    package: Mapped["Package"] = relationship(back_populates="faqs")  # noqa: F821
+class PackageTip(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    tip: Mapped[str] = mapped_column(Text, nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    package: Mapped["Package"] = relationship(back_populates="tips")  # noqa: F821
+
+### FILE: models\package_option.py
+class PackageOption(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    flight_id: Mapped[int | None] = mapped_column(
+    price_id: Mapped[int | None] = mapped_column(
+    room_id: Mapped[int | None] = mapped_column(
+    departure_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    return_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    label: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+    sort_order: Mapped[int] = mapped_column(
+    package: Mapped["Package"] = relationship(  # noqa: F821
+    flight: Mapped["Flight | None"] = relationship(  # noqa: F821
+    price: Mapped["PackagePrice | None"] = relationship(  # noqa: F821
+    room: Mapped["Room | None"] = relationship(  # noqa: F821
+
+### FILE: models\payment.py
+class Payment(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    booking_id: Mapped[int] = mapped_column(
+    provider: Mapped[str] = mapped_column(
+    method: Mapped[str] = mapped_column(
+    status: Mapped[str] = mapped_column(
+    amount: Mapped[Decimal] = mapped_column(
+    currency: Mapped[str] = mapped_column(
+    provider_payment_id: Mapped[str | None] = mapped_column(
+    provider_order_id: Mapped[str | None] = mapped_column(
+    provider_payer_id: Mapped[str | None] = mapped_column(
+    payload: Mapped[dict[str, Any] | None] = mapped_column(
+    failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    refunded_amount: Mapped[Decimal | None] = mapped_column(
+    refunded_at: Mapped[datetime | None] = mapped_column(
+    processed_at: Mapped[datetime | None] = mapped_column(
+
+### FILE: models\quote.py
+class Quote(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reference: Mapped[str] = mapped_column(
+    customer_email: Mapped[str] = mapped_column(
+    customer_name: Mapped[str | None] = mapped_column(
+    customer_phone: Mapped[str | None] = mapped_column(
+    customer_user_id: Mapped[int | None] = mapped_column(
+    product_type: Mapped[str] = mapped_column(
+    product_id: Mapped[int] = mapped_column(
+    product_name_snapshot: Mapped[str | None] = mapped_column(
+    enquiry_id: Mapped[str | None] = mapped_column(
+    adults: Mapped[int] = mapped_column(
+    children: Mapped[int] = mapped_column(
+    price_adult: Mapped[Decimal] = mapped_column(
+    price_child: Mapped[Decimal] = mapped_column(
+    price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    currency: Mapped[str] = mapped_column(
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    valid_until: Mapped[date | None] = mapped_column(Date, nullable=True)
+    status: Mapped[str] = mapped_column(
+    sent_at: Mapped[datetime | None] = mapped_column(
+    accepted_at: Mapped[datetime | None] = mapped_column(
+    declined_at: Mapped[datetime | None] = mapped_column(
+    expired_at: Mapped[datetime | None] = mapped_column(
+    cancelled_at: Mapped[datetime | None] = mapped_column(
+    accepted_booking_id: Mapped[int | None] = mapped_column(
+    created_by_user_id: Mapped[int | None] = mapped_column(
+    internal_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+### FILE: models\room.py
+class Room(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    hotel_id: Mapped[int] = mapped_column(
+    type: Mapped[str] = mapped_column(String(120), nullable=False)
+    meal_plan: Mapped[str] = mapped_column(
+    max_occupancy: Mapped[int] = mapped_column(
+    capacity: Mapped[int] = mapped_column(
+    base_price_per_night: Mapped[Decimal] = mapped_column(
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+    images: Mapped[list["RoomImage"]] = relationship(
+    rates: Mapped[list["RoomRate"]] = relationship(  # noqa: F821
+class RoomImage(Base):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    room_id: Mapped[int] = mapped_column(
+    url: Mapped[str] = mapped_column(String(500), nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+    room: Mapped[Room] = relationship(back_populates="images")
+
+### FILE: models\room_rate.py
+class RoomRate(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    room_id: Mapped[int] = mapped_column(
+    adult_price: Mapped[Decimal] = mapped_column(
+    child_price: Mapped[Decimal] = mapped_column(
+    currency: Mapped[str] = mapped_column(
+    valid_from: Mapped[date | None] = mapped_column(Date, nullable=True)
+    valid_to: Mapped[date | None] = mapped_column(Date, nullable=True)
+    room: Mapped["Room"] = relationship(back_populates="rates")  # noqa: F821
+
+### FILE: models\site_content.py
+class SiteContent(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key: Mapped[str] = mapped_column(
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    content_type: Mapped[str] = mapped_column(
+    page: Mapped[str] = mapped_column(
+    label: Mapped[str] = mapped_column(String(200), nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sort_order: Mapped[int] = mapped_column(
+    updated_by_user_id: Mapped[int | None] = mapped_column(
+
+### FILE: models\supplier.py
+class Supplier(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(
+    type: Mapped[str] = mapped_column(
+    contact_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    contact_phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(
+
+### FILE: models\user.py
+class User(Base, TimestampMixin, UserMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    role: Mapped[str] = mapped_column(
+    is_active: Mapped[bool] = mapped_column(
+    is_verified: Mapped[bool] = mapped_column(
+    verification_token: Mapped[str | None] = mapped_column(
+    reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reset_token_expires: Mapped[datetime | None] = mapped_column(
+
+========== 2. SERVICE SIGNATURES ==========
+
+### FILE: services\__init__.py
+def service_info(name: str) -> str:
+
+### FILE: services\auth_service.py
+class AuthError(Exception):
+class EmailTaken(AuthError):
+class InvalidCredentials(AuthError):
+class AccountDisabled(AuthError):
+class WeakPassword(AuthError):
+class InvalidToken(AuthError):
+class TooManyAttempts(AuthError):
+_PASSWORD_MIN_LEN = 8
+_RE_UPPER = re.compile(r"[A-Z]")
+_RE_LOWER = re.compile(r"[a-z]")
+_RE_DIGIT = re.compile(r"\d")
+def validate_password(password: str) -> None:
+_RATE_WINDOW_SECONDS = 60 * 15      # 15 minutes
+_RATE_MAX_ATTEMPTS = 5
+_rate_lock = threading.Lock()
+def _rate_key(email: str) -> str:
+def record_failed_attempt(email: str) -> None:
+def clear_attempts(email: str) -> None:
+def is_locked_out(email: str) -> bool:
+def _reset_rate_limits_for_tests() -> None:
+def register_user(
+def authenticate(email: str, password: str) -> User | None:
+def request_password_reset(email: str, ttl_minutes: int = 30) -> str | None:
+def reset_password(token: str, new_password: str) -> User:
+def verify_email(token: str) -> User:
+def claim_guest_bookings(user: User) -> int:
+
+### FILE: services\availability_service.py
+class AvailabilityError(Exception):
+class ProductNotFound(AvailabilityError):
+class InvalidAvailabilityInput(AvailabilityError):
+class AvailabilityResult:
+    def as_dict(self) -> dict:
+def _validate_int(value, name: str) -> int:
+def _sum_quantity_for_activity(
+def _sum_quantity_for_package(
+def _sum_rooms_for_range(
+def activity_availability(activity_id: int, target_date: Optional[date]) -> int:
+def hotel_room_availability(
+def package_availability(
+def check_availability(
+def activity_is_bookable(
+def room_is_bookable(
+def package_is_bookable(
+
+### FILE: services\booking_service.py
+class BookingError(Exception):
+class InvalidBookingInput(BookingError):
+class UnavailableProduct(BookingError):
+class BookingNotFound(BookingError):
+class InvalidStatusTransition(BookingError):
+REFERENCE_PREFIX = "ELT"
+REFERENCE_RETRY_LIMIT = 10
+ROLE_GUEST = "guest"
+ROLE_SYSTEM = "system"
+def generate_reference(year: int | None = None) -> str:
+def _validate_product_type(product_type: str) -> None:
+def _validate_amount(value: Decimal | float | int | str | None) -> Decimal:
+def _caller_role(user, explicit_role: str | None) -> str:
+def add_status_history(
+def create_booking(
+def cancel_booking(
+def mark_confirmed(
+def mark_completed(
+def mark_refunded(
+def get_booking_by_reference(reference: str) -> Optional[Booking]:
+def list_bookings_for_user(user) -> list[Booking]:
+
+### FILE: services\content_service.py
+log = logging.getLogger(__name__)
+class ContentSpec:
+def registry() -> dict[str, ContentSpec]:
+def defaults() -> dict[str, str]:
+def _cache_key() -> str:
+def _get_cache() -> dict[str, str] | None:
+def _set_cache(values: dict[str, str]) -> None:
+def clear_cache() -> None:
+def all_values() -> dict[str, str]:
+def get(key: str, default: str | None = None) -> str | None:
+def by_page(page: str | None = None) -> dict[str, list[SiteContent]]:
+def set_value(key: str, value: str | None, user: Any = None) -> SiteContent:
+def slideshow_slides() -> list[dict[str, Any]]:
+def seed_defaults(session=None) -> int:
+
+### FILE: services\email_service.py
+log = logging.getLogger(__name__)
+class EmailError(Exception):
+def _cfg() -> dict[str, str]:
+_PLACEHOLDER_TOKENS = (
+def _is_placeholder(value: str) -> bool:
+def is_configured() -> bool:
+def send_raw(
+def _render_email(
+def _url(path: str) -> str:
+def send_welcome(user: Any, verify_token: Optional[str] = None) -> bool:
+def send_verify_email(user: Any, token: str) -> bool:
+def send_password_reset(user: Any, token: str) -> bool:
+def send_booking_confirmation(booking: Any) -> bool:
+def send_admin_new_booking(booking: Any) -> bool:
+def send_booking_confirmed(booking: Any) -> bool:
+def send_booking_cancelled(booking: Any, reason: str | None = None) -> bool:
+def send_enquiry_received(enquiry: dict[str, Any]) -> bool:
+def send_quote_request_received(enquiry: dict[str, Any]) -> bool:
+def send_admin_quote_request(enquiry: dict[str, Any]) -> bool:
+def send_quote_to_customer(quote: Any) -> bool:
+def send_review_thanks(
+
+### FILE: services\payment_service.py
+log = logging.getLogger(__name__)
+class PaymentError(Exception):
+class PaymentConfigError(PaymentError):
+class PaymentStateError(PaymentError):
+class PaymentProviderError(PaymentError):
+STATUS_CREATED = "created"
+STATUS_APPROVED = "approved"
+STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
+STATUS_CANCELLED = "cancelled"
+STATUS_REFUNDED = "refunded"
+def _config() -> dict[str, str]:
+def _is_placeholder_credential(value: str) -> bool:
+def is_configured() -> bool:
+def _require_config() -> dict[str, str]:
+def _import_sdk():
+def _configure_sdk(cfg: dict[str, str]) -> None:
+def _amount_str(value: Any) -> str:
+def _now_utc() -> datetime:
+def create_payment(payment: Payment) -> tuple[str, str]:
+def execute_payment(payment: Payment, payer_id: str) -> dict[str, Any]:
+def refund_payment(
+def get_payment_status(payment: Payment) -> str | None:
+def verify_webhook(headers: dict[str, str], raw_body: bytes) -> bool:
+def _extract_sale_id(payment: Payment) -> str | None:
+
+### FILE: services\pricing_service.py
+class PricingError(Exception):
+class PriceNotFound(PricingError):
+class InvalidPricingInput(PricingError):
+TWO_PLACES = Decimal("0.01")
+def _round(value: Decimal) -> Decimal:
+def _dec(value: Any) -> Decimal:
+def _positive_int(value: Any, name: str) -> int:
+def price_activity(activity_id: int, adults: int, children: int = 0) -> Decimal:
+def price_hotel(
+def price_package(package_id: int, adults: int, children: int = 0) -> Decimal:
+def price_addons(addons: Iterable[dict[str, Any]]) -> Decimal:
+def compute_booking_total(
+_SYMBOLS = {"USD": "$", "EUR": "â‚¬", "GBP": "Â£"}
+def format_currency(amount: Any, currency: str = "USD") -> str:
+
+### FILE: services\quote_service.py
+log = logging.getLogger(__name__)
+QUOTE_REFERENCE_PREFIX = "Q"
+REFERENCE_RETRY_LIMIT = 10
+class QuoteError(Exception):
+class InvalidQuoteInput(QuoteError):
+class QuoteNotFound(QuoteError):
+class InvalidQuoteState(QuoteError):
+def generate_reference(year: int | None = None) -> str:
+def _require_str(value: Any, name: str) -> str:
+def _require_email(value: Any) -> str:
+def _require_product_type(value: Any) -> str:
+def _require_int(value: Any, name: str, minimum: int = 0) -> int:
+def _to_decimal(value: Any, name: str) -> Decimal:
+def create_quote_request(
+def _send_quote_request_received(enquiry: dict[str, Any]) -> None:
+def _send_admin_quote_request(enquiry: dict[str, Any]) -> None:
+def create_draft(
+def update_draft(
+def send_quote(quote: Quote, *, user=None) -> Quote:
+def cancel_quote(quote: Quote, *, user=None, reason: str | None = None) -> Quote:
+def accept_quote(
+def decline_quote(quote: Quote, *, reason: str | None = None) -> Quote:
+def expire_all_overdue() -> int:
+def get_quote_by_reference(reference: str) -> Quote | None:
+def list_open_quote_requests(*, limit: int = 50, skip: int = 0) -> tuple[list[dict], int]:
+def list_quotes(
+__all__ = [
+
+### FILE: services\recommendation_service.py
+log = logging.getLogger(__name__)
+class RecommendationError(Exception):
+class RecommendationProductNotFound(RecommendationError):
+DEFAULT_LIMIT = 6
+MAX_LIMIT = 20
+CAPACITY_NORM = 20.0
+def _clamp_limit(limit: int | None) -> int:
+def _rating_lookup(product_ids: list[int]) -> dict[int, float]:
+def _first_price_for(activity_id: int) -> tuple[Optional[float], Optional[str]]:
+def _score(avg_rating: float, capacity: int) -> float:
+def _to_public_dict(
+def _recommend_for_destination(
+def recommend_addons_for_hotel(
+def recommend_addons_for_package(
+def recommend_addons_for_booking(
+
+### FILE: services\report_service.py
+log = logging.getLogger(__name__)
+def revenue_by_product_type() -> dict[str, Decimal]:
+def bookings_by_status() -> dict[str, int]:
+def revenue_by_month(months: int = 12) -> list[dict[str, Any]]:
+def top_products(limit: int = 10) -> list[dict[str, Any]]:
+def customer_stats() -> dict[str, Any]:
+def top_rated_activities(limit: int = 10) -> list[dict[str, Any]]:
+def search_analytics(days: int = 30) -> dict[str, Any]:
+def enquiry_stats() -> dict[str, Any]:
+def summary() -> dict[str, Any]:
+
+### FILE: services\search_service.py
+log = logging.getLogger(__name__)
+DEFAULT_PER_PAGE = 12
+MAX_PER_PAGE = 48
+VALID_TYPES = ("activity", "hotel", "package")
+VALID_SORTS = {
+def destinations_for_widget() -> list[dict[str, Any]]:
+def search(
+def _first_price_for_activity(activity_id: int) -> tuple[Decimal | None, str]:
+def _first_price_for_package(package_id: int) -> tuple[Decimal | None, str]:
+def _cheapest_room_price(hotel_id: int) -> tuple[Decimal | None, str]:
+def _first_image_url(images: list | None) -> str | None:
+def _search_activities(
+def _search_packages(
+def _search_hotels(
+__all__ = [
+
+========== 3. MONGO FUNCTIONS ==========
+
+### FILE: mongo\__init__.py
+
+### FILE: mongo\client.py
+def _col(name: str) -> Collection[dict[str, Any]]:
+def reviews_collection() -> Collection[dict[str, Any]]:
+def enquiries_collection() -> Collection[dict[str, Any]]:
+def activity_logs_collection() -> Collection[dict[str, Any]]:
+def search_events_collection() -> Collection[dict[str, Any]]:
+def hotel_dynamic_facilities_collection() -> Collection[dict[str, Any]]:
+def ensure_indexes(app: Any = None) -> bool:
+def _create_review_indexes(db: Any) -> None:
+def _create_enquiry_indexes(db: Any) -> None:
+def _create_activity_log_indexes(db: Any) -> None:
+def _create_search_event_indexes(db: Any) -> None:
+def _create_hotel_facility_indexes(db: Any) -> None:
+def _log(app: Any, message: str) -> None:
+
+### FILE: mongo\enquiries.py
+EnquiryType = Literal["quote_request", "contact"]
+EnquiryStatus = Literal["new", "handled", "spam"]
+ProductType = Literal["activity", "hotel", "package"]
+class EnquiryError(Exception):
+class InvalidEnquiryInput(EnquiryError):
+def _now_utc() -> datetime:
+def _to_oid(enquiry_id: str | ObjectId) -> ObjectId:
+def _clean(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+def _validate_type(t: str) -> None:
+def _validate_status(s: str) -> None:
+def _validate_product_type(pt: str | None) -> None:
+def create_enquiry(
+def mark_handled(
+def mark_spam(enquiry_id: str | ObjectId) -> dict[str, Any] | None:
+def get_enquiry(enquiry_id: str | ObjectId) -> dict[str, Any] | None:
+def list_enquiries(
+def list_enquiries_by_status(
+def count_by_status() -> dict[str, int]:
+
+### FILE: mongo\facilities_extras.py
+class FacilitiesExtrasError(Exception):
+class InvalidFacilitiesExtras(FacilitiesExtrasError):
+def _now_utc() -> datetime:
+def _clean(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+def _validate_hotel_id(hotel_id: int) -> None:
+def _validate_extra(extra: Any) -> dict[str, Any]:
+def _validate_extras(extras: Any) -> list[dict[str, Any]]:
+def get_extras(hotel_id: int) -> dict[str, Any] | None:
+def list_hotel_ids_with_extras() -> list[int]:
+def upsert_extras(
+def append_extra(
+def remove_extra(
+
+### FILE: mongo\logs.py
+class LogError(Exception):
+class InvalidLogInput(LogError):
+def _now_utc() -> datetime:
+def _to_oid(log_id: str | ObjectId) -> ObjectId:
+def _clean(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+def _validate_action(action: str) -> None:
+def _validate_entity_type(entity_type: str) -> None:
+def log_action(
+def log_change(
+def get_log(log_id: str | ObjectId) -> dict[str, Any] | None:
+def list_logs(
+def list_recent_actions(
+def list_for_entity(
+
+### FILE: mongo\reviews.py
+ProductType = Literal["activity", "hotel", "package"]
+class ReviewError(Exception):
+class InvalidReviewInput(ReviewError):
+class ReviewAlreadyExists(ReviewError):
+def _now_utc() -> datetime:
+def _to_oid(review_id: str | ObjectId) -> ObjectId:
+def _clean(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+def _validate_rating(rating: int) -> None:
+def _validate_product_type(product_type: str) -> None:
+def _validate_email(value: str | None) -> str:
+def create_review(
+def update_review(
+def delete_review(review_id: str | ObjectId) -> bool:
+def increment_helpful(review_id: str | ObjectId) -> int:
+def get_review(review_id: str | ObjectId) -> dict[str, Any] | None:
+def list_reviews_for_product(
+def list_reviews_by_user(
+def rating_summary(product_type: ProductType, product_id: int) -> dict[str, Any]:
+def has_reviewed(user_id: int, product_type: ProductType, product_id: int) -> bool:
+
+### FILE: mongo\search_events.py
+class SearchEventError(Exception):
+class InvalidSearchEvent(SearchEventError):
+def _now_utc() -> datetime:
+def _to_oid(event_id: str | ObjectId) -> ObjectId:
+def _clean(doc: dict[str, Any] | None) -> dict[str, Any] | None:
+def _validate_product_type(pt: str) -> None:
+def _validate_counts(adults: int, children: int) -> None:
+def record_search(
+def record_click(
+def get_event(event_id: str | ObjectId) -> dict[str, Any] | None:
+def list_recent_events(
+def top_destinations(
+def zero_result_searches(*, limit: int = 20) -> list[dict[str, Any]]:
+def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
+
+========== 4. ALL ROUTES ==========
+
+### BLUEPRINT: public
+--- blueprints\public\__init__.py ---
+--- blueprints\public\activity_routes.py ---
+  @public_bp.route("/activities")
+  @public_bp.route("/activities/<slug>")
+--- blueprints\public\booking_routes.py ---
+  @public_bp.route("/booking/start/<product_type>/<int:product_id>", methods=["GET"])
+  @public_bp.route("/booking/create", methods=["POST"])
+  @public_bp.route("/booking/paypal/return")
+  @public_bp.route("/booking/paypal/cancel")
+  @public_bp.route("/booking/confirmation/<reference>")
+--- blueprints\public\enquiry_routes.py ---
+  @public_bp.route("/enquiries/new")
+  @public_bp.route("/enquiries", methods=["POST"])
+--- blueprints\public\hotel_routes.py ---
+  @public_bp.route("/hotels")
+  @public_bp.route("/hotels/<slug>")
+--- blueprints\public\package_routes.py ---
+  @public_bp.route("/packages")
+  @public_bp.route("/packages/<slug>")
+--- blueprints\public\quote_routes.py ---
+  @public_bp.route("/quote/request", methods=["GET", "POST"])
+  @public_bp.route("/quote/request/thanks")
+  @public_bp.route("/quote/<reference>")
+  @public_bp.route("/quote/<reference>/accept", methods=["POST"])
+  @public_bp.route("/quote/<reference>/decline", methods=["POST"])
+--- blueprints\public\review_routes.py ---
+  @public_bp.route("/reviews/submit", methods=["POST"])
+--- blueprints\public\routes.py ---
+  @public_bp.route("/")
+  @public_bp.route("/about")
+  @public_bp.route("/contact")
+--- blueprints\public\search_routes.py ---
+  @public_bp.route("/search")
+  @public_bp.route("/search/results")
+
+### BLUEPRINT: auth
+--- blueprints\auth\__init__.py ---
+--- blueprints\auth\forms.py ---
+--- blueprints\auth\password_routes.py ---
+  @auth_bp.route("/forgot-password", methods=["GET", "POST"])
+  @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+--- blueprints\auth\routes.py ---
+  @auth_bp.route("/register", methods=["GET", "POST"])
+  @auth_bp.route("/login", methods=["GET", "POST"])
+  @auth_bp.route("/logout", methods=["POST"])
+  @auth_bp.route("/verify-email/<token>")
+
+### BLUEPRINT: account
+--- blueprints\account\__init__.py ---
+--- blueprints\account\forms.py ---
+--- blueprints\account\routes.py ---
+  @account_bp.route("/")
+  @account_bp.route("/bookings")
+  @account_bp.route("/bookings/<reference>")
+  @account_bp.route("/bookings/<reference>/cancel", methods=["POST"])
+  @account_bp.route("/profile", methods=["GET", "POST"])
+
+### BLUEPRINT: admin
+--- blueprints\admin\__init__.py ---
+--- blueprints\admin\activity_admin.py ---
+  @admin_bp.route("/activities")
+  @admin_bp.route("/activities/new", methods=["GET", "POST"])
+  @admin_bp.route("/activities/<int:activity_id>/edit", methods=["GET", "POST"])
+  @admin_bp.route("/activities/<int:activity_id>/toggle", methods=["POST"])
+  @admin_bp.route("/activities/<int:activity_id>/delete", methods=["POST"])
+  @admin_bp.route("/activities/<int:activity_id>/children/<child_type>/new", methods=["POST"])
+  @admin_bp.route(
+    "/activities/<int:activity_id>/children/<child_type>/<int:row_id>/delete",
+    methods=["POST"],
+)
+--- blueprints\admin\airline_admin.py ---
+  @admin_bp.route("/airlines")
+  @admin_bp.route("/airlines/new", methods=["GET", "POST"])
+  @admin_bp.route("/airlines/<int:airline_id>/edit", methods=["GET", "POST"])
+  @admin_bp.route("/airlines/<int:airline_id>/toggle", methods=["POST"])
+  @admin_bp.route("/airlines/<int:airline_id>/logo", methods=["POST"])
+  @admin_bp.route("/airlines/<int:airline_id>/logo/delete", methods=["POST"])
+  @admin_bp.route("/airlines/<int:airline_id>/delete", methods=["POST"])
+--- blueprints\admin\booking_admin.py ---
+  @admin_bp.route("/bookings")
+  @admin_bp.route("/bookings/<reference>")
+  @admin_bp.route("/bookings/<reference>/status", methods=["POST"])
+  @admin_bp.route("/bookings/<reference>/cancel", methods=["POST"])
+--- blueprints\admin\content_admin.py ---
+  @admin_bp.route("/content")
+  @admin_bp.route("/content/edit/<path:key>", methods=["GET", "POST"])
+  @admin_bp.route("/content/reset/<path:key>", methods=["POST"])
+  @admin_bp.route("/content/seed", methods=["POST"])
+  @admin_bp.route("/content/slideshow")
+  @admin_bp.route("/content/slideshow/<int:slot>/upload", methods=["POST"])
+  @admin_bp.route("/content/slideshow/<int:slot>/delete", methods=["POST"])
+  @admin_bp.route("/content/slideshow/<int:slot>/update-url", methods=["POST"])
+--- blueprints\admin\hotel_admin.py ---
+  @admin_bp.route("/hotels")
+  @admin_bp.route("/hotels/new", methods=["GET", "POST"])
+  @admin_bp.route("/hotels/<int:hotel_id>/edit", methods=["GET", "POST"])
+  @admin_bp.route("/hotels/<int:hotel_id>/toggle", methods=["POST"])
+  @admin_bp.route("/hotels/<int:hotel_id>/delete", methods=["POST"])
+  @admin_bp.route("/hotels/<int:hotel_id>/rooms/new", methods=["POST"])
+  @admin_bp.route("/rooms/<int:room_id>/edit", methods=["GET", "POST"])
+  @admin_bp.route("/rooms/<int:room_id>/delete", methods=["POST"])
+  @admin_bp.route("/rooms/<int:room_id>/rates/new", methods=["POST"])
+  @admin_bp.route("/room-rates/<int:rate_id>/delete", methods=["POST"])
+  @admin_bp.route("/hotels/<int:hotel_id>/children/<child_type>/new", methods=["POST"])
+  @admin_bp.route(
+    "/hotels/<int:hotel_id>/children/<child_type>/<int:row_id>/delete",
+    methods=["POST"],
+)
+--- blueprints\admin\media_routes.py ---
+  @admin_bp.route("/media")
+  @admin_bp.route("/media/product/<product_type>/<int:parent_id>")
+  @admin_bp.route("/media/product/<product_type>/<int:parent_id>/upload", methods=["POST"])
+  @admin_bp.route("/media/<product_type>/<int:image_id>/delete", methods=["POST"])
+  @admin_bp.route("/media/<product_type>/<int:image_id>/reorder", methods=["POST"])
+--- blueprints\admin\package_admin.py ---
+  @admin_bp.route("/packages")
+  @admin_bp.route("/packages/new", methods=["GET", "POST"])
+  @admin_bp.route("/packages/<int:package_id>/edit", methods=["GET", "POST"])
+  @admin_bp.route("/packages/<int:package_id>/toggle", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/itinerary/new", methods=["POST"])
+  @admin_bp.route("/itinerary/<int:itinerary_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/inclusions/new", methods=["POST"])
+  @admin_bp.route("/inclusions/<int:inclusion_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/exclusions/new", methods=["POST"])
+  @admin_bp.route("/exclusions/<int:exclusion_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/children/<child_type>/new", methods=["POST"])
+  @admin_bp.route(
+    "/packages/<int:package_id>/children/<child_type>/<int:row_id>/delete",
+    methods=["POST"],
+)
+  @admin_bp.route("/packages/<int:package_id>/prices/new", methods=["POST"])
+  @admin_bp.route("/package-prices/<int:price_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/flights/new", methods=["POST"])
+  @admin_bp.route("/flights/<int:flight_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/options/new", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/options/<int:option_id>/update", methods=["POST"])
+  @admin_bp.route("/options/<int:option_id>/delete", methods=["POST"])
+--- blueprints\admin\quote_admin.py ---
+  @admin_bp.route("/quotes")
+  @admin_bp.route("/quotes/requests")
+  @admin_bp.route("/quotes/new", methods=["GET", "POST"])
+  @admin_bp.route("/quotes/<reference>", methods=["GET", "POST"])
+  @admin_bp.route("/quotes/<reference>/send", methods=["POST"])
+  @admin_bp.route("/quotes/<reference>/cancel", methods=["POST"])
+--- blueprints\admin\report_routes.py ---
+  @admin_bp.route("/reports")
+  @admin_bp.route("/reports/export")
+--- blueprints\admin\review_admin.py ---
+  @admin_bp.route("/reviews")
+  @admin_bp.route("/reviews/<review_id>/delete", methods=["POST"])
+  @admin_bp.route("/enquiries")
+  @admin_bp.route("/enquiries/<enquiry_id>/status", methods=["POST"])
+--- blueprints\admin\routes.py ---
+  @admin_bp.route("/")
+--- blueprints\admin\user_admin.py ---
+  @admin_bp.route("/users")
+  @admin_bp.route("/users/<int:id>")
+  @admin_bp.route("/users/<int:id>/toggle", methods=["POST"])
+  @admin_bp.route("/users/<int:id>/role", methods=["POST"])
+
+### BLUEPRINT: api
+--- blueprints\api\__init__.py ---
+--- blueprints\api\activities_api.py ---
+--- blueprints\api\bookings_api.py ---
+--- blueprints\api\hotels_api.py ---
+--- blueprints\api\packages_api.py ---
+--- blueprints\api\payments_api.py ---
+
+========== 5. CLOUD FUNCTION ==========
+
+### FILE: cloud_function\__init__.py
+
+### FILE: cloud_function\tasks.py
+def _task_send_customer_email(booking: Booking) -> bool:
+def _task_send_admin_email(booking: Booking) -> bool:
+def _task_log_to_mongo(booking: Booking) -> bool:
+def _task_append_history(booking: Booking) -> bool:
+def process_booking(booking_id: int) -> dict[str, Any]:
+
+### FILE: cloud_function\worker.py
+POLL_INTERVAL_SECONDS = int(os.getenv("WORKER_POLL_INTERVAL", "30"))
+BATCH_SIZE = int(os.getenv("WORKER_BATCH_SIZE", "20"))
+MAX_ATTEMPTS = 3
+BACKOFF_SECONDS = (5, 25, 125)
+log = logging.getLogger("cloud_function.worker")
+_shutdown = False
+def _handle_shutdown(signum, frame):  # noqa: ARG001
+def _pending_booking_ids() -> list[int]:
+def _process_with_retry(booking_id: int) -> bool:
+def _mark_failed(booking_id: int) -> None:
+def _process_one_batch() -> int:
+def main() -> int:
+
+========== 6. ENV KEYS (values hidden) ==========
+# ═══════════════════════════════════════════════════════════════════
+#  eltut-tours-platform — .env.example
+#  Copy to .env  →  NEVER commit .env
+# ═══════════════════════════════════════════════════════════════════
+
+FLASK_APP=***HIDDEN***
+FLASK_ENV=***HIDDEN***
+FLASK_DEBUG=***HIDDEN***
+SECRET_KEY=***HIDDEN***
+
+SESSION_COOKIE_HTTPONLY=***HIDDEN***
+SESSION_COOKIE_SECURE=***HIDDEN***
+SESSION_COOKIE_SAMESITE=***HIDDEN***
+PERMANENT_SESSION_LIFETIME=***HIDDEN***
+
+DATABASE_URL=***HIDDEN***
+SQLALCHEMY_TRACK_MODIFICATIONS=***HIDDEN***
+SQLALCHEMY_ENGINE_OPTIONS_POOL_PRE_PING=***HIDDEN***
+SQLALCHEMY_ENGINE_OPTIONS_POOL_RECYCLE=***HIDDEN***
+
+MONGO_URI=***HIDDEN***
+MONGO_DB_NAME=***HIDDEN***
+
+MAIL_SERVER=***HIDDEN***
+MAIL_PORT=***HIDDEN***
+MAIL_USE_TLS=***HIDDEN***
+MAIL_USE_SSL=***HIDDEN***
+MAIL_USERNAME=***HIDDEN***
+MAIL_PASSWORD=***HIDDEN***
+MAIL_DEFAULT_SENDER=***HIDDEN***
+MAIL_ADMIN_RECIPIENT=***HIDDEN***
+
+PAYPAL_MODE=***HIDDEN***
+PAYPAL_CLIENT_ID=***HIDDEN***
+PAYPAL_CLIENT_SECRET=***HIDDEN***
+PAYPAL_CURRENCY=***HIDDEN***
+PAYPAL_RETURN_URL=***HIDDEN***
+PAYPAL_CANCEL_URL=***HIDDEN***
+
+CLOUD_FUNCTION_URL=***HIDDEN***
+CLOUD_FUNCTION_SECRET=***HIDDEN***
+
+ADMIN_EMAIL=***HIDDEN***
+ADMIN_PASSWORD=***HIDDEN***
+ADMIN_NAME=***HIDDEN***
+
+APP_NAME=***HIDDEN***
+APP_BASE_URL=***HIDDEN***
+ITEMS_PER_PAGE=***HIDDEN***
+UPLOAD_FOLDER=***HIDDEN***
+MAX_CONTENT_LENGTH=***HIDDEN***
+
+========== 6b. .env.example ==========
+# ═══════════════════════════════════════════════════════════════════
+#  eltut-tours-platform — .env.example
+#  Copy to .env  →  NEVER commit .env
+# ═══════════════════════════════════════════════════════════════════
+
+FLASK_APP=app.py
+FLASK_ENV=development
+FLASK_DEBUG=1
+SECRET_KEY=change-me-to-a-long-random-hex-string
+
+SESSION_COOKIE_HTTPONLY=True
+SESSION_COOKIE_SECURE=False
+SESSION_COOKIE_SAMESITE=Lax
+PERMANENT_SESSION_LIFETIME=86400
+
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require
+SQLALCHEMY_TRACK_MODIFICATIONS=False
+SQLALCHEMY_ENGINE_OPTIONS_POOL_PRE_PING=True
+SQLALCHEMY_ENGINE_OPTIONS_POOL_RECYCLE=300
+
+MONGO_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/?retryWrites=true&w=majority
+MONGO_DB_NAME=eltut_tours
+
+MAIL_SERVER=smtp.ionos.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USE_SSL=False
+MAIL_USERNAME=bookings@eltuttours.com
+MAIL_PASSWORD=your-ionos-smtp-password
+MAIL_DEFAULT_SENDER=bookings@eltuttours.com
+MAIL_ADMIN_RECIPIENT=admin@eltuttours.com
+
+PAYPAL_MODE=sandbox
+PAYPAL_CLIENT_ID=your-paypal-client-id
+PAYPAL_CLIENT_SECRET=your-paypal-client-secret
+PAYPAL_CURRENCY=USD
+PAYPAL_RETURN_URL=http://localhost:5000/booking/paypal/return
+PAYPAL_CANCEL_URL=http://localhost:5000/booking/paypal/cancel
+
+CLOUD_FUNCTION_URL=https://your-cloud-function-url/booking-created
+CLOUD_FUNCTION_SECRET=shared-hmac-secret
+
+ADMIN_EMAIL=admin@eltuttours.com
+ADMIN_PASSWORD=ChangeMe123!
+ADMIN_NAME=ElTut Admin
+
+APP_NAME=ElTut Tours
+APP_BASE_URL=http://localhost:5000
+ITEMS_PER_PAGE=12
+UPLOAD_FOLDER=static/images/uploads
+MAX_CONTENT_LENGTH=16777216
+
+========== 7. GIT ==========
+--- git status -s ---
+ M static/css/eltut.css
+?? code_report.txt
+?? structure_report.txt
+--- git log --oneline -20 ---
+75ec2d6 feat: remove obsolete testing scripts and update CSS styles for improved UI
+22e1b8f feat: add itinerary timeline styles and enhance package options management
+e9cbc86 Add airline management templates and logo upload functionality
+abd5fd3 feat: add functionality for managing package price windows and flights
+3354935 Add reviews section and quote request functionality
+a5b5e24 Add admin templates for managing quotes and site content
+30ec42b feat: enhance media handling and notification tracking
+ae49d1f feat: Enhance media management interface with improved filtering and carousel galleries
+304e201 feat: Implement admin media management routes and templates
+6f6460a Add admin templates for booking, enquiry, review, and user management
+98db4b0 first commit
+
+========== 8. MIGRATIONS ==========
+FILE: 3656e6880fd2_add_party_pricing_to_quotes.py
+FILE: 3d06a807b617_add_detail_content_columns_to_products.py
+FILE: 6063bba994dc_add_room_rates_table.py
+FILE: 660bf441c996_initial_schema_28_tables.py
+FILE: 692f68cad115_add_airlines_master_list.py
+FILE: 80b58a92c6c3_add_detail_children_site_content_quotes_.py
+FILE: 825673d7150e_add_notification_tracking_to_bookings.py
+FILE: a1b2c3d4e5f6_add_slideshow_page_check.py
+FILE: ef8ff8cfed4a_add_media_type_and_poster_url_to_image_.py
+FILE: f13d4c55bfe1_add_package_options_table.py
+FILE: relax_room_rates_validity.py
+
+========== 9. IMPORT SMOKE TEST ==========
+python : [2026-10-10 13:48:32,535] WARNING in app: MONGO_URI is unset or still a placeholder 
+ù Mongo-backed features (reviews, enquiries, logs) will raise at request time until a real 
+Atlas URI is provided.
+At line:1 char:2
++ (python _smoke.py 2>&1) | Out-File $out -Append -Encoding utf8
++  ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([2026-10-10 13:...RI is provided.:String) [], R 
+   emoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[2026-10-10 13:48:32,535] INFO in client: Mongo not initialised ù skipping index creation 
+(MongoDB has not been initialised. Set a real MONGO_URI in .env and let the app factory run, 
+or call extensions.init_mongo(uri, db_name) manually.)
+[2026-10-10 13:48:32,539] INFO in app: ElTut Tours startup
+[2026-10-10 13:48:32,687] INFO in app: App created ù env=development, 
+config=DevelopmentConfig
+models: OK
+services: OK
+mongo: OK
+blueprints.public: OK
+blueprints.auth: OK
+blueprints.account: OK
+blueprints.admin: OK
+blueprints.api: OK
+app.py: OK
+
+END OF CODE REPORT

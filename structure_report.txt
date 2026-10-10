@@ -1,0 +1,425 @@
+﻿======================================================
+ELTUT TOURS — STRUCTURE REPORT
+Generated: 2026-10-10 13:42:26
+Root:      C:\Users\washo\eltut-tours-platform
+======================================================
+
+========== 1. FULL FILE TREE ==========
+         0  logs\eltut.log
+         0  static\images\uploads\.gitkeep
+         0  static\videos\uploads\.gitkeep
+        41  migrations\README
+       120  Procfile
+       272  structure_report.txt
+       298  testing\_bump.py
+       336  static\images\uploads\1b89de1d3be8b0fd1d7ae8e2e7114578981ae6a3.jpg
+       432  .gitignore
+       450  testing\_test_quote.py
+       460  scripts\__init__.py
+       494  migrations\script.py.mako
+       605  requirements.txt
+       803  blueprints\api\__init__.py
+       857  migrations\alembic.ini
+       888  testing\_slug_check.py
+       945  testing\_diag_step3.py
+       961  testing\_check_all_images.py
+     1,072  blueprints\__init__.py
+     1,213  migrations\versions\825673d7150e_add_notification_tracking_to_bookings.py
+     1,215  utils.py
+     1,218  blueprints\account\__init__.py
+     1,249  migrations\versions\relax_room_rates_validity.py
+     1,304  migrations\versions\3656e6880fd2_add_party_pricing_to_quotes.py
+     1,322  templates\public\quote_request_thanks.html
+     1,344  cloud_function\__init__.py
+     1,443  blueprints\auth\__init__.py
+     1,522  templates\auth\forgot_password.html
+     1,696  blueprints\account\forms.py
+     1,789  templates\auth\reset_password.html
+     1,825  migrations\versions\a1b2c3d4e5f6_add_slideshow_page_check.py
+     1,836  blueprints\admin\routes.py
+     1,849  .env.example
+     1,879  mongo\__init__.py
+     1,917  migrations\versions\ef8ff8cfed4a_add_media_type_and_poster_url_to_image_.py
+     1,958  migrations\versions\692f68cad115_add_airlines_master_list.py
+     1,996  .env
+     2,131  migrations\versions\6063bba994dc_add_room_rates_table.py
+     2,133  testing\_apply_patch.py
+     2,195  scripts\backfill_hotel_slugs.py
+     2,205  templates\public\contact.html
+     2,293  testing\_patch_seed.py
+     2,371  templates\auth\login.html
+     2,488  templates\public\about.html
+     2,525  models\room_rate.py
+     2,570  migrations\versions\3d06a807b617_add_detail_content_columns_to_products.py
+     2,867  migrations\versions\f13d4c55bfe1_add_package_options_table.py
+     2,871  blueprints\public\__init__.py
+     3,153  blueprints\auth\password_routes.py
+     3,374  blueprints\auth\forms.py
+     3,457  blueprints\public\review_routes.py
+     3,460  templates\auth\register.html
+     3,547  models\package_children.py
+     3,564  flask_upload.log
+     3,582  models\activity_children.py
+     3,646  migrations\env.py
+     3,732  templates\public\booking_confirmation.html
+     3,736  blueprints\admin\__init__.py
+     3,770  models\airline.py
+     3,782  templates\account\index.html
+     3,805  blueprints\public\enquiry_routes.py
+     3,853  templates\public\enquiry_form.html
+     3,893  blueprints\public\routes.py
+     3,994  config.py
+     4,198  render.yaml
+     4,213  extensions.py
+     4,461  services\__init__.py
+     4,496  templates\account\bookings.html
+     4,787  templates\admin\base.html
+     4,824  templates\account\profile.html
+     4,989  blueprints\public\search_routes.py
+     5,074  templates\admin\hotel_list.html
+     5,079  blueprints\auth\routes.py
+     5,125  templates\admin\activity_list.html
+     5,142  models\destination.py
+     5,143  templates\admin\package_list.html
+     5,207  models\package_option.py
+     5,287  templates\admin\user_list.html
+     5,355  models\newsletter.py
+     5,551  models\flight.py
+     5,687  scripts\reset_db.py
+     5,839  templates\admin\airline_list.html
+     5,902  models\booking_status_history.py
+     5,928  models\guide.py
+     5,957  templates\admin\quote_new.html
+     6,217  models\site_content.py
+     6,258  blueprints\admin\report_routes.py
+     6,462  models\hotel_children.py
+     6,490  models\booking_traveller.py
+     6,669  templates\admin\content_slideshow.html
+     6,776  models\supplier.py
+     6,821  templates\admin\review_list.html
+     6,838  templates\admin\airline_form.html
+     6,941  scripts\create_admin.py
+     7,024  templates\admin\booking_list.html
+     7,037  mongo\client.py
+     7,054  templates\admin\room_form.html
+     7,074  templates\admin\content_edit.html
+     7,084  templates\admin\content_index.html
+     7,110  models\booking_item.py
+     7,183  templates\public\quote_request_form.html
+     7,247  mongo\facilities_extras.py
+     7,279  cloud_function\worker.py
+     7,300  templates\admin\enquiry_list.html
+     7,421  cloud_function\tasks.py
+     7,572  templates\admin\quote_requests.html
+     7,655  templates\account\booking_detail.html
+     7,669  models\payment.py
+     7,761  blueprints\account\routes.py
+     7,919  models\user.py
+     8,167  templates\admin\media_product.html
+     8,238  templates\admin\user_detail.html
+     8,244  blueprints\admin\user_admin.py
+     8,302  static\images\airlines\1deedf9b230ac1620304736d514b6ac1294db24c.png
+     8,399  templates\base.html
+     8,711  templates\admin\index.html
+     8,882  blueprints\public\quote_routes.py
+     8,923  templates\admin\hotel_form.html
+     8,956  blueprints\public\activity_routes.py
+     8,986  mongo\logs.py
+     9,029  mongo\enquiries.py
+     9,092  templates\public\package_list.html
+     9,118  models\room.py
+     9,124  templates\admin\quote_list.html
+     9,167  templates\public\activity_list.html
+     9,196  templates\admin\activity_form.html
+     9,282  blueprints\admin\review_admin.py
+     9,395  models\booking.py
+     9,500  templates\admin\media_index.html
+     9,702  blueprints\api\hotels_api.py
+     9,732  blueprints\api\activities_api.py
+    10,047  templates\public\hotel_list.html
+    10,102  blueprints\api\packages_api.py
+    10,232  mongo\search_events.py
+    10,695  templates\public\_search_widget.html
+    10,769  services\recommendation_service.py
+    10,945  services\auth_service.py
+    11,096  services\report_service.py
+    11,146  services\pricing_service.py
+    11,178  blueprints\public\package_routes.py
+    11,416  blueprints\admin\airline_admin.py
+    11,471  static\images\airlines\124167c04b4a165a0136bc53621bc5ed9a862f6d.jpg
+    11,738  models\__init__.py
+    11,837  services\availability_service.py
+    12,129  blueprints\admin\quote_admin.py
+    12,154  mongo\reviews.py
+    12,334  blueprints\api\payments_api.py
+    12,388  blueprints\public\hotel_routes.py
+    12,501  blueprints\admin\booking_admin.py
+    12,744  templates\admin\report_index.html
+    12,784  templates\public\quote_view.html
+    12,922  templates\public\booking_start.html
+    13,175  templates\admin\booking_detail.html
+    13,196  templates\public\index.html
+    13,202  app.py
+    13,446  blueprints\admin\content_admin.py
+    13,857  models\quote.py
+    14,537  models\hotel.py
+    14,550  migrations\versions\80b58a92c6c3_add_detail_children_site_content_quotes_.py
+    15,145  services\payment_service.py
+    15,313  blueprints\api\bookings_api.py
+    16,085  templates\public\search_results.html
+    16,823  services\search_service.py
+    17,286  services\content_service.py
+    17,623  blueprints\admin\activity_admin.py
+    18,452  services\booking_service.py
+    19,751  services\email_service.py
+    19,812  static\css\eltut.css
+    19,956  blueprints\public\booking_routes.py
+    20,137  blueprints\admin\hotel_admin.py
+    20,914  templates\admin\quote_detail.html
+    21,731  models\activity.py
+    21,757  models\package.py
+    21,989  services\quote_service.py
+    22,177  templates\public\activity_detail.html
+    23,952  blueprints\admin\media_routes.py
+    27,367  blueprints\admin\package_admin.py
+    31,932  PROJECT_STATE.md
+    32,590  templates\admin\package_form.html
+    36,503  templates\public\hotel_detail.html
+    41,126  scripts\seed_from_csv.py
+    42,704  templates\public\package_detail.html
+    49,411  migrations\versions\660bf441c996_initial_schema_28_tables.py
+    81,008  static\images\uploads\593ccf7e9392e83eb2b499e552b94262311a42c7.jpg
+   103,003  static\images\uploads\20bc9b21096522350fe26d8c72bd39ec40404f6a.png
+   208,438  static\images\uploads\485bdb809fcdb406ea7e45c00e7d97744901e62c.jpg
+   208,497  static\images\uploads\43fae623ff97ff4032ecad5bcfd645260cbaa5f1.jpg
+   217,840  data\egypttrips.csv
+   286,054  static\images\uploads\c2b8d29d6109a4650ce3c84da518f34d80e2211a.jpg
+   521,965  static\images\uploads\1e6bd8a0ae247585e7f40d614a43c900fd6de7ca.jpg
+ 1,721,523  data\Egypt.csv
+ 2,216,565  static\images\uploads\7567d2c2b07d965e75a341728f9387ff532f6927.png
+ 2,986,923  static\images\uploads\a4f4280305a7147abadea461bddc489c4b98e613.png
+ 2,999,042  data\Egypt-Packages.csv
+ 3,976,595  static\images\uploads\8d81e9f412f2f072015184bd81e2fdaaa9657266.mp4
+ 4,722,390  static\images\uploads\0a0a84432d607640b82453a5fdee58bb769190e3.mp4
+
+========== 2. TOP-LEVEL FOLDERS ==========
+blueprints                                  37 files
+cloud_function                               3 files
+data                                         3 files
+instance                                     0 files
+logs                                         1 files
+migrations                                  15 files
+models                                      24 files
+mongo                                        7 files
+scripts                                      5 files
+services                                    12 files
+static                                      16 files
+templates                                   53 files
+testing                                      7 files
+
+========== 3. KEY FOLDERS ==========
+
+--- models ---
+__init__.py                                           340 lines      11,738 bytes
+activity.py                                           437 lines      21,731 bytes
+activity_children.py                                   80 lines       3,582 bytes
+airline.py                                             82 lines       3,770 bytes
+booking.py                                            202 lines       9,395 bytes
+booking_item.py                                       165 lines       7,110 bytes
+booking_status_history.py                             143 lines       5,902 bytes
+booking_traveller.py                                  145 lines       6,490 bytes
+destination.py                                         91 lines       5,142 bytes
+flight.py                                             105 lines       5,551 bytes
+guide.py                                              113 lines       5,928 bytes
+hotel.py                                              301 lines      14,537 bytes
+hotel_children.py                                     144 lines       6,462 bytes
+newsletter.py                                         113 lines       5,355 bytes
+package.py                                            432 lines      21,757 bytes
+package_children.py                                    80 lines       3,547 bytes
+package_option.py                                     129 lines       5,207 bytes
+payment.py                                            185 lines       7,669 bytes
+quote.py                                              315 lines      13,857 bytes
+room.py                                               180 lines       9,118 bytes
+room_rate.py                                           55 lines       2,525 bytes
+site_content.py                                       150 lines       6,217 bytes
+supplier.py                                           118 lines       6,776 bytes
+user.py                                               157 lines       7,919 bytes
+
+--- mongo ---
+__init__.py                                            56 lines       1,879 bytes
+client.py                                             169 lines       7,037 bytes
+enquiries.py                                          224 lines       9,029 bytes
+facilities_extras.py                                  174 lines       7,247 bytes
+logs.py                                               233 lines       8,986 bytes
+reviews.py                                            283 lines      12,154 bytes
+search_events.py                                      258 lines      10,232 bytes
+
+--- services ---
+__init__.py                                           100 lines       4,461 bytes
+auth_service.py                                       263 lines      10,945 bytes
+availability_service.py                               274 lines      11,837 bytes
+booking_service.py                                    443 lines      18,452 bytes
+content_service.py                                    406 lines      17,286 bytes
+email_service.py                                      534 lines      19,751 bytes
+payment_service.py                                    356 lines      15,145 bytes
+pricing_service.py                                    244 lines      11,146 bytes
+quote_service.py                                      499 lines      21,989 bytes
+recommendation_service.py                             275 lines      10,769 bytes
+report_service.py                                     299 lines      11,096 bytes
+search_service.py                                     421 lines      16,823 bytes
+
+--- blueprints ---
+__init__.py                                            27 lines       1,072 bytes
+
+--- blueprints\public ---
+__init__.py                                            53 lines       2,871 bytes
+activity_routes.py                                    242 lines       8,956 bytes
+booking_routes.py                                     435 lines      19,956 bytes
+enquiry_routes.py                                      94 lines       3,805 bytes
+hotel_routes.py                                       313 lines      12,388 bytes
+package_routes.py                                     291 lines      11,178 bytes
+quote_routes.py                                       187 lines       8,882 bytes
+review_routes.py                                       77 lines       3,457 bytes
+routes.py                                             107 lines       3,893 bytes
+search_routes.py                                      112 lines       4,989 bytes
+
+--- blueprints\auth ---
+__init__.py                                            31 lines       1,443 bytes
+forms.py                                               85 lines       3,374 bytes
+password_routes.py                                     70 lines       3,153 bytes
+routes.py                                             112 lines       5,079 bytes
+
+--- blueprints\account ---
+__init__.py                                            28 lines       1,218 bytes
+forms.py                                               48 lines       1,696 bytes
+routes.py                                             194 lines       7,761 bytes
+
+--- blueprints\admin ---
+__init__.py                                            78 lines       3,736 bytes
+activity_admin.py                                     421 lines      17,623 bytes
+airline_admin.py                                      246 lines      11,416 bytes
+booking_admin.py                                      256 lines      12,501 bytes
+content_admin.py                                      304 lines      13,446 bytes
+hotel_admin.py                                        505 lines      20,137 bytes
+media_routes.py                                       537 lines      23,952 bytes
+package_admin.py                                      670 lines      27,367 bytes
+quote_admin.py                                        239 lines      12,129 bytes
+report_routes.py                                      138 lines       6,258 bytes
+review_admin.py                                       218 lines       9,282 bytes
+routes.py                                              47 lines       1,836 bytes
+user_admin.py                                         186 lines       8,244 bytes
+
+--- blueprints\api ---
+__init__.py                                            23 lines         803 bytes
+activities_api.py                                     227 lines       9,732 bytes
+bookings_api.py                                       329 lines      15,313 bytes
+hotels_api.py                                         234 lines       9,702 bytes
+packages_api.py                                       252 lines      10,102 bytes
+payments_api.py                                       278 lines      12,334 bytes
+
+--- scripts ---
+__init__.py                                            13 lines         460 bytes
+backfill_hotel_slugs.py                                55 lines       2,195 bytes
+create_admin.py                                       189 lines       6,941 bytes
+reset_db.py                                           147 lines       5,687 bytes
+seed_from_csv.py                                      978 lines      41,126 bytes
+
+--- tests ---
+  [MISSING]
+
+--- cloud_function ---
+__init__.py                                            29 lines       1,344 bytes
+tasks.py                                              162 lines       7,421 bytes
+worker.py                                             153 lines       7,279 bytes
+
+--- templates ---
+base.html                                             173 lines       8,399 bytes
+
+--- templates\public ---
+_search_widget.html                                   200 lines      10,695 bytes
+about.html                                             52 lines       2,488 bytes
+activity_detail.html                                  371 lines      22,177 bytes
+activity_list.html                                    144 lines       9,167 bytes
+booking_confirmation.html                              68 lines       3,732 bytes
+booking_start.html                                    199 lines      12,922 bytes
+contact.html                                           45 lines       2,205 bytes
+enquiry_form.html                                      64 lines       3,853 bytes
+hotel_detail.html                                     602 lines      36,503 bytes
+hotel_list.html                                       160 lines      10,047 bytes
+index.html                                            250 lines      13,196 bytes
+package_detail.html                                   684 lines      42,704 bytes
+package_list.html                                     142 lines       9,092 bytes
+quote_request_form.html                               129 lines       7,183 bytes
+quote_request_thanks.html                              30 lines       1,322 bytes
+quote_view.html                                       229 lines      12,784 bytes
+search_results.html                                   267 lines      16,085 bytes
+
+--- templates\auth ---
+forgot_password.html                                   32 lines       1,522 bytes
+login.html                                             42 lines       2,371 bytes
+register.html                                          56 lines       3,460 bytes
+reset_password.html                                    34 lines       1,789 bytes
+
+--- templates\account ---
+booking_detail.html                                   133 lines       7,655 bytes
+bookings.html                                          86 lines       4,496 bytes
+index.html                                             74 lines       3,782 bytes
+profile.html                                           81 lines       4,824 bytes
+
+--- templates\admin ---
+activity_form.html                                    171 lines       9,196 bytes
+activity_list.html                                    108 lines       5,125 bytes
+airline_form.html                                     146 lines       6,838 bytes
+airline_list.html                                     119 lines       5,839 bytes
+base.html                                              74 lines       4,787 bytes
+booking_detail.html                                   276 lines      13,175 bytes
+booking_list.html                                     151 lines       7,024 bytes
+content_edit.html                                     176 lines       7,074 bytes
+content_index.html                                    139 lines       7,084 bytes
+content_slideshow.html                                127 lines       6,669 bytes
+enquiry_list.html                                     150 lines       7,300 bytes
+hotel_form.html                                       169 lines       8,923 bytes
+hotel_list.html                                       107 lines       5,074 bytes
+index.html                                            190 lines       8,711 bytes
+media_index.html                                      185 lines       9,500 bytes
+media_product.html                                    148 lines       8,167 bytes
+package_form.html                                     611 lines      32,590 bytes
+package_list.html                                     108 lines       5,143 bytes
+quote_detail.html                                     433 lines      20,914 bytes
+quote_list.html                                       190 lines       9,124 bytes
+quote_new.html                                        137 lines       5,957 bytes
+quote_requests.html                                   149 lines       7,572 bytes
+report_index.html                                     273 lines      12,744 bytes
+review_list.html                                      146 lines       6,821 bytes
+room_form.html                                        148 lines       7,054 bytes
+user_detail.html                                      168 lines       8,238 bytes
+user_list.html                                        117 lines       5,287 bytes
+
+--- templates\emails ---
+
+--- templates\errors ---
+
+--- migrations ---
+alembic.ini                                            38 lines         857 bytes
+env.py                                                 85 lines       3,646 bytes
+README                                                  1 lines          41 bytes
+script.py.mako                                         17 lines         494 bytes
+
+--- migrations\versions ---
+3656e6880fd2_add_party_pricing_to_quotes.py            28 lines       1,304 bytes
+3d06a807b617_add_detail_content_columns_to_products.py     48 lines       2,570 bytes
+6063bba994dc_add_room_rates_table.py                   39 lines       2,131 bytes
+660bf441c996_initial_schema_28_tables.py              671 lines      49,411 bytes
+692f68cad115_add_airlines_master_list.py               40 lines       1,958 bytes
+80b58a92c6c3_add_detail_children_site_content_quotes_.py    215 lines      14,550 bytes
+825673d7150e_add_notification_tracking_to_bookings.py     26 lines       1,213 bytes
+a1b2c3d4e5f6_add_slideshow_page_check.py               49 lines       1,825 bytes
+ef8ff8cfed4a_add_media_type_and_poster_url_to_image_.py     36 lines       1,917 bytes
+f13d4c55bfe1_add_package_options_table.py              47 lines       2,867 bytes
+relax_room_rates_validity.py                           33 lines       1,249 bytes
+
+========== 4. PYTHON FILE TOTALS ==========
+Python files:  111
+Total lines:   21191
+
+END OF STRUCTURE REPORT
