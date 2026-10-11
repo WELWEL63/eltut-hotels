@@ -786,3 +786,522 @@ h1, h2, h3, h4, h5, h6 {
     background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
     border: 1px solid rgba(192, 57, 43, .12);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   HOME PAGE THEMES — one background, three options.
+   Only affects body.home-page--*. Other pages keep their look.
+   ═══════════════════════════════════════════════════════════════════ */
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   HOME PAGE THEMES — one background, three options.
+   Only affects body.home-page--*. Other pages keep their look.
+   ═══════════════════════════════════════════════════════════════════ */
+
+
+
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   HEADER THEME + LOGO — EDIT HERE
+   ─────────────────────────────────────────────────────────────────
+   Header colours live in the .site-header rules.
+   Logo colours live in the .eltut-logo* rules.
+   Change one hex, save, hard-refresh (Ctrl+Shift+R).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ══ HEADER COLOURS ══ */
+.navbar.navbar-dark.site-header,
+.site-header {
+    background: #1e3a5f !important;              /* ← lapis blue */
+    border-bottom: 2px solid #c9a227 !important; /* ← gold rule */
+    box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
+    padding-top: 0.9rem !important;
+    padding-bottom: 0.9rem !important;
+    min-height: 72px;
+}
+
+.site-header .navbar-nav .nav-link {
+    color: #f5ecd7 !important;                   /* ← cream */
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+.site-header .navbar-nav .nav-link:hover,
+.site-header .navbar-nav .nav-link:focus {
+    color: #f2c964 !important;                   /* ← gold hover */
+}
+.site-header .navbar-toggler { border-color: rgba(245, 236, 215, 0.35); }
+
+/* ══ LOGO ══ */
+.navbar-brand.eltut-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    text-decoration: none;
+}
+
+.eltut-logo__main,
+.eltut-logo__sub {
+    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.35rem;                          /* ← both lines same size */
+    letter-spacing: 0.18em;
+    color: #f5ecd7;                              /* ← both lines same colour */
+    display: inline-block;
+    line-height: 1.15;
+}
+
+.eltut-logo__main {
+    padding-bottom: 3px;
+    border-bottom: 1.5px solid #c9a227;          /* ← gold underline under ELTUT */
+}
+
+.eltut-logo__sub {
+    padding-top: 4px;
+    padding-left: 3px;
+    color: #e8d9b3;                              /* ← TOURS colour */
+}
+
+.navbar-brand.eltut-logo:hover .eltut-logo__main { color: #ffffff; }
+.navbar-brand.eltut-logo:hover .eltut-logo__sub  { color: #f2c964; }
+
+@media (max-width: 768px) {
+    .eltut-logo__main,
+    .eltut-logo__sub { font-size: 1.1rem; letter-spacing: 0.14em; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FOOTER — matches header
+   ═══════════════════════════════════════════════════════════════════ */
+.footer {
+    background: #1e3a5f !important;              /* ← lapis blue */
+    border-top: 2px solid #c9a227 !important;    /* ← gold rule */
+    color: #e8d9b3 !important;
+    padding: 2.25rem 0 !important;
+    margin-top: 3rem;
+}
+.footer h1, .footer h2, .footer h3, .footer h4, .footer h5, .footer h6 {
+    color: #f5ecd7 !important;
+    font-family: 'Cinzel', Georgia, serif;
+    letter-spacing: 0.08em;
+}
+.footer a, .footer .nav-link {
+    color: #e8d9b3 !important;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.footer a:hover, .footer a:focus, .footer .nav-link:hover {
+    color: #f2c964 !important;
+}
+.footer small, .footer .text-muted {
+    color: rgba(232, 217, 179, 0.72) !important;
+}
+.footer hr { border-color: rgba(201, 162, 39, 0.35); }
+
+/* ═══ END HEADER THEME + LOGO ═══ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   HOME PAGE — VISION 2030 THEME (holiday travel, glass + warmth)
+   ─────────────────────────────────────────────────────────────────
+   Scoped to body.home-page. Nothing else on the site is affected.
+   Palette: lapis #1e3a5f · gold #c9a227 / #d4a017 · terracotta #c85a3e
+            warm off-white #faf7f1 · ink #1c1917
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ══ BACKDROP — warm sunrise + papyrus weave ══ */
+body.home-page {
+    background-color: #faf7f1;
+    background-image:
+        /* Sun-glow top-right (gold) */
+        radial-gradient(ellipse 900px 700px at 92% -8%,
+            rgba(212, 160, 23, 0.14) 0%,
+            rgba(212, 160, 23, 0.05) 40%,
+            rgba(212, 160, 23, 0) 70%),
+        /* Cool-tone reflection bottom-left (Nile) */
+        radial-gradient(ellipse 700px 600px at -10% 108%,
+            rgba(14, 116, 144, 0.06) 0%,
+            rgba(14, 116, 144, 0) 60%),
+        /* Papyrus dot weave — very faint */
+        radial-gradient(circle, rgba(28, 25, 23, 0.05) 1px, transparent 1px);
+    background-size: auto, auto, 22px 22px;
+    background-attachment: fixed, fixed, fixed;
+    background-position: 0 0, 0 0, 0 0;
+    min-height: 100vh;
+}
+
+/* ══ HERO — glassy, taller, sunlit ══ */
+.home-page .hero-slideshow {
+    border-radius: 0 0 32px 32px;
+    box-shadow: 0 18px 48px rgba(28, 25, 23, 0.10);
+}
+
+.home-page .hero-slideshow::after {
+    /* Warmer, less flat scrim */
+    background: linear-gradient(180deg,
+        rgba(28, 25, 23, 0.05) 0%,
+        rgba(28, 25, 23, 0.10) 35%,
+        rgba(28, 25, 23, 0.55) 100%);
+}
+
+/* Headline gets a warm sun-gold gradient accent, always readable */
+.home-page .hero-headline .accent {
+    background: linear-gradient(135deg, #ffffff 0%, #f2c964 50%, #d4a017 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ══ GLASS SEARCH WIDGET — the signature 2030 move ══ */
+.home-page .search-widget.search-widget-hero {
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    border-radius: 20px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.35) inset,
+        0 24px 60px rgba(28, 25, 23, 0.28),
+        0 8px 24px rgba(212, 160, 23, 0.10);
+    color: #ffffff;
+}
+
+/* Tab row sits on top of the glass, subtle underline instead of solid */
+.home-page .search-widget.search-widget-hero .nav-tabs {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0.75rem 0.9rem 0;
+}
+
+.home-page .search-widget.search-widget-hero .nav-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 600;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 10px 10px 0 0;
+    padding: 0.65rem 1.15rem;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.home-page .search-widget.search-widget-hero .nav-tabs .nav-link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.home-page .search-widget.search-widget-hero .nav-tabs .nav-link.active {
+    background: rgba(255, 255, 255, 0.96);
+    color: #1e3a5f;                              /* lapis */
+    box-shadow: 0 -3px 14px rgba(212, 160, 23, 0.25);
+}
+
+.home-page .search-widget.search-widget-hero .tab-pane {
+    padding: 1.5rem 1.5rem 1.75rem;
+}
+
+/* Labels + inputs inside the glass */
+.home-page .search-widget.search-widget-hero .form-label {
+    color: rgba(255, 255, 255, 0.92);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.home-page .search-widget.search-widget-hero .form-control,
+.home-page .search-widget.search-widget-hero .form-select {
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.96);
+    color: #1c1917;
+    font-weight: 500;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.home-page .search-widget.search-widget-hero .form-control:focus,
+.home-page .search-widget.search-widget-hero .form-select:focus {
+    border-color: #d4a017;
+    box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.18);
+}
+
+/* Primary button glows gold on the glass */
+.home-page .search-widget.search-widget-hero .btn-eltut-primary {
+    background: linear-gradient(135deg, #d4a017 0%, #b9861a 100%);
+    color: #1c1917;
+    font-weight: 700;
+    box-shadow:
+        0 8px 24px rgba(212, 160, 23, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+.home-page .search-widget.search-widget-hero .btn-eltut-primary:hover {
+    color: #1c1917;
+    background: linear-gradient(135deg, #e0ae27 0%, #c9931f 100%);
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 32px rgba(212, 160, 23, 0.45),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+/* ══ SECTION HEADERS — longer gold hairline ══ */
+.home-page .section-header {
+    border-bottom: 1px solid rgba(28, 25, 23, 0.06);
+    padding-bottom: 1rem;
+}
+.home-page .section-header::after {
+    width: 96px;
+    height: 2px;
+    background: linear-gradient(90deg, #c85a3e 0%, #d4a017 55%, transparent 100%);
+}
+
+/* ══ CARDS — layered depth + edge warmth ══ */
+.home-page .card {
+    border: 1px solid rgba(28, 25, 23, 0.06);
+    border-radius: 18px;
+    box-shadow:
+        0 1px 2px rgba(28, 25, 23, 0.04),
+        0 6px 18px rgba(28, 25, 23, 0.06),
+        0 20px 44px rgba(28, 25, 23, 0.05);
+    transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+                box-shadow 0.28s ease,
+                border-color 0.28s ease;
+    overflow: hidden;
+}
+.home-page .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 160, 23, 0.28);
+    box-shadow:
+        0 2px 4px rgba(28, 25, 23, 0.05),
+        0 12px 28px rgba(28, 25, 23, 0.09),
+        0 32px 64px rgba(28, 25, 23, 0.08),
+        0 0 0 4px rgba(212, 160, 23, 0.08);
+}
+
+/* Product-tile cards: name tighter, price brighter */
+.home-page .product-card .product-price {
+    color: #a84530;                              /* terracotta-dark */
+    font-weight: 800;
+}
+.home-page .product-card .product-tag {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2b4f7a 100%);
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+/* Feature tiles get a hairline top gold accent */
+.home-page .feature-tile {
+    border-top: 2px solid transparent;
+    background-image: linear-gradient(#ffffff, #ffffff),
+                      linear-gradient(90deg, #c9a227 0%, #d4a017 50%, #c9a227 100%);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+}
+
+/* ══ CTA BUTTONS — bigger, warmer ══ */
+.home-page .btn-outline-primary {
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+    font-weight: 600;
+}
+.home-page .btn-outline-primary:hover {
+    background: #1e3a5f;
+    color: #ffffff;
+    border-color: #1e3a5f;
+    transform: translateY(-1px);
+}
+
+/* ══ STATS STRIP (in the hero) — gold numerals ══ */
+.home-page .hero-stats .stat-value {
+    color: #f2c964;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ══ MOBILE — reduce blur & shadows for battery/performance ══ */
+@media (max-width: 768px) {
+    body.home-page {
+        background-attachment: scroll, scroll, scroll;
+    }
+    .home-page .search-widget.search-widget-hero {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(30, 58, 95, 0.85);      /* fallback for no-blur */
+    }
+    .home-page .card { border-radius: 14px; }
+    .home-page .card:hover { transform: none; }
+}
+
+/* Respect reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+    .home-page .card,
+    .home-page .card:hover,
+    .home-page .btn-outline-primary:hover {
+        transition: none;
+        transform: none;
+    }
+}
+
+/* ═══ END VISION 2030 HOME THEME ═══ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   VISION 2030 — POLISH PASS
+   CTA strip + product chips + placeholder + section upgrade.
+   Still scoped to .home-page. Nothing outside home page affected.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ══ 1. DARK CTA STRIP → LAPIS BLUE (matches header + footer) ══ */
+.home-page .cta-strip,
+.home-page .ready-strip,
+.home-page section.bg-dark,
+.home-page .bg-dark.section,
+.home-page .home-cta,
+.home-page .quote-strip {
+    background: #1e3a5f !important;
+    border-top: 2px solid #c9a227;
+    border-bottom: 2px solid #c9a227;
+    color: #e8d9b3;
+}
+
+/* Any heading inside the strip — Cinzel + cream */
+.home-page .cta-strip h1, .home-page .cta-strip h2, .home-page .cta-strip h3,
+.home-page .ready-strip h1, .home-page .ready-strip h2, .home-page .ready-strip h3,
+.home-page section.bg-dark h1,
+.home-page section.bg-dark h2,
+.home-page section.bg-dark h3 {
+    color: #f5ecd7 !important;
+    font-family: 'Cinzel', Georgia, serif;
+    letter-spacing: 0.02em;
+}
+
+.home-page .cta-strip p,
+.home-page .ready-strip p,
+.home-page section.bg-dark p {
+    color: rgba(232, 217, 179, 0.85) !important;
+}
+
+/* The "Request a custom quote" gold button inside the strip — extra glow */
+.home-page .cta-strip .btn,
+.home-page .ready-strip .btn,
+.home-page section.bg-dark .btn {
+    box-shadow:
+        0 10px 28px rgba(212, 160, 23, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.35) inset;
+}
+.home-page .cta-strip .btn:hover,
+.home-page .ready-strip .btn:hover,
+.home-page section.bg-dark .btn:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 14px 36px rgba(212, 160, 23, 0.5),
+        0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+/* ══ 2. PRODUCT CHIPS — ADVENTURE / OTHER → lapis + gold underline ══ */
+.home-page .product-card .product-tag,
+.home-page .card .product-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2b4f7a 100%);
+    color: #f5ecd7;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem 0.32rem;
+    border-radius: 6px 6px 0 0;
+    box-shadow:
+        0 3px 10px rgba(30, 58, 95, 0.2),
+        inset 0 -2px 0 rgba(201, 162, 39, 0.85);
+    margin-bottom: 0.55rem;
+}
+
+/* ══ 3. PACKAGE IMAGE PLACEHOLDER — design, not emptiness ══ */
+.home-page .product-card .card-img-top,
+.home-page .product-card .product-image,
+.home-page .product-card .result-card-placeholder {
+    background:
+        /* Golden Cairo skyline silhouette (inline SVG) */
+        url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='xMidYMax meet'><g fill='%23c9a227' fill-opacity='0.25'><polygon points='40,180 70,110 100,180'/><polygon points='90,180 130,80 170,180'/><polygon points='160,180 195,120 230,180'/><rect x='240' y='130' width='10' height='50'/><rect x='255' y='120' width='12' height='60'/><rect x='272' y='135' width='10' height='45'/><polygon points='300,180 340,90 380,180'/></g><g stroke='%23c9a227' stroke-width='1.5' fill='none' stroke-opacity='0.45'><circle cx='330' cy='55' r='16'/><line x1='330' y1='30' x2='330' y2='20'/><line x1='330' y1='80' x2='330' y2='90'/><line x1='305' y1='55' x2='295' y2='55'/><line x1='355' y1='55' x2='365' y2='55'/></g></svg>"),
+        linear-gradient(135deg, #eef3f8 0%, #dfe6f0 100%);
+    background-repeat: no-repeat, no-repeat;
+    background-position: center bottom, center;
+    background-size: 100% auto, cover;
+    height: 220px;
+    border-radius: 0;
+    position: relative;
+}
+
+/* ══ 4. SECTION HEADERS — bigger icon, extended gold hairline ══ */
+.home-page .section-header {
+    border-bottom: 1px solid rgba(201, 162, 39, 0.15);
+}
+.home-page .section-header::after {
+    width: 128px;
+    height: 3px;
+    background: linear-gradient(90deg,
+        #c85a3e 0%,
+        #d4a017 40%,
+        #f2c964 70%,
+        transparent 100%);
+    border-radius: 3px;
+}
+.home-page .section-header .icon-box {
+    width: 58px;
+    height: 58px;
+    font-size: 1.8rem;
+    border-radius: 16px;
+}
+
+/* ══ 5. "BROWSE ALL" BUTTONS — outline gold → fills lapis ══ */
+.home-page .btn-outline-primary,
+.home-page .browse-all-btn {
+    border: 2px solid #d4a017;
+    color: #1e3a5f;
+    background: transparent;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0.6rem 1.4rem;
+    transition: all 0.25s ease;
+}
+.home-page .btn-outline-primary:hover,
+.home-page .browse-all-btn:hover {
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+    color: #f5ecd7;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(30, 58, 95, 0.28);
+}
+.home-page .btn-outline-primary i,
+.home-page .browse-all-btn i {
+    transition: transform 0.25s ease;
+}
+.home-page .btn-outline-primary:hover i,
+.home-page .browse-all-btn:hover i {
+    transform: translateX(4px);
+}
+
+/* ══ 6. FADE-IN ON SCROLL for section headers (native, no JS) ══ */
+@supports (animation-timeline: view()) {
+    .home-page .section-header {
+        animation: eltut-reveal 0.9s ease both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 30%;
+    }
+}
+@keyframes eltut-reveal {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile: reduce polish intensity for perf ── */
+@media (max-width: 768px) {
+    .home-page .product-card .card-img-top,
+    .home-page .product-card .product-image,
+    .home-page .product-card .result-card-placeholder {
+        height: 170px;
+    }
+    .home-page .section-header .icon-box {
+        width: 46px; height: 46px; font-size: 1.4rem; border-radius: 12px;
+    }
+    .home-page .section-header::after { width: 84px; }
+}
+
+/* ═══ END VISION 2030 POLISH ═══ */
