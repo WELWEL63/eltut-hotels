@@ -455,6 +455,61 @@
                             </div>
                         {% endif %}
                     </div>
+                                {% endif %}
+
+                {# ─── FAQs ─── #}
+                {% if faqs %}
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-question-circle"></i></span>
+                        <span class="title">
+                            Frequently asked questions
+                            <span class="subtitle">{{ faqs|length }} answer{{ "" if faqs|length == 1 else "s" }}</span>
+                        </span>
+                    </div>
+                    <div class="accordion mb-4" id="packageFaqAccordion">
+                        {% for f in faqs %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="pkgFaqH{{ f.id }}">
+                                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#pkgFaqB{{ f.id }}"
+                                            aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                                            aria-controls="pkgFaqB{{ f.id }}">
+                                        {{ f.question }}
+                                    </button>
+                                </h2>
+                                <div id="pkgFaqB{{ f.id }}"
+                                     class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                                     aria-labelledby="pkgFaqH{{ f.id }}"
+                                     data-bs-parent="#packageFaqAccordion">
+                                    <div class="accordion-body small text-muted"
+                                         style="white-space: pre-wrap;">
+                                        {{ f.answer or "Contact us for details." }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ─── Tips ─── #}
+                {% if tips %}
+                    <div class="section-header icon-gold mt-4">
+                        <span class="icon-box"><i class="bi bi-lightbulb"></i></span>
+                        <span class="title">
+                            Tips for this package
+                            <span class="subtitle">{{ tips|length }} tip{{ "" if tips|length == 1 else "s" }}</span>
+                        </span>
+                    </div>
+                    <ul class="list-group mb-4">
+                        {% for t in tips %}
+                            <li class="list-group-item d-flex align-items-start">
+                                <i class="bi bi-lightbulb-fill text-warning me-2 mt-1"></i>
+                                <span class="small">{{ t.tip }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
 
                 {# ─── Reviews ─── #}

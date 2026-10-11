@@ -33,10 +33,12 @@ from models import (
     Hotel,
     Package,
     PackageExclusion,
+    PackageFAQ,
     PackageImage,
     PackageInclusion,
     PackageItinerary,
     PackagePrice,
+    PackageTip,
     Room,
     VALID_PACKAGE_TYPES,
     PackageOption,
@@ -256,6 +258,16 @@ def package_detail(slug: str):
         .where(PackageItinerary.package_id == package.id)
         .order_by(PackageItinerary.day_number)
     ))
+    faqs = list(db.session.scalars(
+        select(PackageFAQ)
+        .where(PackageFAQ.package_id == package.id)
+        .order_by(PackageFAQ.sort_order, PackageFAQ.id)
+    ))
+    tips = list(db.session.scalars(
+        select(PackageTip)
+        .where(PackageTip.package_id == package.id)
+        .order_by(PackageTip.sort_order, PackageTip.id)
+    ))
     flights = list(db.session.scalars(
         select(Flight)
         .where(Flight.package_id == package.id, Flight.is_active.is_(True))
@@ -423,9 +435,6 @@ def package_detail(slug: str):
         return {"name": flight.airline_name, "logo_url": None}
 
     # ─── Dynamic price resolution for the customer's dates ───────
-    # PackageOption rows store a "default" price_id, but we override
-    # it with the PackagePrice that matches the customer's dates so
-    # the detail page reflects the customer's search.
     _all_prices = list(db.session.scalars(
         select(PackagePrice)
         .where(PackagePrice.package_id == package.id)
@@ -436,7 +445,6 @@ def package_detail(slug: str):
 
     def _pick_dynamic_price():
         """Find the best matching PackagePrice for the customer's dates."""
-        # 1. window fully contains range AND duration matches
         if _customer_nights is not None:
             for _pr in _all_prices:
                 if (_pr.valid_from is not None and _pr.valid_to is not None
@@ -444,29 +452,24 @@ def package_detail(slug: str):
                         and _pr.valid_to >= check_out
                         and (_pr.valid_to - _pr.valid_from).days == _customer_nights):
                     return _pr
-            # 2. window fully contains range (any duration)
             for _pr in _all_prices:
                 if (_pr.valid_from is not None and _pr.valid_to is not None
                         and _pr.valid_from <= check_in
                         and _pr.valid_to >= check_out):
                     return _pr
-            # 3. window contains check_in
             for _pr in _all_prices:
                 if (_pr.valid_from is not None and _pr.valid_to is not None
                         and _pr.valid_from <= check_in <= _pr.valid_to):
                     return _pr
-        # 4. cheapest flexible
         for _pr in _all_prices:
             if _pr.valid_from is None and _pr.valid_to is None:
                 return _pr
-        # 5. cheapest overall
         return _all_prices[0] if _all_prices else None
 
     # Serialise options
     options: list[dict] = []
     for opt in options_rows:
         flight = opt.flight
-        # Dynamic price resolution — overrides stored price_id
         dynamic_price = _pick_dynamic_price()
         price = dynamic_price or opt.price
         airline = _resolve_airline(flight)
@@ -474,7 +477,6 @@ def package_detail(slug: str):
         base_adult = float(price.adult_price) if price else None
         base_child = float(price.child_price) if price else None
 
-        # Per-flight surcharge
         s_adult, s_child = _surcharge_for(
             flight.airline_name if flight else None,
             flight.flight_from if flight else None,
@@ -482,7 +484,6 @@ def package_detail(slug: str):
         final_adult = (base_adult + s_adult) if base_adult is not None else None
         final_child = (base_child + s_child) if base_child is not None else None
 
-        # Use customer's dates if provided, else fall back to stored dates
         opt_departure = check_in if url_check_in else opt.departure_date
         opt_return = check_out if url_check_out else opt.return_date
 
@@ -548,6 +549,8 @@ def package_detail(slug: str):
         inclusions=inclusions,
         exclusions=exclusions,
         itineraries=itineraries,
+        faqs=faqs,
+        tips=tips,
         flights=flights,
         price_adult=price_adult,
         price_child=price_child,

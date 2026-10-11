@@ -19,12 +19,15 @@ from extensions import db
 from models import (
     Activity,
     ActivityExclusion,
+    ActivityFAQ,
     ActivityImage,
     ActivityInclusion,
     ActivityLanguage,
     ActivityPrice,
+    ActivityTip,
     Destination,
     Guide,
+    
     VALID_ACTIVITY_CATEGORIES,
     VALID_ACTIVITY_DIFFICULTIES,
 )
@@ -193,7 +196,17 @@ def activity_detail(slug: str):
         .where(ActivityImage.activity_id == activity.id)
         .order_by(ActivityImage.sort_order)
     ))
-
+    faqs = list(db.session.scalars(
+        select(ActivityFAQ)
+        .where(ActivityFAQ.activity_id == activity.id)
+        .order_by(ActivityFAQ.sort_order, ActivityFAQ.id)
+    ))
+    tips = list(db.session.scalars(
+        select(ActivityTip)
+        .where(ActivityTip.activity_id == activity.id)
+        .order_by(ActivityTip.sort_order, ActivityTip.id)
+    ))
+    
     destination = db.session.get(Destination, activity.destination_id)
     guide = db.session.get(Guide, activity.guide_id) if activity.guide_id else None
 
@@ -311,4 +324,6 @@ def activity_detail(slug: str):
         adults=adults,
         children=children,
         sidebar_pricing=sidebar_pricing,
+        faqs=faqs,
+        tips=tips,
     )

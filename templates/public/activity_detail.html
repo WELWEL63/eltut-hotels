@@ -201,6 +201,44 @@
                     </div>
                     <p class="text-muted">{{ activity.what_to_bring }}</p>
                 {% endif %}
+                                {# ─── Location / Map ─── #}
+                {% if activity.google_maps_url or activity.meeting_point %}
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-geo-alt"></i></span>
+                        <span class="title">
+                            Location
+                            {% if activity.meeting_point %}
+                                <span class="subtitle">
+                                    <i class="bi bi-pin-map"></i> Meeting point: {{ activity.meeting_point }}
+                                </span>
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    {% if activity.google_maps_url %}
+                        <div class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-sm mb-2">
+                            <iframe
+                                src="{{ activity.google_maps_url }}"
+                                style="border:0;"
+                                allowfullscreen=""
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                title="Map of {{ activity.name }}"></iframe>
+                        </div>
+                        <div class="text-end mb-4">
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ activity.name | urlencode }}"
+                               target="_blank" rel="noopener"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-box-arrow-up-right"></i> Open in Google Maps
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-secondary small mb-4">
+                            <i class="bi bi-geo-alt"></i>
+                            Meeting point: {{ activity.meeting_point or "Contact us for details" }}
+                        </div>
+                    {% endif %}
+                {% endif %}
 
                 {# ─── Cancellation ─── #}
                 {% if activity.cancellation_policy %}
@@ -211,6 +249,60 @@
                         </h6>
                         <div class="small" style="white-space: pre-wrap;">{{ activity.cancellation_policy }}</div>
                     </div>
+                {% endif %}
+                {# ─── FAQs ─── #}
+                {% if faqs %}
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-question-circle"></i></span>
+                        <span class="title">
+                            Frequently asked questions
+                            <span class="subtitle">{{ faqs|length }} answer{{ "" if faqs|length == 1 else "s" }}</span>
+                        </span>
+                    </div>
+                    <div class="accordion mb-4" id="activityFaqAccordion">
+                        {% for f in faqs %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqH{{ f.id }}">
+                                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#faqB{{ f.id }}"
+                                            aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                                            aria-controls="faqB{{ f.id }}">
+                                        {{ f.question }}
+                                    </button>
+                                </h2>
+                                <div id="faqB{{ f.id }}"
+                                     class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                                     aria-labelledby="faqH{{ f.id }}"
+                                     data-bs-parent="#activityFaqAccordion">
+                                    <div class="accordion-body small text-muted"
+                                         style="white-space: pre-wrap;">
+                                        {{ f.answer or "Contact us for details." }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ─── Tips ─── #}
+                {% if tips %}
+                    <div class="section-header icon-gold mt-4">
+                        <span class="icon-box"><i class="bi bi-lightbulb"></i></span>
+                        <span class="title">
+                            Tips for this activity
+                            <span class="subtitle">{{ tips|length }} tip{{ "" if tips|length == 1 else "s" }}</span>
+                        </span>
+                    </div>
+                    <ul class="list-group mb-4">
+                        {% for t in tips %}
+                            <li class="list-group-item d-flex align-items-start">
+                                <i class="bi bi-lightbulb-fill text-warning me-2 mt-1"></i>
+                                <span class="small">{{ t.tip }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
 
                 {# ─── Reviews ─── #}
