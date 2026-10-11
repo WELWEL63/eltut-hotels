@@ -1,7 +1,7 @@
 ﻿"""
 blueprints/admin/__init__.py
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-The admin blueprint â€” CRUD, bookings, reports, media, users.
+────────────────────────────
+The admin blueprint — CRUD, bookings, reports, media, users.
 
 URL PREFIX
     "/admin" (mounted in app.py)
@@ -16,6 +16,7 @@ ROUTE MODULES
     review_admin.py      moderation of Mongo reviews
     report_routes.py     dashboards and charts (report_service)
     media_routes.py      upload + manage images
+    offer_admin.py       home-page offers curation
 
 ACCESS CONTROL
     Every admin route is protected by @admin_required, which:
@@ -42,13 +43,13 @@ admin_bp = Blueprint(
 )
 
 
-# â”€â”€â”€ Access control decorator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Access control decorator ───────────────────────────────────────
 def admin_required(view_func):
     """
     Decorator: require login AND role='admin'.
 
-    Guests â†’ redirect to login with ?next= so they land back where they
-    intended. Logged-in non-admins â†’ 403.
+    Guests → redirect to login with ?next= so they land back where they
+    intended. Logged-in non-admins → 403.
     """
     @wraps(view_func)
     @login_required
@@ -59,7 +60,7 @@ def admin_required(view_func):
     return wrapper
 
 
-# â”€â”€â”€ Blueprint-wide guard (defence in depth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Blueprint-wide guard (defence in depth) ────────────────────────
 @admin_bp.before_request
 def _admin_guard():
     """
@@ -78,7 +79,7 @@ def _admin_guard():
     return None
 
 
-# â”€â”€â”€ Route registration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Route registration ─────────────────────────────────────────────
 # Modules are imported at the bottom so the @admin_bp.route decorators
 # fire against the blueprint object.
 
@@ -95,6 +96,7 @@ from blueprints.admin import content_admin    # noqa: E402,F401
 from blueprints.admin import airline_admin    # noqa: E402,F401
 from blueprints.admin import quote_admin      # noqa: E402,F401
 from blueprints.admin import destination_admin  # noqa: E402,F401
+from blueprints.admin import offer_admin        # noqa: E402,F401
 
 
 __all__: list[str] = ["admin_bp", "admin_required"]

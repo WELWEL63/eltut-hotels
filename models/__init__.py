@@ -274,6 +274,19 @@ from models.quote import (  # noqa: F401,E402
     VALID_QUOTE_PRODUCT_TYPES,
 )
 
+# ─── Home page offers (admin-curated) ──────────────────────────────
+from models.home_offer import (  # noqa: F401,E402
+    HomeOffer,
+    SECTION_TOP_EXPERIENCE,
+    SECTION_BEST_HOTEL,
+    SECTION_AFFORDABLE_PACKAGE,
+    VALID_SECTIONS,
+    PRODUCT_ACTIVITY,
+    PRODUCT_HOTEL,
+    PRODUCT_PACKAGE,
+    VALID_PRODUCT_TYPES as HOME_OFFER_PRODUCT_TYPES,
+)
+
 
 __all__: list[str] = [
     "Base",
@@ -377,4 +390,14 @@ __all__: list[str] = [
     "DEFAULT_AIRLINE_LOGO_EXT",
     # Package options
     "PackageOption",
+    # Home page offers
+    "HomeOffer",
+    "SECTION_TOP_EXPERIENCE",
+    "SECTION_BEST_HOTEL",
+    "SECTION_AFFORDABLE_PACKAGE",
+    "VALID_SECTIONS",
+    "PRODUCT_ACTIVITY",
+    "PRODUCT_HOTEL",
+    "PRODUCT_PACKAGE",
+    "HOME_OFFER_PRODUCT_TYPES",
 ]

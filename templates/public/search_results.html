@@ -342,6 +342,50 @@
                                             </div>
                                         {% endif %}
 
+                                        {# ─── Available package windows (dates + prices) ─── #}
+                                        {% if result['product_type'] == 'package' and item.extra.windows %}
+                                            <div class="sr-windows mb-3">
+                                                {% for w in item.extra.windows %}
+                                                    <div class="sr-window-row">
+                                                        <div class="sr-window-dates">
+                                                            <i class="bi bi-calendar-range"></i>
+                                                            {% if w.valid_from and w.valid_to %}
+                                                                <strong>{{ w.valid_from }}</strong>
+                                                                <span class="text-muted mx-1">→</span>
+                                                                <strong>{{ w.valid_to }}</strong>
+                                                            {% else %}
+                                                                <em class="text-muted">Flexible dates</em>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="sr-window-price">
+                                                            {% if w.adult_price %}
+                                                                <span class="fw-semibold text-eltut-terracotta">
+                                                                    {{ w.currency }} {{ "%.0f"|format(w.adult_price) }}
+                                                                </span>
+                                                                <span class="text-muted small">/ adult</span>
+                                                            {% endif %}
+                                                            {% if w.child_price %}
+                                                                <span class="text-muted small ms-1">
+                                                                    · {{ "%.0f"|format(w.child_price) }}/child
+                                                                </span>
+                                                            {% endif %}
+                                                            {% if w.tier == 1 %}
+                                                                <span class="badge bg-success-subtle text-success-emphasis ms-2">Exact match</span>
+                                                            {% elif w.tier == 2 %}
+                                                                <span class="badge bg-info-subtle text-info-emphasis ms-2">Contains check-in</span>
+                                                            {% elif w.tier == 3 %}
+                                                                <span class="badge bg-info-subtle text-info-emphasis ms-2">Contains check-out</span>
+                                                            {% elif w.tier == 4 %}
+                                                                <span class="badge bg-warning-subtle text-warning-emphasis ms-2">Nearby dates</span>
+                                                            {% elif w.tier == 5 %}
+                                                                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-2">Flexible</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+
                                         {# Facility pills (hotels only) #}
                                         {% if item.facilities %}
                                             <div class="sr-facility-row">
@@ -518,5 +562,38 @@
         </div>
     </div>
 </section>
+
+<style>
+/* ─── Available package windows ─── */
+.sr-windows {
+    background: #fdfbf8;
+    border: 1px solid #f0e6dc;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+.sr-window-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.06);
+    font-size: 0.82rem;
+}
+.sr-window-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.sr-window-row:first-child {
+    padding-top: 0;
+}
+.sr-window-dates {
+    color: #374151;
+}
+.sr-window-price {
+    color: #6b7280;
+}
+</style>
 
 {% endblock %}

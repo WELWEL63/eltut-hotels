@@ -12,7 +12,9 @@ v3 changes:
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import timedelta, date
+
+_td = timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -422,12 +424,183 @@ def _hotel_pricing_for_dates(
     }
 
 
+# ─── Package price-window matching ────────────────────────────────
+# Tiers (best to worst):
+#   1 = exact        — window contains the full customer range
+#   2 = contains_in  — window contains check_in but not check_out
+#   3 = contains_out — window contains check_out but not check_in
+#   4 = overlap      — window shares at least one day with the range
+#   5 = flexible     — NULL valid_from AND NULL valid_to
+#
+# Sort within a package: tier ASC, then adult_price ASC.
+
+def _package_price_tier(price_row, check_in, check_out):
+    """Return an int tier (1-5) or None if the row doesn't match."""
+    from datetime import date as _date
+
+    vf = price_row.valid_from
+    vt = price_row.valid_to
+
+    # Flexible: no dates on the row -> always matches (tier 5)
+    if vf is None and vt is None:
+        return 5
+
+    # Customer didn't give dates -> only flexible rows match
+    if check_in is None or check_out is None:
+        return None
+
+    lo = vf if vf is not None else _date.min
+    hi = vt if vt is not None else _date.max
+
+    if hi < check_in or lo > check_out:
+        return None
+
+    inside_in = lo <= check_in
+    inside_out = hi >= check_out
+
+    if inside_in and inside_out:
+        return 1
+    if inside_in and not inside_out:
+        return 2
+    if not inside_in and inside_out:
+        return 3
+    return 4
+
+
+def _package_price_options(package, check_in, check_out):
+    """
+    Return the ordered list of PackagePrice rows to display.
+
+    Rules (1A / 2A / 3B):
+      - Dates present + >=1 dated match: ALL matching dated rows,
+        best tier first then cheapest.
+      - Dates present + 0 dated match: cheapest flexible row only.
+      - No dates: cheapest flexible row only.
+    """
+    from models import PackagePrice  # local import avoids cycles
+
+    all_rows = list(db.session.scalars(
+        select(PackagePrice)
+        .where(PackagePrice.package_id == package.id)
+        .order_by(PackagePrice.adult_price.asc(), PackagePrice.id.asc())
+    ))
+    if not all_rows:
+        return []
+
+    has_dates = check_in is not None and check_out is not None
+
+    if has_dates:
+        dated_matches = []
+        flexible_rows = []
+        for pr in all_rows:
+            tier = _package_price_tier(pr, check_in, check_out)
+            if tier is None:
+                continue
+            if tier == 5:
+                flexible_rows.append((tier, pr))
+            else:
+                dated_matches.append((tier, pr))
+
+        if dated_matches:
+            dated_matches.sort(key=lambda t: (t[0], float(t[1].adult_price or 0)))
+            return [pr for _, pr in dated_matches]
+
+        if flexible_rows:
+            flexible_rows.sort(key=lambda t: float(t[1].adult_price or 0))
+            return [flexible_rows[0][1]]
+
+        return []
+
+    # No dates -> cheapest flexible only
+    flexible_only = [
+        pr for pr in all_rows
+        if pr.valid_from is None and pr.valid_to is None
+    ]
+    if flexible_only:
+        return [flexible_only[0]]
+
+    # Fallback: dated-only package -> cheapest of all
+    return [all_rows[0]]
+
+
+# X3 filter marker — added by patch_search_service_x3
+def _has_same_month_overlap(price_row, check_in, check_out):
+    """
+    Return True if the row's window shares a calendar month with the
+    customer's [check_in, check_out] range. Flexible rows (NULL dates)
+    return False — they don't count as "same-month".
+    """
+    vf = price_row.valid_from
+    vt = price_row.valid_to
+    if vf is None and vt is None:
+        return False
+    if check_in is None or check_out is None:
+        return False
+
+    # Clamp to same year check — allow any month in that calendar span
+    # Simplest robust test: does either end of the window fall inside
+    # the customer's month span, OR does the window fully span it?
+    start = min(vf, vt) if (vf is not None and vt is not None) else (vf or vt)
+    end = max(vf, vt) if (vf is not None and vt is not None) else (vf or vt)
+
+    # Build month-token sets for customer range
+    def _months(d1, d2):
+        out = set()
+        y, m = d1.year, d1.month
+        while (y, m) <= (d2.year, d2.month):
+            out.add((y, m))
+            m += 1
+            if m > 12:
+                m = 1
+                y += 1
+        return out
+
+    window_months = _months(start, end)
+    customer_months = _months(check_in, check_out)
+    return bool(window_months & customer_months)
+
+
+def _dated_windows_for(package, check_in, check_out):
+    """Return only the DATED price rows whose window overlaps check_in..check_out."""
+    from models import PackagePrice
+
+    rows = list(db.session.scalars(
+        select(PackagePrice)
+        .where(PackagePrice.package_id == package.id)
+        .where(PackagePrice.valid_from.is_not(None))
+        .order_by(PackagePrice.adult_price.asc(), PackagePrice.id.asc())
+    ))
+    if not rows:
+        return []
+
+    out = []
+    for pr in rows:
+        tier = _package_price_tier(pr, check_in, check_out)
+        if tier is not None and tier != 5:
+            out.append((tier, pr))
+    out.sort(key=lambda t: (t[0], float(t[1].adult_price or 0)))
+    return [pr for _, pr in out]
+
+
+# X3-SQL marker — same-month filter applied in SQL
 def _search_packages(
     *, destination_id: int | None, check_in: date | None, check_out: date | None,
     adults: int, children: int,
     page: int, per_page: int, sort: str,
     query_text: str | None, ignored: list[str],
 ) -> tuple[list[dict], int]:
+    """
+    Package search.
+
+    Date-aware behaviour (X3 rule):
+      - When BOTH check_in and check_out are provided, only packages
+        that have at least one PackagePrice row whose valid_from /
+        valid_to window overlaps the customer's range in the SAME
+        calendar month(s) are returned.
+      - Total count is computed AFTER this filter, so pagination is
+        correct.
+      - When no dates are given, all active packages are eligible.
+    """
     stmt = select(Package).where(Package.is_active.is_(True))
     if destination_id:
         stmt = stmt.where(Package.destination_id == destination_id)
@@ -435,10 +608,51 @@ def _search_packages(
         stmt = stmt.where(Package.name.ilike(f"%{query_text}%"))
     stmt = stmt.where(Package.capacity >= (adults + children))
 
+    has_dates = check_in is not None and check_out is not None
+
+    # ─── X3: SQL-level same-month filter ────────────────────────────
+    # We require a price row whose [valid_from, valid_to] window shares
+    # a calendar month with [check_in, check_out]. We do this in SQL
+    # so total + pagination are correct.
+    #
+    # Since "same month" is a semantic concept, we approximate with
+    # a range predicate that is exact for the common case: the window
+    # must overlap the customer's range widened to full calendar months.
+    if has_dates:
+        # Customer's month span as dates: 1st of check_in's month →
+        # last day of check_out's month.
+        month_start = check_in.replace(day=1)
+        # Last day of check_out's month:
+        if check_out.month == 12:
+            month_end = check_out.replace(
+                year=check_out.year + 1, month=1, day=1
+            ) - _td(days=1)
+        else:
+            month_end = check_out.replace(
+                month=check_out.month + 1, day=1
+            ) - _td(days=1)
+
+        # EXISTS (SELECT 1 FROM package_prices WHERE package_id = Package.id
+        #         AND valid_from IS NOT NULL AND valid_to IS NOT NULL
+        #         AND valid_from <= month_end AND valid_to >= month_start)
+        from sqlalchemy import exists
+        price_match = (
+            select(PackagePrice.id)
+            .where(PackagePrice.package_id == Package.id)
+            .where(PackagePrice.valid_from.is_not(None))
+            .where(PackagePrice.valid_to.is_not(None))
+            .where(PackagePrice.valid_from <= month_end)
+            .where(PackagePrice.valid_to >= month_start)
+            .exists()
+        )
+        stmt = stmt.where(price_match)
+
+    # ─── total AFTER filter ─────────────────────────────────────────
     total = int(db.session.scalar(
         select(func.count()).select_from(stmt.subquery())
     ) or 0)
 
+    # ─── Sorting ────────────────────────────────────────────────────
     if sort == "name":
         stmt = stmt.order_by(Package.name.asc())
     elif sort == "price_asc":
@@ -467,16 +681,29 @@ def _search_packages(
 
     items: list[dict] = []
     for p in rows:
+        # Capacity check (best-effort)
         try:
-            if check_in is not None and check_out is not None:
+            if has_dates:
                 remaining = availability_service.package_availability(p.id, check_in)
                 if remaining is not None and remaining < (adults + children):
                     continue
         except Exception as exc:
             log.debug("search availability skipped for package %s: %s", p.id, exc)
 
+        # Price windows (best-first). Falls back to cheapest flexible.
+        price_options = _package_price_options(p, check_in, check_out)
+        if not price_options:
+            continue
+
+        best_price_row = price_options[0]
+
         dest = db.session.get(Destination, p.destination_id) if p.destination_id else None
-        pricing = _package_pricing(package_id=p.id, adults=adults, children=children)
+        pricing = _package_pricing(
+            package_id=p.id,
+            adults=adults,
+            children=children,
+            price_row=best_price_row,
+        )
         image_url = _first_image_url(getattr(p, "images", None))
 
         items.append({
@@ -495,12 +722,28 @@ def _search_packages(
                 "duration_nights": p.duration_nights,
                 "package_type": p.package_type,
                 "code": p.code,
+                "windows": [
+                    {
+                        "id": w.id,
+                        "valid_from": w.valid_from.isoformat() if w.valid_from else None,
+                        "valid_to": w.valid_to.isoformat() if w.valid_to else None,
+                        "adult_price": float(w.adult_price) if w.adult_price is not None else None,
+                        "child_price": float(w.child_price) if w.child_price is not None else None,
+                        "currency": w.currency,
+                        "tier": _package_price_tier(w, check_in, check_out),
+                    }
+                    for w in price_options
+                ],
             },
             "price_child": (
                 float(pricing["child_price"])
                 if pricing["child_price"] is not None else None
             ),
-            "nights": p.duration_nights,
+            "nights": (
+                max(0, (check_out - check_in).days)
+                if (check_in is not None and check_out is not None)
+                else p.duration_nights
+            ),
             "price_per_night": None,
             "total_price": (
                 float(pricing["total"])
@@ -518,25 +761,24 @@ def _search_packages(
             "google_maps_url": p.google_maps_url,
             "description_snippet": (
                 (p.description or "")[:140].rsplit(" ", 1)[0] + "..."
-                if p.description and len(p.description) > 140
-                else (p.description or "")
-            ),
-            "facilities": [],
-            "room_count": None,
+            ) if p.description and len(p.description) > 140 else (p.description or ""),
         })
 
     return items, total
 
 
 def _package_pricing(
-    *, package_id: int, adults: int, children: int
+    *, package_id: int, adults: int, children: int, price_row=None
 ) -> dict[str, Any]:
-    row = db.session.scalars(
-        select(PackagePrice)
-        .where(PackagePrice.package_id == package_id)
-        .order_by(PackagePrice.id.asc())
-        .limit(1)
-    ).first()
+    if price_row is not None:
+        row = price_row
+    else:
+        row = db.session.scalars(
+            select(PackagePrice)
+            .where(PackagePrice.package_id == package_id)
+            .order_by(PackagePrice.id.asc())
+            .limit(1)
+        ).first()
     if row is None:
         return {"adult_price": None, "child_price": None, "total": None, "currency": "EUR"}
     try:

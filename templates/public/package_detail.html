@@ -40,7 +40,8 @@
                                     {% if destination %}
                                         <span><i class="bi bi-geo-alt"></i> {{ destination.name }}</span>
                                     {% endif %}
-                                    <span><i class="bi bi-moon-stars"></i> {{ package.duration_nights }} night{{ "" if package.duration_nights == 1 else "s" }}</span>
+                              {% set _nights = nights if (check_in and check_out) else package.duration_nights %}
+<span><i class="bi bi-moon-stars"></i> {{ _nights }} night{{ "" if _nights == 1 else "s" }}</span>
                                     <span><i class="bi bi-people"></i> up to {{ package.capacity }} guests</span>
                                     {% if avg_rating and review_count %}
                                         <span class="stars">
