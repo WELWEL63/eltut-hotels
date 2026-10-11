@@ -47,6 +47,14 @@ def _cheapest_per_destination(model, price_subquery, limit=6):
     DISTINCT destination, keeping the CHEAPEST one per destination.
 
     Uses PostgreSQL `DISTINCT ON (destination_id)` — 1 query, fast.
+
+    NOTE
+    ----
+    The subquery form `select(model, price_subquery).subquery()` flattens
+    `model` to its raw column values when wrapped and re-selected, so
+    `row[0]` ends up being the model's primary key (an int), not an ORM
+    instance. We therefore re-fetch real ORM objects by id afterwards so
+    relationship attributes (e.g. `.images`) are populated for templates.
     """
     # Subquery: DISTINCT ON picks the row with the minimum price per destination
     inner = (
@@ -65,14 +73,27 @@ def _cheapest_per_destination(model, price_subquery, limit=6):
 
     results = []
     for row in rows:
-        # SQLAlchemy returns the model instance in row[0] when we
-        # select(model, ...) inside the subquery
-        obj = row[0]
+        # row[0] is the model's PK (int), NOT an ORM instance
+        obj_id = row[0]
         price = row[-1]
         results.append({
-            "obj": obj,
+            "id": obj_id,
             "price": round(float(price), 2) if price is not None else None,
         })
+
+    # Re-fetch real ORM objects (with relationships like .images)
+    # by id, then attach them so the template can use .images, .name, etc.
+    if results:
+        ids = [r["id"] for r in results]
+        objs = {
+            m.id: m
+            for m in db.session.scalars(
+                select(model).where(model.id.in_(ids))
+            ).unique().all()
+        }
+        for r in results:
+            r["obj"] = objs.get(r["id"])
+
     return results
 
 
