@@ -24,7 +24,7 @@
     <div class="text-end">
         <div class="text-muted small">Total</div>
         <div class="fs-4 fw-bold">{{ booking.currency }} {{ "%.2f"|format(booking.total_amount or 0) }}</div>
-        <div class="text-muted small">Created {{ booking.created_at.strftime("%Y-%m-%d %H:%M") }}</div>
+        <div class="text-muted small">Created {{ booking.created_at | uk_datetime }}</div>
     </div>
 </div>
 
@@ -91,13 +91,13 @@
                 <dl class="row small mb-0">
                     {% if booking.activity_date %}
                         <dt class="col-5 text-muted">Activity date</dt>
-                        <dd class="col-7">{{ booking.activity_date.strftime("%Y-%m-%d") }}</dd>
+                        <dd class="col-7">{{ booking.activity_date | uk_date }}</dd>
                     {% endif %}
                     {% if booking.check_in_date %}
                         <dt class="col-5 text-muted">Check-in</dt>
-                        <dd class="col-7">{{ booking.check_in_date.strftime("%Y-%m-%d") }}</dd>
+                        <dd class="col-7">{{ booking.check_in_date | uk_date }}</dd>
                         <dt class="col-5 text-muted">Check-out</dt>
-                        <dd class="col-7">{{ booking.check_out_date.strftime("%Y-%m-%d") if booking.check_out_date else "—" }}</dd>
+                        <dd class="col-7">{{ booking.check_out_date | uk_date if booking.check_out_date else "—" }}</dd>
                     {% endif %}
                     <dt class="col-5 text-muted">Adults</dt>
                     <dd class="col-7">{{ booking.travellers_adults }}</dd>
@@ -218,7 +218,7 @@
                             {% endif %}
                         </td>
                         <td class="text-end">{{ p.currency }} {{ "%.2f"|format(p.amount or 0) }}</td>
-                        <td class="small">{{ p.processed_at.strftime("%Y-%m-%d %H:%M") if p.processed_at else "—" }}</td>
+                        <td class="small">{{ p.processed_at | uk_datetime if p.processed_at else "—" }}</td>
                     </tr>
                 {% else %}
                     <tr><td colspan="6" class="text-center text-muted py-3">No payments.</td></tr>
@@ -248,7 +248,7 @@
                             <div class="small text-muted">{{ h.reason }}</div>
                         {% endif %}
                     </div>
-                    <span class="small text-muted">{{ h.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="small text-muted">{{ h.created_at | uk_datetime }}</span>
                 </li>
             {% else %}
                 <li class="list-group-item text-muted">No history.</li>

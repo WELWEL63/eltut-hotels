@@ -1,0 +1,172 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ user.email }} — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a href="{{ url_for('admin.user_list') }}" class="text-decoration-none small">
+            <i class="bi bi-arrow-left"></i> All users
+        </a>
+        <h1 class="mb-1">{{ user.full_name }}</h1>
+        <div class="text-muted">{{ user.email }}</div>
+        <div class="mt-2">
+            {% if user.role == "admin" %}
+                <span class="badge bg-primary fs-6">Admin</span>
+            {% else %}
+                <span class="badge bg-secondary-subtle text-secondary-emphasis fs-6">Customer</span>
+            {% endif %}
+            {% if user.is_active %}
+                <span class="badge bg-success-subtle text-success-emphasis fs-6">Active</span>
+            {% else %}
+                <span class="badge bg-danger-subtle text-danger-emphasis fs-6">Inactive</span>
+            {% endif %}
+            {% if not user.is_verified %}
+                <span class="badge bg-warning-subtle text-warning-emphasis fs-6">Unverified</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="text-end">
+        <div class="text-muted small">User since</div>
+        <div class="fw-semibold">{{ user.created_at.strftime("%Y-%m-%d") if user.created_at else "—" }}</div>
+        <div class="text-muted small mt-2">Bookings</div>
+        <div class="fw-semibold">{{ bookings|length }}</div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><strong>Account status</strong></div>
+            <div class="card-body">
+                <p class="mb-3 small text-muted">
+                    Deactivating a user blocks sign-in but preserves their booking history.
+                </p>
+                {% if user.id == current_user.id %}
+                    <button class="btn btn-outline-secondary w-100" disabled>
+                        <i class="bi bi-lock"></i> Cannot modify your own account
+                    </button>
+                {% else %}
+                    <form method="POST"
+                          action="{{ url_for('admin.user_toggle', id=user.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn {% if user.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} w-100">
+                            {% if user.is_active %}
+                                <i class="bi bi-x-circle"></i> Deactivate account
+                            {% else %}
+                                <i class="bi bi-check-circle"></i> Reactivate account
+                            {% endif %}
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white"><strong>Role</strong></div>
+            <div class="card-body">
+                <p class="mb-3 small text-muted">
+                    Admins can access every part of the panel. Customers can only book and review.
+                    ({{ admin_count }} active admin{{ "" if admin_count == 1 else "s" }} in total.)
+                </p>
+                {% if user.id == current_user.id %}
+                    <button class="btn btn-outline-secondary w-100" disabled>
+                        <i class="bi bi-lock"></i> Cannot change your own role
+                    </button>
+                {% else %}
+                    <form method="POST"
+                          action="{{ url_for('admin.user_role', id=user.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if user.role == "admin" %}
+                            <input type="hidden" name="role" value="customer">
+                            <button class="btn btn-outline-warning w-100"
+                                    {% if admin_count <= 1 %}disabled{% endif %}>
+                                <i class="bi bi-arrow-down-circle"></i>
+                                Demote to customer
+                                {% if admin_count <= 1 %}(last admin){% endif %}
+                            </button>
+                        {% else %}
+                            <input type="hidden" name="role" value="admin">
+                            <button class="btn btn-outline-primary w-100">
+                                <i class="bi bi-arrow-up-circle"></i> Promote to admin
+                            </button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white"><strong>Contact</strong></div>
+    <div class="card-body">
+        <dl class="row small mb-0">
+            <dt class="col-3 text-muted">Email</dt>
+            <dd class="col-9">{{ user.email }}</dd>
+            <dt class="col-3 text-muted">Full name</dt>
+            <dd class="col-9">{{ user.full_name }}</dd>
+            <dt class="col-3 text-muted">Phone</dt>
+            <dd class="col-9">{{ user.phone or "—" }}</dd>
+            <dt class="col-3 text-muted">Verified</dt>
+            <dd class="col-9">{{ "Yes" if user.is_verified else "No" }}</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <strong>Recent bookings</strong>
+        <span class="text-muted small">showing {{ bookings|length }} of latest 50</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Product</th>
+                    <th>Dates</th>
+                    <th class="text-end">Total</th>
+                    <th>Status</th>
+                    <th class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in bookings %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('admin.booking_detail', reference=b.reference) }}"
+                               class="text-decoration-none">{{ b.reference }}</a>
+                        </td>
+                        <td>{{ b.product_type }} #{{ b.product_id }}</td>
+                        <td class="small">
+                            {% if b.activity_date %}
+                                {{ b.activity_date | uk_date }}
+                            {% elif b.check_in_date %}
+                                {{ b.check_in_date | uk_date }} → {{ b.check_out_date.strftime("%Y-%m-%d") if b.check_out_date else "?" }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-end">{{ b.currency }} {{ "%.2f"|format(b.total_amount or 0) }}</td>
+                        <td>
+                            {% set badge = {
+                                "pending":   "warning",
+                                "confirmed": "success",
+                                "cancelled": "danger",
+                                "completed": "secondary",
+                                "refunded":  "info"
+                            }.get(b.status, "secondary") %}
+                            <span class="badge bg-{{ badge }}">{{ b.status }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('admin.booking_detail', reference=b.reference) }}"
+                               class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No bookings yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

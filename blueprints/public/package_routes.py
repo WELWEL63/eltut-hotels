@@ -470,6 +470,54 @@ def package_detail(slug: str):
     options: list[dict] = []
     for opt in options_rows:
         flight = opt.flight
+        # ─── Validation: duration + notice + horizon + rate coverage ───
+        _today = _date.today()
+        _min_notice_date = _today + _td(days=7)
+        _max_horizon_date = _today + _td(days=365)
+        _max_checkout_date = _max_horizon_date + _td(days=int(package.duration_nights or 7))
+        
+        validation = {"ok": True, "code": "", "message": ""}
+        
+        if url_check_in and url_check_out:
+            expected_nights = int(package.duration_nights or 0)
+            if expected_nights and nights != expected_nights:
+                validation = {
+                    "ok": False,
+                    "code": "duration",
+                    "message": (
+                        f"This package is a {expected_nights}-night trip. "
+                        f"Your selected dates are {nights} nights. "
+                        f"Please adjust check-out."
+                    ),
+                }
+            elif check_in < _min_notice_date:
+                validation = {
+                    "ok": False,
+                    "code": "too_soon",
+                    "message": (
+                        "We need at least 7 days' notice to prepare this trip. "
+                        "Please choose a departure a week or more from today."
+                    ),
+                }
+            elif check_in > _max_horizon_date:
+                validation = {
+                    "ok": False,
+                    "code": "too_far",
+                    "message": (
+                        "Bookings are open up to 1 year in advance. "
+                        "Please choose a nearer date."
+                    ),
+                }
+            elif _pick_dynamic_price() is None:
+                validation = {
+                    "ok": False,
+                    "code": "no_rate",
+                    "message": (
+                        "No pricing available for those dates. "
+                        "Try dates within our booking calendar."
+                    ),
+                }
+        
         dynamic_price = _pick_dynamic_price()
         price = dynamic_price or opt.price
         airline = _resolve_airline(flight)
@@ -566,6 +614,10 @@ def package_detail(slug: str):
         check_in=check_in,
         check_out=check_out,
         nights=nights,
+        validation=validation,
+        min_notice_date=_min_notice_date,
+        max_horizon_date=_max_horizon_date,
+        max_checkout_date=_max_checkout_date,
         adults=adults,
         children=children,
         sidebar_pricing=sidebar_pricing,

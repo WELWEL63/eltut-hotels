@@ -35,6 +35,7 @@ from extensions import (
     login_manager,
     mail,
     migrate,
+    register_date_filters,
 )
 
 
@@ -264,6 +265,7 @@ def create_app(config_name: str | None = None) -> Flask:
     config_cls: type[BaseConfig] = CONFIG_MAP.get(env, CONFIG_MAP["default"])
 
     app = Flask(__name__, instance_relative_config=False)
+    register_date_filters(app)
     app.config.from_object(config_cls)
 
     # ─── Bind extensions ───────────────────────────────────────────

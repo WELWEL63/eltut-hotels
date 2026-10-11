@@ -34,7 +34,7 @@
                             {{ e.type }}
                         </span>
                         <span class="small text-muted">
-                            {{ e.created_at.strftime("%Y-%m-%d %H:%M") if e.created_at else "—" }}
+                            {{ e.created_at | uk_datetime if e.created_at else "—" }}
                         </span>
                     </div>
                     <div class="card-body">

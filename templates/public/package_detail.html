@@ -2,6 +2,7 @@
 {% block title %}{{ package.name }} — {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
+{% set _has_dates = request.args.get('check_in') and request.args.get('check_out') %}
 
 {# ═══════════════════════════════════════════════════════════════════
    PACKAGE DETAIL — hero + gallery + options + itinerary + reviews
@@ -168,6 +169,67 @@
                     </div>
                 {% endif %}
 
+
+{# ─── Trip picker (dates + party) ─── #}
+<div class="section-header icon-ink mt-4" id="trip-picker-section">
+    <span class="icon-box"><i class="bi bi-calendar-range"></i></span>
+    <span class="title">
+        Choose your trip
+        <span class="subtitle">Prices update once dates are selected</span>
+    </span>
+</div>
+<form method="get" class="card shadow-sm mb-4 border-0" id="trip-picker">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="pk-check-in">Check-in</label>
+                <input type="date" id="pk-check-in" name="check_in" class="form-control"
+                       min="{{ min_notice_date.isoformat() }}"
+                       max="{{ max_horizon_date.isoformat() }}"
+                       value="{{ check_in.isoformat() if _has_dates else '' }}" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1" for="pk-check-out">Check-out</label>
+                <input type="date" id="pk-check-out" name="check_out" class="form-control"
+                       min="{{ min_notice_date.isoformat() }}"
+                       max="{{ max_checkout_date.isoformat() }}"
+                       value="{{ check_out.isoformat() if _has_dates else '' }}" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1" for="pk-adults">Adults</label>
+                <input type="number" id="pk-adults" name="adults" min="1" max="8"
+                       class="form-control" value="{{ adults if _has_dates else 2 }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1" for="pk-children">Children</label>
+                <input type="number" id="pk-children" name="children" min="0" max="8"
+                       class="form-control" value="{{ children if _has_dates else 0 }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-eltut-primary w-100">
+                    <i class="bi bi-search"></i> Check price
+                </button>
+            </div>
+        </div>
+        {% if not _has_dates or not validation.ok %}
+            <div class="small text-muted mt-3">
+                <i class="bi bi-info-circle"></i>
+                Select your dates and party to see live package prices.
+            </div>
+        {% endif %}
+    </div>
+</form>
+
+{% if validation and not validation.ok %}
+<div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+    <div>
+        <strong>Can't book those dates.</strong><br>
+        {{ validation.message }}
+    </div>
+</div>
+{% endif %}
+
                 {# ─── Departure options — radio-selectable ─── #}
                 {% if options %}
                     <div class="section-header icon-nile mt-2" id="departures">
@@ -248,7 +310,13 @@
                                             </div>
                                         {% endif %}
 
-                                        {% if opt.price_adult is not none %}
+                                        {% if not _has_dates or not validation.ok %}
+                                            <div class="mt-auto pt-3 border-top">
+                                                <div class="text-muted small mb-3">
+                                                    <i class="bi bi-calendar3"></i> Select dates to see price
+                                                </div>
+                                            </div>
+                                        {% elif opt.price_adult is not none %}
                                             <div class="mt-auto pt-3 border-top">
                                                 <div class="d-flex align-items-baseline gap-2 mb-2">
                                                     <span class="price-pill">
@@ -644,7 +712,7 @@
                     {% endif %}
 
                     {# ─── Dates + party + price breakdown ─── #}
-                    {% if sidebar_pricing and sidebar_pricing.total is not none %}
+                    {% if _has_dates and validation.ok and sidebar_pricing and sidebar_pricing.total is not none %}
                         <div class="card-body border-bottom">
                             {% if check_in and check_out %}
                                 <div class="small mb-1">
@@ -703,6 +771,14 @@
                                 </div>
                             </div>
                         </div>
+                    {% elif not _has_dates %}
+                        <div class="card-body border-bottom bg-light">
+                            <div class="small text-muted mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Enter your <a href="#trip-picker-section">dates &amp; travellers</a>
+                                to see live prices.
+                            </div>
+                        </div>
                     {% endif %}
 
                     <div class="card-body">
@@ -710,7 +786,11 @@
                             <i class="bi bi-calendar-check"></i> Ready to book?
                         </h5>
 
-                        {% if options %}
+                        {% if not _has_dates or not validation.ok %}
+                            <button class="btn btn-outline-secondary w-100 mb-2" disabled>
+                                <i class="bi bi-calendar3"></i> {{ 'Pick dates first' if not _has_dates else 'Adjust dates to continue' }}
+                            </button>
+                        {% elif options %}
                             <a href="#" id="book-departure-btn"
                                class="btn btn-eltut-primary w-100 mb-2">
                                 <i class="bi bi-check-circle"></i> Book this departure

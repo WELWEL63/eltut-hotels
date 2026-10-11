@@ -27,7 +27,7 @@
     </div>
     <div class="text-end">
         <div class="text-muted small">User since</div>
-        <div class="fw-semibold">{{ user.created_at.strftime("%Y-%m-%d") if user.created_at else "—" }}</div>
+        <div class="fw-semibold">{{ user.created_at | uk_date if user.created_at else "—" }}</div>
         <div class="text-muted small mt-2">Bookings</div>
         <div class="fw-semibold">{{ bookings|length }}</div>
     </div>
@@ -141,9 +141,9 @@
                         <td>{{ b.product_type }} #{{ b.product_id }}</td>
                         <td class="small">
                             {% if b.activity_date %}
-                                {{ b.activity_date.strftime("%Y-%m-%d") }}
+                                {{ b.activity_date | uk_date }}
                             {% elif b.check_in_date %}
-                                {{ b.check_in_date.strftime("%Y-%m-%d") }} → {{ b.check_out_date.strftime("%Y-%m-%d") if b.check_out_date else "?" }}
+                                {{ b.check_in_date | uk_date }} → {{ b.check_out_date | uk_date if b.check_out_date else "?" }}
                             {% else %}—{% endif %}
                         </td>
                         <td class="text-end">{{ b.currency }} {{ "%.2f"|format(b.total_amount or 0) }}</td>

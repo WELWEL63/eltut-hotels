@@ -1,10 +1,10 @@
 """
 extensions.py
-─────────────
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Uninitialised extension singletons for eltut-tours-platform.
 
 Each extension is created here *without* an app attached. The factory in
-app.py binds them via `init_app(app)` — this is the standard Flask
+app.py binds them via `init_app(app)` â€” this is the standard Flask
 application-factory pattern and it keeps the app testable (same extension
 objects, different configs per environment).
 
@@ -26,16 +26,16 @@ from pymongo import MongoClient
 from pymongo.database import Database
 
 
-# ─── SQL (Neon Postgres) ───────────────────────────────────────────
+# â”€â”€â”€ SQL (Neon Postgres) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 db: SQLAlchemy = SQLAlchemy()
 migrate: Migrate = Migrate()
 
 
-# ─── Auth & security ───────────────────────────────────────────────
+# â”€â”€â”€ Auth & security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 login_manager: LoginManager = LoginManager()
 csrf: CSRFProtect = CSRFProtect()
 
-# Rate limiter — storage URI can be overridden via init_app in the factory.
+# Rate limiter â€” storage URI can be overridden via init_app in the factory.
 limiter: Limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"],
@@ -43,11 +43,11 @@ limiter: Limiter = Limiter(
 )
 
 
-# ─── Mail (IONOS SMTP) ─────────────────────────────────────────────
+# â”€â”€â”€ Mail (IONOS SMTP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 mail: Mail = Mail()
 
 
-# ─── NoSQL (MongoDB Atlas) ─────────────────────────────────────────
+# â”€â”€â”€ NoSQL (MongoDB Atlas) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # The MongoClient is created lazily inside init_mongo() so that simply
 # importing this module never opens a socket (important for tests).
 _mongo_client: MongoClient[Any] | None = None
@@ -74,7 +74,7 @@ def init_mongo(uri: str, db_name: str) -> Database[Any] | None:
     """
     Create (or reuse) the shared MongoDB client/database handle.
 
-    Called once by the app factory after config is loaded. Idempotent —
+    Called once by the app factory after config is loaded. Idempotent â€”
     safe to call multiple times with the same URI (e.g. pytest re-imports).
 
     Returns None (and does not raise) if the URI is still a placeholder,
@@ -95,7 +95,7 @@ def init_mongo(uri: str, db_name: str) -> Database[Any] | None:
     global _mongo_client, _mongo_db
 
     if _mongo_uri_is_placeholder(uri):
-        # Don't even attempt DNS — the URI is a template. Boot anyway.
+        # Don't even attempt DNS â€” the URI is a template. Boot anyway.
         return None
 
     if _mongo_client is None:
@@ -121,3 +121,55 @@ def get_mongo_db() -> Database[Any]:
             "or call extensions.init_mongo(uri, db_name) manually."
         )
     return _mongo_db
+
+
+# ─── UK date filters (registered from app.py via register_date_filters) ───
+_UK_DATE_FMT = "%d %b %Y"
+_UK_DATETIME_FMT = "%d %b %Y, %H:%M"
+_UK_DATE_LONG_FMT = "%d %B %Y"
+_UK_DATE_SHORT_FMT = "%d/%m/%Y"
+_UK_DATE_WEEKDAY_FMT = "%a %d %b %Y"
+
+
+def _safe_strftime(value: Any, fmt: str, default: str = "") -> str:
+    """Format any date/datetime as a UK string; never raise."""
+    if value is None:
+        return default
+    try:
+        return value.strftime(fmt)
+    except Exception:
+        return default
+
+
+def uk_date(value: Any, default: str = "") -> str:
+    """10 Nov 2026"""
+    return _safe_strftime(value, _UK_DATE_FMT, default)
+
+
+def uk_datetime(value: Any, default: str = "") -> str:
+    """10 Nov 2026, 14:30"""
+    return _safe_strftime(value, _UK_DATETIME_FMT, default)
+
+
+def uk_date_long(value: Any, default: str = "") -> str:
+    """10 November 2026"""
+    return _safe_strftime(value, _UK_DATE_LONG_FMT, default)
+
+
+def uk_date_short(value: Any, default: str = "") -> str:
+    """10/11/2026"""
+    return _safe_strftime(value, _UK_DATE_SHORT_FMT, default)
+
+
+def uk_date_weekday(value: Any, default: str = "") -> str:
+    """Tue 10 Nov 2026"""
+    return _safe_strftime(value, _UK_DATE_WEEKDAY_FMT, default)
+
+
+def register_date_filters(app) -> None:
+    """Register all UK date filters on the app's Jinja environment."""
+    app.jinja_env.filters["uk_date"] = uk_date
+    app.jinja_env.filters["uk_datetime"] = uk_datetime
+    app.jinja_env.filters["uk_date_long"] = uk_date_long
+    app.jinja_env.filters["uk_date_short"] = uk_date_short
+    app.jinja_env.filters["uk_date_weekday"] = uk_date_weekday

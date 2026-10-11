@@ -82,7 +82,7 @@
                             </a>
                             {% if q.sent_at %}
                                 <div class="small text-muted">
-                                    sent {{ q.sent_at.strftime("%Y-%m-%d") }}
+                                    sent {{ q.sent_at | uk_date }}
                                 </div>
                             {% endif %}
                         </td>
@@ -117,7 +117,7 @@
                         </td>
                         <td class="small">
                             {% if q.valid_until %}
-                                {{ q.valid_until.strftime("%Y-%m-%d") }}
+                                {{ q.valid_until | uk_date }}
                                 {% if q.status == "sent" and q.valid_until < today() %}
                                     <span class="badge bg-warning-subtle text-warning-emphasis ms-1">
                                         expired

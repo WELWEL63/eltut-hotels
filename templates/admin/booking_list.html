@@ -91,9 +91,9 @@
                         </td>
                         <td class="small">
                             {% if b.activity_date %}
-                                {{ b.activity_date.strftime("%Y-%m-%d") }}
+                                {{ b.activity_date | uk_date }}
                             {% elif b.check_in_date and b.check_out_date %}
-                                {{ b.check_in_date.strftime("%Y-%m-%d") }} → {{ b.check_out_date.strftime("%Y-%m-%d") }}
+                                {{ b.check_in_date | uk_date }} → {{ b.check_out_date | uk_date }}
                             {% else %}
                                 <span class="text-muted">—</span>
                             {% endif %}

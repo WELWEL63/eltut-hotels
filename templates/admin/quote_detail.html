@@ -64,7 +64,7 @@
         </div>
         {% if quote.valid_until %}
             <div class="text-muted small">
-                valid until {{ quote.valid_until.strftime("%Y-%m-%d") }}
+                valid until {{ quote.valid_until | uk_date }}
             </div>
         {% endif %}
     </div>
@@ -304,7 +304,7 @@
         <div class="card-header bg-white">
             <strong>Sent to customer</strong>
             {% if quote.sent_at %}
-                <span class="text-muted small">— {{ quote.sent_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                <span class="text-muted small">— {{ quote.sent_at | uk_datetime }}</span>
             {% endif %}
         </div>
         <div class="card-body">
@@ -332,7 +332,7 @@
             <div class="small text-muted">
                 <i class="bi bi-clock"></i>
                 {% if quote.valid_until %}
-                    Expires {{ quote.valid_until.strftime("%Y-%m-%d") }}
+                    Expires {{ quote.valid_until | uk_date }}
                     {% if quote.valid_until < today() %}
                         <span class="badge bg-warning-subtle text-warning-emphasis">overdue</span>
                     {% endif %}
@@ -364,7 +364,7 @@
                 <p class="mb-2">
                     <i class="bi bi-check-circle text-success"></i>
                     Customer <strong>accepted</strong> this quote
-                    {% if quote.accepted_at %}on {{ quote.accepted_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}.
+                    {% if quote.accepted_at %}on {{ quote.accepted_at | uk_datetime }}{% endif %}.
                 </p>
                 {% if quote.accepted_booking_id %}
                     <a href="{{ url_for('admin.booking_detail', reference='REF-' + quote.accepted_booking_id|string) }}"
@@ -376,7 +376,7 @@
                 <p class="mb-0">
                     <i class="bi bi-x-circle text-danger"></i>
                     Customer <strong>declined</strong> this quote
-                    {% if quote.declined_at %}on {{ quote.declined_at.strftime("%Y-%m-%d %H:%M") }}{% endif %}.
+                    {% if quote.declined_at %}on {{ quote.declined_at | uk_datetime }}{% endif %}.
                 </p>
             {% elif quote.status == "expired" %}
                 <p class="mb-0">
@@ -410,42 +410,42 @@
                 <i class="bi bi-file-earmark-plus text-muted"></i>
                 Draft created
                 {% if quote.created_at %}
-                    <span class="text-muted">— {{ quote.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="text-muted">— {{ quote.created_at | uk_datetime }}</span>
                 {% endif %}
             </li>
             {% if quote.sent_at %}
                 <li class="mb-2">
                     <i class="bi bi-send text-primary"></i>
                     Sent to {{ quote.customer_email }}
-                    <span class="text-muted">— {{ quote.sent_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="text-muted">— {{ quote.sent_at | uk_datetime }}</span>
                 </li>
             {% endif %}
             {% if quote.accepted_at %}
                 <li class="mb-2">
                     <i class="bi bi-check-circle text-success"></i>
                     Accepted
-                    <span class="text-muted">— {{ quote.accepted_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="text-muted">— {{ quote.accepted_at | uk_datetime }}</span>
                 </li>
             {% endif %}
             {% if quote.declined_at %}
                 <li class="mb-2">
                     <i class="bi bi-x-circle text-danger"></i>
                     Declined
-                    <span class="text-muted">— {{ quote.declined_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="text-muted">— {{ quote.declined_at | uk_datetime }}</span>
                 </li>
             {% endif %}
             {% if quote.expired_at %}
                 <li class="mb-2">
                     <i class="bi bi-hourglass-split text-warning"></i>
                     Expired
-                    <span class="text-muted">— {{ quote.expired_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="text-muted">— {{ quote.expired_at | uk_datetime }}</span>
                 </li>
             {% endif %}
             {% if quote.cancelled_at %}
                 <li class="mb-2">
                     <i class="bi bi-slash-circle"></i>
                     Cancelled
-                    <span class="text-muted">— {{ quote.cancelled_at.strftime("%Y-%m-%d %H:%M") }}</span>
+                    <span class="text-muted">— {{ quote.cancelled_at | uk_datetime }}</span>
                 </li>
             {% endif %}
         </ul>

@@ -40,7 +40,7 @@
                         <i class="bi bi-check-circle"></i>
                         <strong>You accepted this quote.</strong>
                         {% if quote.accepted_at %}
-                            &middot; {{ quote.accepted_at.strftime("%Y-%m-%d %H:%M") }}
+                            &middot; {{ quote.accepted_at | uk_datetime }}
                         {% endif %}
                         <br>
                         A confirmation email is on its way. If you need to make
@@ -164,7 +164,7 @@
                             <p class="small text-muted mb-0">
                                 <i class="bi bi-calendar-event"></i>
                                 This price is valid until
-                                <strong>{{ quote.valid_until.strftime("%d %B %Y") }}</strong>.
+                                <strong>{{ quote.valid_until | uk_date_long }}</strong>.
                             </p>
                         {% endif %}
 
