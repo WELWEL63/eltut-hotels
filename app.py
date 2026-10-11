@@ -88,7 +88,66 @@ def _register_jinja_filters(app: Flask) -> None:
             return ""
         words = text.split()
         return " ".join(words[:count]) + ("…" if len(words) > count else "")
+    @app.template_filter("uk_date")
+    def uk_date_filter(value: Any) -> str:
+        """
+        Format a date/datetime/ISO-string as '11 Oct 2026'.
 
+        Returns '' for None, and falls back to str(value) for
+        unparseable input (so templates never crash on bad data).
+        """
+        if value is None:
+            return ""
+        try:
+            # datetime with time component
+            from datetime import date, datetime
+            if isinstance(value, datetime):
+                return value.strftime("%d %b %Y")
+            if isinstance(value, date):
+                return value.strftime("%d %b %Y")
+            # ISO string
+            if isinstance(value, str):
+                s = value.strip()
+                if not s:
+                    return ""
+                # Try full ISO datetime first, then date-only
+                for fmt in (None, "%Y-%m-%d"):
+                    try:
+                        if fmt is None:
+                            dt = datetime.fromisoformat(s.replace("Z", ""))
+                        else:
+                            dt = datetime.strptime(s, fmt)
+                        return dt.strftime("%d %b %Y")
+                    except (ValueError, TypeError):
+                        continue
+        except Exception:
+            pass
+        return str(value)
+
+    @app.template_filter("uk_range")
+    def uk_range_filter(value: Any) -> str:
+        """
+        Format a (start, end) tuple/pair as '11 Oct 2026 → 18 Oct 2026'.
+
+        Accepts a tuple, list, or dict with 'start'/'end' keys.
+        """
+        if value is None:
+            return ""
+        try:
+            if isinstance(value, dict):
+                start = value.get("start")
+                end = value.get("end")
+            else:
+                start, end = value  # tuple/list of 2
+
+            start_s = uk_date_filter(start)
+            end_s = uk_date_filter(end)
+
+            if start_s and end_s:
+                return f"{start_s} → {end_s}"
+            return start_s or end_s or ""
+        except Exception:
+            return ""
 
 def _register_error_handlers(app: Flask) -> None:
     """Custom 404/500 handlers — fall back to plain text if templates missing."""

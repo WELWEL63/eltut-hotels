@@ -43,6 +43,7 @@ from models import (
     Destination,
     Hotel,
     HotelExclusion,
+    HotelFacility,
     HotelFAQ,
     HotelImage,
     HotelInclusion,
@@ -160,6 +161,18 @@ def _apply_form_to_hotel(hotel: Hotel):
     hotel.neighborhood_info = (f.get("neighborhood_info") or "").strip() or None
     hotel.google_maps_url = (f.get("google_maps_url") or "").strip() or None
 
+    # Location coordinates
+    lat_raw = (f.get("latitude") or "").strip()
+    try:
+        hotel.latitude = float(lat_raw) if lat_raw else None
+    except (TypeError, ValueError):
+        hotel.latitude = None
+    lng_raw = (f.get("longitude") or "").strip()
+    try:
+        hotel.longitude = float(lng_raw) if lng_raw else None
+    except (TypeError, ValueError):
+        hotel.longitude = None
+
 
 # ─── Hotel create / edit ───────────────────────────────────────────
 @admin_bp.route("/hotels/new", methods=["GET", "POST"])
@@ -247,6 +260,11 @@ def hotel_edit(hotel_id: int):
         .where(HotelTip.hotel_id == hotel.id)
         .order_by(HotelTip.sort_order, HotelTip.id)
     ))
+    facilities = list(db.session.scalars(
+        select(HotelFacility)
+        .where(HotelFacility.hotel_id == hotel.id)
+        .order_by(HotelFacility.id)
+    ))
 
     return render_template(
         "admin/hotel_form.html",
@@ -258,6 +276,7 @@ def hotel_edit(hotel_id: int):
         exclusions=exclusions,
         faqs=faqs,
         tips=tips,
+        facilities=facilities,
         meal_plans=VALID_ROOM_MEAL_PLANS,
     )
 
@@ -575,3 +594,48 @@ def hotel_child_delete(hotel_id: int, child_type: str, row_id: int):
     _log("delete", child_type, row_id)
     flash(f"{cfg['label']} deleted.", "success")
     return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))
+
+
+# ─── Hotel facilities ──────────────────────────────────────────────
+@admin_bp.route("/hotels/<int:hotel_id>/facilities/new", methods=["POST"])
+@admin_required
+def hotel_facility_new(hotel_id: int):
+    """Add one facility to a hotel."""
+    hotel = db.session.get(Hotel, hotel_id)
+    if hotel is None:
+        abort(404)
+    name = (request.form.get("name") or "").strip()
+    if not name:
+        flash("Facility name is required.", "danger")
+        return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))
+    qty_raw = (request.form.get("quantity") or "").strip()
+    try:
+        qty_val = int(qty_raw) if qty_raw else None
+    except (TypeError, ValueError):
+        qty_val = None
+    db.session.add(HotelFacility(
+        hotel_id=hotel.id,
+        name=name,
+        type=(request.form.get("type") or "").strip() or None,
+        quantity=qty_val,
+        notes=(request.form.get("notes") or "").strip() or None,
+    ))
+    db.session.commit()
+    _log("create", "facility", hotel.id)
+    flash("Facility added.", "success")
+    return redirect(url_for("admin.hotel_edit", hotel_id=hotel.id))
+
+
+@admin_bp.route("/hotel-facilities/<int:facility_id>/delete", methods=["POST"])
+@admin_required
+def hotel_facility_delete(facility_id: int):
+    """Delete a hotel facility."""
+    fac = db.session.get(HotelFacility, facility_id)
+    if fac is None:
+        abort(404)
+    hotel_id = fac.hotel_id
+    db.session.delete(fac)
+    db.session.commit()
+    _log("delete", "facility", facility_id)
+    flash("Facility deleted.", "success")
+    return redirect(url_for("admin.hotel_edit", hotel_id=hotel_id))

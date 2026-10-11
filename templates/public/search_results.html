@@ -231,15 +231,15 @@
                             traveller{{ "" if result['filters'].party_size == 1 else "s" }}
                         </span>
                     {% endif %}
-                    {% if result['filters'].check_in and result['filters'].check_out %}
+                                        {% if result['filters'].check_in and result['filters'].check_out %}
                         <span class="sr-summary-item">
                             <i class="bi bi-calendar-range"></i>
-                            {{ result['filters'].check_in }} → {{ result['filters'].check_out }}
+                            {{ result['filters'].check_in | uk_date }} → {{ result['filters'].check_out | uk_date }}
                         </span>
                     {% elif result['filters'].activity_date %}
                         <span class="sr-summary-item">
                             <i class="bi bi-calendar-event"></i>
-                            {{ result['filters'].activity_date }}
+                            {{ result['filters'].activity_date | uk_date }}
                         </span>
                     {% endif %}
                 </div>
@@ -349,10 +349,10 @@
                                                     <div class="sr-window-row">
                                                         <div class="sr-window-dates">
                                                             <i class="bi bi-calendar-range"></i>
-                                                            {% if w.valid_from and w.valid_to %}
-                                                                <strong>{{ w.valid_from }}</strong>
+                                                                                                                        {% if w.valid_from and w.valid_to %}
+                                                                <strong>{{ w.valid_from | uk_date }}</strong>
                                                                 <span class="text-muted mx-1">→</span>
-                                                                <strong>{{ w.valid_to }}</strong>
+                                                                <strong>{{ w.valid_to | uk_date }}</strong>
                                                             {% else %}
                                                                 <em class="text-muted">Flexible dates</em>
                                                             {% endif %}
@@ -414,15 +414,15 @@
                                         {# ── PRICE PANEL ── #}
                                         {% if item.total_price is not none and item.total_price > 0 %}
                                             <div class="sr-price-panel">
-                                                {% if item.check_in and item.check_out %}
+                                                                                                {% if item.check_in and item.check_out %}
                                                     <div class="sr-price-dates">
                                                         <i class="bi bi-calendar-range"></i>
-                                                        {{ item.check_in }} → {{ item.check_out }}
+                                                        {{ item.check_in | uk_date }} → {{ item.check_out | uk_date }}
                                                     </div>
                                                 {% elif item.check_in %}
                                                     <div class="sr-price-dates">
                                                         <i class="bi bi-calendar-event"></i>
-                                                        {{ item.check_in }}
+                                                        {{ item.check_in | uk_date }}
                                                     </div>
                                                 {% endif %}
 
