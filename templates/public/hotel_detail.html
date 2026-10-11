@@ -2,6 +2,7 @@
 {% block title %}{{ hotel.name }} — {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
+{% set _has_dates = request.args.get('check_in') and request.args.get('check_out') %}
 <section class="py-4">
     <div class="container">
         <nav aria-label="breadcrumb">
@@ -213,18 +214,70 @@
                     </div>
                 {% endif %}
 
+                {# ─── Stay picker (dates + party) ─── #}
+                <div class="section-header icon-ink mt-4" id="stay-picker-section">
+                    <span class="icon-box"><i class="bi bi-calendar-range"></i></span>
+                    <span class="title">
+                        Choose your stay
+                        <span class="subtitle">Prices update once dates are selected</span>
+                    </span>
+                </div>
+                <form method="get" class="card shadow-sm mb-4 border-0" id="stay-picker">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1" for="pk-check-in">Check-in</label>
+                                <input type="date" id="pk-check-in" name="check_in" class="form-control"
+                                       value="{{ check_in.isoformat() if _has_dates else '' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1" for="pk-check-out">Check-out</label>
+                                <input type="date" id="pk-check-out" name="check_out" class="form-control"
+                                       value="{{ check_out.isoformat() if _has_dates else '' }}" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1" for="pk-adults">Adults</label>
+                                <input type="number" id="pk-adults" name="adults" min="1" max="8"
+                                       class="form-control" value="{{ adults if _has_dates else 2 }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1" for="pk-children">Children</label>
+                                <input type="number" id="pk-children" name="children" min="0" max="8"
+                                       class="form-control" value="{{ children if _has_dates else 0 }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-eltut-primary w-100">
+                                    <i class="bi bi-search"></i> Check price
+                                </button>
+                            </div>
+                        </div>
+                        {% if not _has_dates %}
+                            <div class="small text-muted mt-3">
+                                <i class="bi bi-info-circle"></i>
+                                Select your dates and party to see live room prices.
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+
                 {# ─── Rooms & rates ─── #}
                 {% if rooms_with_availability %}
                     <div class="section-header icon-ink" id="rooms-section">
             <span class="icon-box"><i class="bi bi-door-open"></i></span>
             <span class="title">Rooms &amp; rates</span>
         </div>
-                    <p class="text-muted small">
-                        Showing availability for
-                        {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}
-                        &middot; {{ nights }} night{{ "" if nights == 1 else "s" }}
-                        &middot; {{ adults }} adult{{ "" if adults == 1 else "s" }}{% if children %} + {{ children }} child{{ "" if children == 1 else "ren" }}{% endif %}.
-                    </p>
+                    {% if _has_dates %}
+                        <p class="text-muted small">
+                            Showing availability for
+                            {{ check_in.strftime("%d %b %Y") }} &rarr; {{ check_out.strftime("%d %b %Y") }}
+                            &middot; {{ nights }} night{{ "" if nights == 1 else "s" }}
+                            &middot; {{ adults }} adult{{ "" if adults == 1 else "s" }}{% if children %} + {{ children }} child{{ "" if children == 1 else "ren" }}{% endif %}.
+                        </p>
+                    {% else %}
+                        <p class="text-muted small">
+                            <i class="bi bi-calendar3"></i> Select your dates above to see prices and availability.
+                        </p>
+                    {% endif %}
 
                     {% for item in rooms_with_availability %}
                         {% set room = item.room %}
@@ -232,9 +285,9 @@
                              id="room-card-{{ room.id }}"
                              data-room-id="{{ room.id }}"
                              data-room-name="{{ room.type }}"
-                             data-total="{{ '%.2f'|format(item.pricing.total) if item.pricing else '0.00' }}"
-                             data-per-night="{{ '%.2f'|format(item.pricing.per_night) if item.pricing else '0.00' }}"
-                             data-booking-url="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id, check_in=check_in.isoformat(), check_out=check_out.isoformat(), adults=adults, children=children) }}">
+                             data-total="{{ '%.2f'|format(item.pricing.total) if (_has_dates and item.pricing) else '0.00' }}"
+                             data-per-night="{{ '%.2f'|format(item.pricing.per_night) if (_has_dates and item.pricing) else '0.00' }}"
+                             {% if _has_dates %}data-booking-url="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id, check_in=check_in.isoformat(), check_out=check_out.isoformat(), adults=adults, children=children) }}"{% endif %}>
                             <div class="card-body">
                                 <div class="row align-items-center">
                                     <div class="col-md-5">
@@ -249,7 +302,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-3 text-md-end">
-                                        {% if item.remaining is not none %}
+                                        {% if _has_dates and item.remaining is not none %}
                                             {% if item.remaining > 0 %}
                                                 <span class="badge bg-success-subtle text-success-emphasis">
                                                     {{ item.remaining }} rooms left
@@ -262,7 +315,7 @@
                                         {% endif %}
                                     </div>
                                     <div class="col-md-4 text-md-end">
-                                        {% if item.pricing %}
+                                        {% if _has_dates and item.pricing %}
                                             <div class="fw-bold mb-1">
                                                 &euro;{{ "%.2f"|format(item.pricing.total) }}
                                                 <small class="text-muted fw-normal">total</small>
@@ -271,20 +324,29 @@
                                                 &euro;{{ "%.2f"|format(item.pricing.per_night) }} / night
                                                 &middot; {{ nights }} night{{ "" if nights == 1 else "s" }}
                                             </div>
-                                        {% else %}
+                                        {% elif _has_dates %}
                                             <div class="fw-bold mb-2">
                                                 &euro;{{ "%.2f"|format(room.base_price_per_night) }}
                                                 <small class="text-muted fw-normal">/ night</small>
                                             </div>
+                                        {% else %}
+                                            <div class="small text-muted mb-2">
+                                                <i class="bi bi-calendar3"></i>
+                                                Select dates to see price
+                                            </div>
                                         {% endif %}
-                                        {% if item.remaining is none or item.remaining > 0 %}
+                                        {% if _has_dates and (item.remaining is none or item.remaining > 0) %}
                                             <button type="button"
                                                     class="btn btn-sm btn-eltut-primary select-room-btn"
                                                     data-room-id="{{ room.id }}">
                                                 Select
                                             </button>
-                                        {% else %}
+                                        {% elif _has_dates %}
                                             <button class="btn btn-sm btn-secondary" disabled>Sold out</button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                Pick dates
+                                            </button>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -330,6 +392,7 @@
                             </div>
 
                             {# ─── Booking panel (hidden by default, shown on Select) ─── #}
+                            {% if _has_dates %}
                             <div class="booking-panel collapse"
                                  id="booking-panel-{{ room.id }}">
                                 <div class="card-body border-top"
@@ -381,6 +444,7 @@
                                     </div>
                                 </div>
                             </div>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 {% else %}
@@ -570,7 +634,7 @@
             <aside class="col-lg-4">
                 <div class="card shadow-sm sticky-top" style="top: 1rem;">
 
-                    {% if cheapest_total is not none %}
+                    {% if _has_dates and cheapest_total is not none %}
                         <div class="card-body border-bottom">
                             <div class="text-muted small mb-1">
                                 <i class="bi bi-calendar-range"></i>
@@ -584,16 +648,24 @@
                                     + {{ children }} child{{ "" if children == 1 else "ren" }}
                                 {% endif %}
                             </div>
-                            <div class="text-muted small">From</div>
+                            <div class="text-muted small" id="sidebar-price-label">From</div>
                             <div class="fs-3 fw-bold text-eltut-terracotta">
-                                &euro;{{ "%.2f"|format(cheapest_total) }}
+                                &euro;<span id="sidebar-total-value">{{ "%.2f"|format(cheapest_total) }}</span>
                                 <small class="text-muted fw-normal fs-6">total</small>
                             </div>
                             {% if cheapest_per_night %}
                                 <div class="small text-muted mt-1">
-                                    &euro;{{ "%.2f"|format(cheapest_per_night) }} / night
+                                    &euro;<span id="sidebar-per-night-value">{{ "%.2f"|format(cheapest_per_night) }}</span> / night
                                 </div>
                             {% endif %}
+                        </div>
+                    {% elif not _has_dates %}
+                        <div class="card-body border-bottom bg-light">
+                            <div class="small text-muted mb-0">
+                                <i class="bi bi-info-circle"></i>
+                                Enter your <a href="#stay-picker-section">dates &amp; party</a>
+                                to see live prices.
+                            </div>
                         </div>
                     {% endif %}
 
@@ -751,6 +823,10 @@
 (function() {
     'use strict';
 
+    // ─── Server-side baseline (for revert on "Change room") ───
+    const ORIGINAL_CHEAPEST_TOTAL = {{ cheapest_total if cheapest_total is not none else 'null' }};
+    const ORIGINAL_CHEAPEST_PER_NIGHT = {{ cheapest_per_night if cheapest_per_night is not none else 'null' }};
+
     const selectButtons = document.querySelectorAll('.select-room-btn');
     const changeButtons = document.querySelectorAll('.change-room-btn');
     const allPanels = document.querySelectorAll('.booking-panel');
@@ -768,6 +844,21 @@
         allCards.forEach(c => c.classList.remove('border-primary'));
     }
 
+    function updateSidebar(total, perNight, labelText) {
+        const totalEl = document.getElementById('sidebar-total-value');
+        const perNightEl = document.getElementById('sidebar-per-night-value');
+        const labelEl = document.getElementById('sidebar-price-label');
+        if (totalEl && total !== null && total !== undefined) {
+            totalEl.textContent = Number(total).toFixed(2);
+        }
+        if (perNightEl && perNight !== null && perNight !== undefined) {
+            perNightEl.textContent = Number(perNight).toFixed(2);
+        }
+        if (labelEl && labelText) {
+            labelEl.textContent = labelText;
+        }
+    }
+
     function showPanel(roomId) {
         const panel = document.getElementById('booking-panel-' + roomId);
         const card = document.getElementById('room-card-' + roomId);
@@ -780,6 +871,10 @@
 
         if (card) {
             card.classList.add('border-primary');
+
+            // ─── Sidebar sync: reflect selected room ───
+            updateSidebar(card.dataset.total, card.dataset.perNight, 'Selected');
+
             setTimeout(function() {
                 panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 250);
@@ -805,6 +900,9 @@
                 if (bsCollapse) bsCollapse.hide();
             }
             if (card) card.classList.remove('border-primary');
+
+            // ─── Sidebar revert: back to cheapest baseline ───
+            updateSidebar(ORIGINAL_CHEAPEST_TOTAL, ORIGINAL_CHEAPEST_PER_NIGHT, 'From');
         });
     });
 })();
