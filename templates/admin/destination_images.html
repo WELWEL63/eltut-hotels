@@ -103,6 +103,7 @@
                           action="{{ url_for('admin.destination_image_upload', dest_id=d.id) }}"
                           enctype="multipart/form-data"
                           class="mb-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="input-group input-group-sm">
                             <input type="file"
                                    name="file"
@@ -122,6 +123,7 @@
                         <form method="post"
                               action="{{ url_for('admin.destination_image_delete', dest_id=d.id) }}"
                               onsubmit="return confirm('Remove the image for {{ d.name | e }}?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-outline-danger btn-sm w-100">
                                 <i class="bi bi-trash"></i> Remove image
                             </button>

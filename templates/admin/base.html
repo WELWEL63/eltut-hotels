@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {#
-    Admin layout — reuses the public base.html shell (top navbar, footer)
+    Admin layout â€” reuses the public base.html shell (top navbar, footer)
     but replaces the content block with a two-column layout:
     a left sidebar (admin nav) and a right content pane.
 #}
@@ -10,7 +10,7 @@
 <div class="container-fluid my-4">
     <div class="row g-4">
 
-        {# ─── Admin sidebar ─── #}
+        {# â”€â”€â”€ Admin sidebar â”€â”€â”€ #}
         <aside class="col-lg-2">
             <div class="card shadow-sm">
                 <div class="card-header bg-dark text-white small">
@@ -65,11 +65,15 @@
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.airline') %}active{% endif %}">
                         <i class="bi bi-airplane"></i> Airlines
                     </a>
+                    <a href="{{ maybe_url('admin.destination_images') }}"
+                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.destination_') %}active{% endif %}">
+                        <i class="bi bi-geo-alt"></i> Destination images
+                    </a>
                 </div>
             </div>
         </aside>
 
-        {# ─── Main pane ─── #}
+        {# â”€â”€â”€ Main pane â”€â”€â”€ #}
         <main class="col-lg-10">
             {% block admin_content %}{% endblock %}
         </main>
