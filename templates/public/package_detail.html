@@ -36,7 +36,7 @@
                                         </span>
                                     {% endif %}
                                 </div>
-                                <h1 class="mb-2">{{ package.name }}</h1>
+                               <h1 class="mb-2" style="font-size: 2.3rem; color: rgb(3, 81, 117)">{{ package.name }}</h1>
                                 <div class="d-flex flex-wrap gap-3 text-muted small">
                                     {% if destination %}
                                         <span><i class="bi bi-geo-alt"></i> {{ destination.name }}</span>
@@ -480,50 +480,144 @@
                 {% endif %}
 
                 {# ─── Hotel + Room ─── #}
-                {% if hotel or room %}
-                    <div class="section-header icon-ink mt-4">
-                        <span class="icon-box"><i class="bi bi-building"></i></span>
-                        <span class="title">Your accommodation</span>
+{% if hotel or room %}
+    <div class="section-header icon-ink mt-4">
+        <span class="icon-box"><i class="bi bi-building"></i></span>
+        <span class="title">Your accommodation</span>
+    </div>
+
+    <div class="row g-3 mb-4">
+
+        {# ─── Hotel card — image left, details right ─── #}
+        {% if hotel %}
+            {% set hotel_img = hotel.images[0].url if hotel.images else None %}
+            <div class="col-12">
+                <div class="card shadow-sm border-0 accommodation-split">
+
+                    {# LEFT: image #}
+                    <div class="accommodation-split-media">
+                        {% if hotel_img %}
+                            <img src="{{ hotel_img }}" alt="{{ hotel.name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="accommodation-split-placeholder" style="display:none;">
+                                <i class="bi bi-building"></i>
+                            </div>
+                        {% else %}
+                            <div class="accommodation-split-placeholder">
+                                <i class="bi bi-building"></i>
+                            </div>
+                        {% endif %}
                     </div>
 
-                    <div class="row g-3 mb-4">
-                        {% if hotel %}
-                            <div class="col-md-6">
-                                <div class="card shadow-sm h-100 border-0">
-                                    <div class="card-body">
-                                        <div class="mb-1">
-                                            {% for _ in range(hotel.stars or 0) %}
-                                                <i class="bi bi-star-fill text-warning small"></i>
-                                            {% endfor %}
-                                        </div>
-                                        <h6 class="mb-1">{{ hotel.name }}</h6>
-                                        {% if hotel.address %}
-                                            <div class="small text-muted">{{ hotel.address }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                    {# RIGHT: details #}
+                    <div class="accommodation-split-body">
+                        <div class="mb-1">
+                            {% for _ in range(hotel.stars or 0) %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% endfor %}
+                            <span class="text-muted small ms-1">
+                                {{ hotel.stars }}-star hotel
+                            </span>
+                        </div>
+                        <h4 class="mb-2 accommodation-split-name">{{ hotel.name }}</h4>
+
+                        {% if hotel.address %}
+                            <div class="small text-muted mb-2">
+                                <i class="bi bi-geo-alt"></i> {{ hotel.address }}
                             </div>
                         {% endif %}
+
+                        {% if destination %}
+                            <div class="small text-muted mb-3">
+                                <i class="bi bi-pin-map"></i> {{ destination.name }}
+                            </div>
+                        {% endif %}
+
                         {% if room %}
-                            <div class="col-md-6">
-                                <div class="card shadow-sm h-100 border-0">
-                                    <div class="card-body">
-                                        <div class="small text-muted">Room type</div>
-                                        <h6 class="mb-1">{{ room.type }}</h6>
-                                        <div class="small text-muted">
-                                            <i class="bi bi-egg-fried"></i>
-                                            {{ room.meal_plan|replace("_", " ")|title }}
-                                        </div>
-                                        <div class="small text-muted">
-                                            <i class="bi bi-people"></i>
-                                            Up to {{ room.max_occupancy }} guests
-                                        </div>
-                                    </div>
-                                </div>
+                            <hr class="my-3">
+                            <div class="small fw-semibold text-uppercase text-muted mb-2"
+                                 style="letter-spacing:.05em; font-size:.7rem;">
+                                Room type
+                            </div>
+                            <div class="mb-1"><strong>{{ room.type }}</strong></div>
+                            <div class="small text-muted mb-1">
+                                <i class="bi bi-egg-fried"></i>
+                                {{ room.meal_plan|replace("_", " ")|title }}
+                            </div>
+                            <div class="small text-muted">
+                                <i class="bi bi-people"></i>
+                                Up to {{ room.max_occupancy }} guests
                             </div>
                         {% endif %}
                     </div>
-                                {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+{% endif %}
+
+{# ─── The neighborhood ─── #}
+{% if hotel and hotel.neighborhood_info %}
+    <div class="section-header icon-nile mt-4">
+        <span class="icon-box"><i class="bi bi-geo-alt"></i></span>
+        <span class="title">
+            The neighborhood
+            {% if hotel.name %}
+                <span class="subtitle">Around {{ hotel.name }}</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <p class="mb-0" style="white-space: pre-wrap;">{{ hotel.neighborhood_info }}</p>
+        </div>
+    </div>
+{% endif %}
+
+{# ─── Location / Map ─── #}
+{% if hotel and hotel.latitude and hotel.longitude %}
+    <div class="section-header icon-nile mt-4">
+        <span class="icon-box"><i class="bi bi-map"></i></span>
+        <span class="title">
+            Location
+            {% if hotel.address %}
+                <span class="subtitle">{{ hotel.address }}</span>
+            {% endif %}
+        </span>
+    </div>
+
+   <div class="map-frame mb-3">
+    <iframe
+        src="https://maps.google.com/maps?q={{ (hotel.name or package.name) | urlencode }}{% if hotel.address %},{{ hotel.address | urlencode }}{% endif %}&ll={{ hotel.latitude }},{{ hotel.longitude }}&z=17&output=embed"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title="Map of {{ hotel.name or package.name }}"></iframe>
+
+    <a href="https://www.google.com/maps/search/?api=1&query={{ (hotel.name or package.name) | urlencode }}{% if hotel.address %}+{{ hotel.address | urlencode }}{% endif %}"
+       target="_blank" rel="noopener"
+       class="map-open-btn">
+        <i class="bi bi-box-arrow-up-right"></i>
+        Open in Google Maps
+    </a>
+</div>
+{% elif hotel and hotel.address %}
+    <div class="section-header icon-nile mt-4">
+        <span class="icon-box"><i class="bi bi-map"></i></span>
+        <span class="title">Location</span>
+    </div>
+    <div class="alert alert-secondary small mb-4">
+        <i class="bi bi-geo-alt"></i> {{ hotel.address }}
+    </div>
+{% endif %}
+                         
+                                
+{% include "public/_egypt_guide.html" %}
+
+
+
 
                 {# ─── FAQs ─── #}
                 {% if faqs %}
@@ -826,36 +920,92 @@
             </aside>
         </div>
 
-        {# ─── Related packages ─── #}
-        {% if related %}
-            <hr class="my-5">
-            <div class="section-header icon-ink mb-4">
-                <span class="icon-box"><i class="bi bi-grid"></i></span>
-                <span class="title">More packages in {{ destination.name if destination else "this destination" }}</span>
-            </div>
-            <div class="row g-4">
-                {% for rel in related %}
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body">
-                                <span class="badge bg-warning text-dark mb-2">
-                                    {{ rel.package_type|title }}
-                                </span>
-                                <h6 class="card-title">{{ rel.name }}</h6>
-                                <div class="small text-muted mb-3">
-                                    <i class="bi bi-moon-stars"></i>
-                                    {{ rel.duration_nights }} night{{ "" if rel.duration_nights == 1 else "s" }}
-                                </div>
-                                <a href="{{ url_for('public.package_detail', slug=rel.slug) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    View package <i class="bi bi-arrow-right"></i>
-                                </a>
+       {# ─── Related packages ─── #}
+{% if related %}
+    <hr class="my-5">
+    <div class="section-header icon-ink mb-4">
+        <span class="icon-box"><i class="bi bi-grid"></i></span>
+        <span class="title">
+            More packages in {{ destination.name if destination else "this destination" }}
+            <span class="subtitle">Handpicked trips you might also like</span>
+        </span>
+    </div>
+
+    <div class="row g-4">
+        {% for rel in related %}
+            {% set rel_img = rel.images[0].url if rel.images else None %}
+            {% set rel_dest = search_destinations()|selectattr('id', 'equalto', rel.destination_id)|first %}
+            {% set rel_price_row = rel.prices[0] if rel.prices else None %}
+
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('public.package_detail', slug=rel.slug) }}"
+                   class="related-card">
+
+                    {# ─── Image with overlay badges ─── #}
+                    <div class="related-card-media">
+                        {% if rel_img %}
+                            <img src="{{ rel_img }}" alt="{{ rel.name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="related-card-placeholder" style="display:none;">
+                                <i class="bi bi-suitcase-lg"></i>
                             </div>
+                        {% else %}
+                            <div class="related-card-placeholder">
+                                <i class="bi bi-suitcase-lg"></i>
+                            </div>
+                        {% endif %}
+
+                        {# Type badge (top-left) #}
+                        {% if rel.package_type %}
+                            <span class="related-badge related-badge--type">
+                                {{ rel.package_type|title }}
+                            </span>
+                        {% endif %}
+
+                        {# Nights badge (top-right) #}
+                        {% if rel.duration_nights %}
+                            <span class="related-badge related-badge--nights">
+                                <i class="bi bi-moon-stars"></i>
+                                {{ rel.duration_nights }} night{{ "" if rel.duration_nights == 1 else "s" }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {# ─── Body ─── #}
+                    <div class="related-card-body">
+                        <h6 class="related-card-title">{{ rel.name }}</h6>
+
+                        {% if rel_dest %}
+                            <div class="related-card-meta">
+                                <i class="bi bi-geo-alt-fill"></i> {{ rel_dest.name }}
+                            </div>
+                        {% endif %}
+
+                        {% if rel_price_row %}
+                            <div class="related-card-price">
+                                <span class="related-price-label">from</span>
+                                <span class="related-price">
+                                    {{ rel_price_row.currency }}&nbsp;{{ "%.0f"|format(rel_price_row.adult_price) }}
+                                </span>
+                                <span class="related-price-unit">/ person</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="related-card-cta">
+                            View package <i class="bi bi-arrow-right"></i>
                         </div>
                     </div>
-                {% endfor %}
+                </a>
             </div>
-        {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('public.package_list') }}" class="btn btn-outline-primary">
+            Browse all packages <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+{% endif %}
     </div>
 </section>
 
@@ -935,7 +1085,7 @@
 /* Sidebar hero image */
 .sidebar-hero {
     width: 100%;
-    height: 170px;
+    height: 270px;
     overflow: hidden;
     background: #f3f4f6;
 }

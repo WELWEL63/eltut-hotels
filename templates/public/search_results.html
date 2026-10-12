@@ -10,16 +10,27 @@
 {# ══════════════════════════════════════════════════════════════════ #}
 {# SUMMARY BAR — counts, dates, party size                            #}
 {# ══════════════════════════════════════════════════════════════════ #}
-<section class="py-4 bg-white border-bottom">
-    <div class="container">
+{# ══════════════════════════════════════════════════════════════════ #}
+{# HERO — image + breadcrumb + title + search widget                #}
+{# ══════════════════════════════════════════════════════════════════ #}
+{% set _hero_bg = {
+    'hotel':    url_for('static', filename='images/heroes/summer.jpg'),
+    'package':  url_for('static', filename='images/heroes/camels.jpg'),
+    'activity': url_for('static', filename='images/heroes/holiday.jpg'),
+}.get(result['product_type'], url_for('static', filename='images/heroes/camel.jpg')) %}
+
+<section class="sr-hero" style="background-image: url('{{ _hero_bg }}');">
+    <div class="sr-hero-scrim"></div>
+
+    <div class="container sr-hero-content">
+
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-2 small">
+            <ol class="breadcrumb sr-hero-breadcrumb mb-2 small">
                 <li class="breadcrumb-item">
-                    <a href="{{ url_for('public.index') }}" class="text-decoration-none">Home</a>
+                    <a href="{{ url_for('public.index') }}">Home</a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{{ url_for('public.search_results', type=result['product_type']) }}"
-                       class="text-decoration-none">Search</a>
+                    <a href="{{ url_for('public.search_results', type=result['product_type']) }}">Search</a>
                 </li>
                 {% if result['destination'] %}
                     <li class="breadcrumb-item active" aria-current="page">
@@ -29,27 +40,31 @@
             </ol>
         </nav>
 
-        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
             <div>
-                <h1 class="h3 mb-1 fw-bold">
+                <h1 class="sr-hero-title">
                     {% if result['destination'] %}
                         {{ result['destination'].name }}
                     {% else %}
                         All destinations
                     {% endif %}
                 </h1>
-                <div class="text-muted small">
+                <div class="sr-hero-subtitle">
+                    <i class="bi bi-{{ {'hotel': 'building', 'package': 'suitcase-lg', 'activity': 'compass'}[result['product_type']] }}"></i>
                     {{ result['product_type']|capitalize }}s available
+                    {% if result['total'] %}
+                        · <strong>{{ result['total'] }}</strong> match{{ "" if result['total'] == 1 else "es" }}
+                    {% endif %}
                 </div>
             </div>
             <div class="d-none d-lg-block">
-                <a href="{{ url_for('public.index') }}" class="btn btn-sm btn-outline-secondary">
+                <a href="{{ url_for('public.index') }}" class="btn btn-sm sr-hero-back-btn">
                     <i class="bi bi-house"></i> Back to home
                 </a>
             </div>
         </div>
 
-        {# Search widget for new search #}
+        {# Search widget — glass variant sits on the image #}
         {% include "public/_search_widget.html" %}
     </div>
 </section>
