@@ -292,7 +292,7 @@ h1, h2, h3, h4, h5, h6 {
 .hero-slideshow {
     position: relative;
     width: 100%;
-    height: 750px;
+    height: 730px!important;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -1306,3 +1306,163 @@ body.home-page {
 }
 
 /* ═══ END VISION 2030 POLISH ═══ */
+
+
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO — text on top, search pinned at bottom, all over the slide
+   ═══════════════════════════════════════════════════════════════ */
+
+.hero-slideshow {
+    position: relative;
+    min-height: 640px;
+    height: 82vh;
+    max-height: 820px;
+    overflow: hidden;
+}
+
+.hero-slideshow .carousel,
+.hero-slideshow .carousel-inner,
+.hero-slideshow .carousel-item {
+    height: 100%;
+    width: 100%;
+}
+
+/* Per-slide text overlay — upper-middle, centered horizontally */
+.hero-slideshow .carousel-item .hero-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;         /* start from top */
+    align-items: center;
+    padding: 12vh 1rem 0;                /* top offset ~12% of viewport */
+    z-index: 2;
+    pointer-events: none;                /* let clicks pass to search below */
+}
+.hero-slideshow .carousel-item .hero-overlay > * {
+    pointer-events: auto;
+}
+
+/* The last overlay (search + stats) — pinned to the bottom */
+.hero-slideshow > .hero-overlay:last-of-type {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;                           /* don't stretch to top */
+    padding: 0 1rem 2.5rem;
+    z-index: 3;
+    pointer-events: auto;
+}
+
+/* Big, readable slide text */
+.hero-slideshow .hero-headline {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: clamp(2.25rem, 5vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    text-shadow: 0 4px 28px rgba(0, 0, 0, 0.6);
+    margin: 0 0 1rem;
+    text-align: center;
+}
+
+.hero-slideshow .hero-subhead {
+    font-family: 'Lora', Georgia, serif;
+    font-size: clamp(1rem, 1.6vw, 1.4rem);
+    font-weight: 500;
+    color: #f2c964;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.hero-slideshow .hero-eyebrow {
+    display: inline-block;
+    color: #e8d9b3;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Stats below the search widget on the hero */
+.hero-slideshow .hero-stats {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    text-align: center;
+    flex-wrap: wrap;
+}
+.hero-slideshow .hero-stats .stat-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f2c964;
+    line-height: 1;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+.hero-slideshow .hero-stats .stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 0.3rem;
+    font-weight: 600;
+}
+
+/* If the OLD .hero-search-strip section still exists in the HTML,
+   style it as a fallback (light strip below the hero) */
+.hero-search-strip {
+    background: #faf7f1;
+    padding: 2rem 0 2.5rem;
+}
+.hero-search-strip .hero-stats {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    text-align: center;
+    flex-wrap: wrap;
+}
+.hero-search-strip .hero-stats .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1e3a5f;
+    line-height: 1;
+}
+.hero-search-strip .hero-stats .stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #78716c;
+    margin-top: 0.3rem;
+    font-weight: 600;
+}
+
+/* Mobile: stack naturally */
+@media (max-width: 768px) {
+    .hero-slideshow {
+        min-height: 520px;
+        height: 78vh;
+    }
+    .hero-slideshow .carousel-item .hero-overlay {
+        padding: 8vh 1rem 0;
+    }
+    .hero-slideshow > .hero-overlay:last-of-type {
+        padding-bottom: 1.5rem;
+    }
+    .hero-slideshow .hero-stats {
+        gap: 1.25rem;
+        margin-top: 1rem;
+    }
+}
+
+/* ═══ END HERO v3 ═══ */

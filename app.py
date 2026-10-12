@@ -26,7 +26,7 @@ from typing import Any
 from flask import Flask, render_template
 
 from config import CONFIG_MAP, BaseConfig
-from utils import register_template_helpers
+from utils import register_template_helpers, css_style
 from extensions import (
     csrf,
     db,
@@ -309,6 +309,7 @@ def create_app(config_name: str | None = None) -> Flask:
     _configure_logging(app)
     _register_jinja_filters(app)
     register_template_helpers(app)   # maybe_url() defensive helper
+    app.jinja_env.filters["css_style"] = css_style
     _register_error_handlers(app)
     _register_user_loader(app)
     _register_blueprints(app)

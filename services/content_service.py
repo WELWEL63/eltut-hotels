@@ -247,6 +247,142 @@ for _i in range(1, SLIDESHOW_SLOT_COUNT + 1):
     )
 
 
+
+# ─── Extended slideshow keys ───────────────────────────────────────
+# For each slot, register content fields and per-field style keys.
+#   1 image key                              → slide.N (legacy)
+#   1 eyebrow                               → slide.N.eyebrow
+#   1 title                                 → slide.N.title
+#   9 title styles                          → slide.N.title_<style>
+#   1 subtitle                              → slide.N.subtitle
+#   9 subtitle styles                       → slide.N.subtitle_<style>
+#   1 cta_text                              → slide.N.cta_text
+#   1 cta_url                               → slide.N.cta_url
+STYLE_SUFFIXES: tuple[str, ...] = (
+    "font_family", "font_size", "font_weight", "color", "align",
+    "letter_spacing", "line_height", "text_shadow", "text_transform",
+)
+
+def _slide_key(slot: int, suffix: str) -> str:
+    return f"home.slideshow.slide.{slot}.{suffix}"
+
+for _i in range(1, SLIDESHOW_SLOT_COUNT + 1):
+    # eyebrow
+    _REGISTRY[_slide_key(_i, "eyebrow")] = ContentSpec(
+        key=_slide_key(_i, "eyebrow"),
+        page=PAGE_SLIDESHOW,
+        label=f"Slide {_i} — eyebrow",
+        default="",
+        content_type=CONTENT_TYPE_TEXT,
+        sort_order=_i * 100 + 1,
+    )
+    # title / subtitle / cta_text
+    for _field, _ct in (("title", CONTENT_TYPE_HTML), ("subtitle", CONTENT_TYPE_HTML), ("cta_text", CONTENT_TYPE_TEXT)):
+        _REGISTRY[_slide_key(_i, _field)] = ContentSpec(
+            key=_slide_key(_i, _field),
+            page=PAGE_SLIDESHOW,
+            label=f"Slide {_i} — {_field.replace(chr(95), chr(32))}",
+            default="",
+            content_type=_ct,
+            sort_order=_i * 100 + {"title": 2, "subtitle": 3, "cta_text": 4}[_field],
+        )
+    # cta_url
+    _REGISTRY[_slide_key(_i, "cta_url")] = ContentSpec(
+        key=_slide_key(_i, "cta_url"),
+        page=PAGE_SLIDESHOW,
+        label=f"Slide {_i} — CTA link",
+        default="",
+        content_type=CONTENT_TYPE_TEXT,
+        notes="Where the CTA button goes. Leave empty to hide.",
+        sort_order=_i * 100 + 5,
+    )
+    # per-field style keys (title + subtitle)
+    for _field in ("title", "subtitle"):
+        for _j, _style in enumerate(STYLE_SUFFIXES):
+            _REGISTRY[_slide_key(_i, f"{_field}_{_style}")] = ContentSpec(
+                key=_slide_key(_i, f"{_field}_{_style}"),
+                page=PAGE_SLIDESHOW,
+                label=f"Slide {_i} — {_field} · {_style.replace(chr(95), chr(32))}",
+                default="",
+                content_type=CONTENT_TYPE_TEXT,
+                sort_order=_i * 100 + (10 if _field == "title" else 20) + _j,
+            )
+
+# ─── Slide content + style field names (used by the registry ───
+#     generator and by set_slide_props / slideshow_slides). ───
+SLIDE_CONTENT_FIELDS: tuple[str, ...] = (
+    "image_url",
+    "eyebrow",
+    "title",
+    "subtitle",
+    "cta_text",
+    "cta_url",
+)
+
+SLIDE_STYLE_FIELDS: tuple[str, ...] = (
+    "font_family",
+    "font_size",
+    "font_weight",
+    "color",
+    "align",
+    "letter_spacing",
+    "line_height",
+    "text_shadow",
+    "text_transform",
+)
+
+# ─── 8 signature style presets — applied by the admin UI in one click. ───
+SLIDE_PRESETS: dict[str, dict[str, str]] = {
+    "royal_inscription": {
+        "font_family": "Cinzel", "font_size": "3.5rem", "font_weight": "700",
+        "color": "#f5ecd7", "align": "center",
+        "letter_spacing": "0.15em", "line_height": "1.1",
+        "text_shadow": "glow", "text_transform": "uppercase",
+    },
+    "golden_editorial": {
+        "font_family": "Playfair Display", "font_size": "3rem", "font_weight": "700",
+        "color": "#f2c964", "align": "center",
+        "letter_spacing": "0.02em", "line_height": "1.15",
+        "text_shadow": "gold-glow", "text_transform": "none",
+    },
+    "warm_welcome": {
+        "font_family": "Lora", "font_size": "2.25rem", "font_weight": "600",
+        "color": "#ffffff", "align": "center",
+        "letter_spacing": "0.01em", "line_height": "1.35",
+        "text_shadow": "soft", "text_transform": "none",
+    },
+    "nile_whisper": {
+        "font_family": "Cormorant", "font_size": "1.5rem", "font_weight": "400",
+        "color": "#e8d9b3", "align": "center",
+        "letter_spacing": "0.1em", "line_height": "1.5",
+        "text_shadow": "none", "text_transform": "uppercase",
+    },
+    "lapis_strong": {
+        "font_family": "Inter", "font_size": "3rem", "font_weight": "800",
+        "color": "#1e3a5f", "align": "center",
+        "letter_spacing": "-0.02em", "line_height": "1.05",
+        "text_shadow": "none", "text_transform": "none",
+    },
+    "terracotta_warmth": {
+        "font_family": "Merriweather", "font_size": "2rem", "font_weight": "600",
+        "color": "#c85a3e", "align": "center",
+        "letter_spacing": "0", "line_height": "1.4",
+        "text_shadow": "none", "text_transform": "none",
+    },
+    "minimal_modern": {
+        "font_family": "Inter", "font_size": "1.5rem", "font_weight": "500",
+        "color": "#1c1917", "align": "left",
+        "letter_spacing": "0", "line_height": "1.5",
+        "text_shadow": "none", "text_transform": "none",
+    },
+    "gold_leaf": {
+        "font_family": "Cinzel", "font_size": "4rem", "font_weight": "600",
+        "color": "#d4a017", "align": "center",
+        "letter_spacing": "0.2em", "line_height": "1.0",
+        "text_shadow": "gold-glow", "text_transform": "uppercase",
+    },
+}
+
 def registry() -> dict[str, ContentSpec]:
     """Return a copy of the content registry."""
     return dict(_REGISTRY)
@@ -414,21 +550,83 @@ def set_value(key: str, value: str | None, user: Any = None) -> SiteContent:
 def slideshow_slides() -> list[dict[str, Any]]:
     """Return the active slideshow slides as a list of dicts.
 
-    A slide is "active" if its value (an image URL) is non-empty.
-    Order matches slot number (1..N). Each dict contains:
-        slot  (int)
-        key   (str)   e.g. "home.slideshow.slide.1"
-        url   (str)
+    A slide is "active" if its image value is non-empty. Order matches
+    slot number (1..N). Each dict contains:
+        slot            (int)
+        key             (str)   legacy alias for image key
+        url             (str)   legacy alias for image_url
+        image_url       (str)
+        eyebrow         (str)
+        title           (str)
+        title_style     (dict)  9 style fields
+        subtitle        (str)
+        subtitle_style  (dict)  9 style fields
+        cta_text        (str)
+        cta_url         (str)
     """
     values = all_values()
     out: list[dict[str, Any]] = []
     for i in range(1, SLIDESHOW_SLOT_COUNT + 1):
-        key = f"home.slideshow.slide.{i}"
-        url = (values.get(key) or "").strip()
+        img_key = f"home.slideshow.slide.{i}"
+        url = (values.get(img_key) or "").strip()
         if not url:
             continue
-        out.append({"slot": i, "key": key, "url": url})
+
+        def _get(suffix: str) -> str:
+            return (values.get(_slide_key(i, suffix)) or "").strip()
+
+        title_style = {s: _get(f"title_{s}") for s in STYLE_SUFFIXES}
+        subtitle_style = {s: _get(f"subtitle_{s}") for s in STYLE_SUFFIXES}
+
+        out.append({
+            "slot": i,
+            "key": img_key,
+            "url": url,
+            "image_url": url,
+            "eyebrow": _get("eyebrow"),
+            "title": _get("title"),
+            "title_style": title_style,
+            "subtitle": _get("subtitle"),
+            "subtitle_style": subtitle_style,
+            "cta_text": _get("cta_text"),
+            "cta_url": _get("cta_url"),
+        })
     return out
+
+
+def set_slide_props(slot: int, data: dict[str, Any], user: Any = None) -> int:
+    """Write all fields for one slide in one call.
+
+    data shape:
+        image_url, eyebrow, title, subtitle, cta_text, cta_url   (str)
+        title_style, subtitle_style                              (dict)
+    Returns number of rows written.
+    """
+    if slot < 1 or slot > SLIDESHOW_SLOT_COUNT:
+        raise ValueError(f"slot must be 1..{SLIDESHOW_SLOT_COUNT}")
+
+    written = 0
+
+    # Simple string fields
+    for field in ("eyebrow", "title", "subtitle", "cta_text", "cta_url"):
+        if field in data:
+            set_value(_slide_key(slot, field), data[field] or None, user=user)
+            written += 1
+
+    # Image (legacy key)
+    if "image_url" in data:
+        set_value(f"home.slideshow.slide.{slot}", data["image_url"] or None, user=user)
+        written += 1
+
+    # Style fields
+    for field in ("title", "subtitle"):
+        style_data = data.get(f"{field}_style") or {}
+        for style_key, style_val in style_data.items():
+            if style_key in STYLE_SUFFIXES:
+                set_value(_slide_key(slot, f"{field}_{style_key}"), style_val or None, user=user)
+                written += 1
+
+    return written
 
 
 # ─── Seeding ──────────────────────────────────────────────────────────────

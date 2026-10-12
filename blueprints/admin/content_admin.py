@@ -207,32 +207,75 @@ def _slideshow_dir() -> Path:
 @admin_bp.route("/content/slideshow")
 @admin_required
 def content_slideshow():
-    """Dedicated editor for the home page hero slideshow."""
-    # Ensure every slot has a row
-    rows_by_slot = {}
+    """Dedicated editor for the home page hero slideshow.
+
+    Passes per-slot property dicts (image + text + style) plus the
+    preset catalogue and style field names so the template can render
+    every control without any DB access of its own.
+    """
+    # Ensure every slideshow key has a row (image + all text + style keys)
+    existing = set(db.session.scalars(select(SiteContent.key)).all())
     for i in range(1, SLIDESHOW_SLOT_COUNT + 1):
-        key = f"home.slideshow.slide.{i}"
-        row = db.session.scalars(
-            select(SiteContent).where(SiteContent.key == key)
-        ).first()
-        if row is None:
-            row = SiteContent(
-                key=key,
+        # Legacy image key
+        img_key = f"home.slideshow.slide.{i}"
+        if img_key not in existing:
+            db.session.add(SiteContent(
+                key=img_key,
                 page="slideshow",
-                label=f"Slideshow — image {i}",
+                label=f"Slide {i} — image",
                 content_type="image_url",
-                sort_order=i * 10,
-            )
-            db.session.add(row)
-        rows_by_slot[i] = row
+                sort_order=i * 100,
+            ))
+
+        # New keys: content + style
+        for suffix in ("eyebrow", "title", "subtitle", "cta_text", "cta_url"):
+            k = f"home.slideshow.slide.{i}.{suffix}"
+            if k not in existing:
+                db.session.add(SiteContent(
+                    key=k, page="slideshow",
+                    label=f"Slide {i} — {suffix.replace('_', ' ')}",
+                    content_type="html" if suffix in ("title", "subtitle") else "text",
+                    sort_order=i * 100 + {"eyebrow": 1, "title": 2, "subtitle": 3, "cta_text": 4, "cta_url": 5}[suffix],
+                ))
+
+        for field in ("title", "subtitle"):
+            for j, style in enumerate(content_service.SLIDE_STYLE_FIELDS):
+                k = f"home.slideshow.slide.{i}.{field}_{style}"
+                if k not in existing:
+                    db.session.add(SiteContent(
+                        key=k, page="slideshow",
+                        label=f"Slide {i} — {field} · {style.replace('_', ' ')}",
+                        content_type="text",
+                        sort_order=i * 100 + (10 if field == "title" else 20) + j,
+                    ))
     db.session.commit()
     content_service.clear_cache()
 
+    # Build per-slot property dicts from the service
+    slides = {s["slot"]: s for s in content_service.slideshow_slides()}
+
+    # Fill in missing slots (no image yet) with empty dicts
+    slots_data: dict[int, dict] = {}
+    for i in range(1, SLIDESHOW_SLOT_COUNT + 1):
+        slots_data[i] = slides.get(i) or {
+            "slot": i,
+            "image_url": "",
+            "eyebrow": "",
+            "title": "",
+            "title_style": {k: "" for k in content_service.SLIDE_STYLE_FIELDS},
+            "subtitle": "",
+            "subtitle_style": {k: "" for k in content_service.SLIDE_STYLE_FIELDS},
+            "cta_text": "",
+            "cta_url": "",
+        }
+
     return render_template(
         "admin/content_slideshow.html",
-        rows_by_slot=rows_by_slot,
+        slots_data=slots_data,
         slot_count=SLIDESHOW_SLOT_COUNT,
-        active_count=len([r for r in rows_by_slot.values() if r.value]),
+        active_count=sum(1 for s in slots_data.values() if s.get("image_url")),
+        presets=content_service.SLIDE_PRESETS,
+        style_fields=content_service.SLIDE_STYLE_FIELDS,
     )
 
 
@@ -359,4 +402,40 @@ def content_slideshow_update_url(slot: int):
 
     _log("slideshow.update_url", key, old=old, new=new_url)
     flash(f"Slide {slot} updated.", "success")
+    return redirect(url_for("admin.content_slideshow"))
+
+# ─── Save all slide properties in one call ────────────────────────
+@admin_bp.route("/content/slideshow/<int:slot>/save", methods=["POST"])
+@admin_required
+def content_slideshow_save(slot: int):
+    """Save every field (image URL + text + styles) for one slide."""
+    if slot < 1 or slot > SLIDESHOW_SLOT_COUNT:
+        abort(404)
+
+    # Collect string fields
+    data: dict = {
+        "image_url": (request.form.get("image_url") or "").strip(),
+        "eyebrow":   (request.form.get("eyebrow") or "").strip(),
+        "title":     (request.form.get("title") or "").strip(),
+        "subtitle":  (request.form.get("subtitle") or "").strip(),
+        "cta_text":  (request.form.get("cta_text") or "").strip(),
+        "cta_url":   (request.form.get("cta_url") or "").strip(),
+    }
+
+    # Collect style fields per text field
+    for field in ("title", "subtitle"):
+        style: dict[str, str] = {}
+        for style_key in content_service.SLIDE_STYLE_FIELDS:
+            form_field = f"{field}_{style_key}"
+            style[style_key] = (request.form.get(form_field) or "").strip()
+        data[f"{field}_style"] = style
+
+    written = content_service.set_slide_props(slot, data, user=current_user)
+
+    _log(
+        "slideshow.save_props",
+        f"home.slideshow.slide.{slot}",
+        new={k: v for k, v in data.items() if v},
+    )
+    flash(f"Slide {slot} saved ({written} field{'s' if written != 1 else ''}).", "success")
     return redirect(url_for("admin.content_slideshow"))

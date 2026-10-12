@@ -30,11 +30,74 @@
             {% if _slides %}
                 {% for slide in _slides %}
                     <div class="carousel-item {% if loop.first %}active{% endif %}"
-                         style="background-image: url('{{ slide.url }}');"></div>
+                         style="background-image: url('{{ slide.image_url }}');">
+                        <div class="hero-overlay">
+                            <div class="container">
+                                <div class="row justify-content-center">
+                                    <div class="col-lg-10 text-center">
+                                        {% if slide.eyebrow %}
+                                            <span class="hero-eyebrow">
+                                                <i class="bi bi-stars"></i>
+                                                {{ slide.eyebrow }}
+                                            </span>
+                                        {% endif %}
+                                        {% if slide.title %}
+                                            <h1 class="hero-headline"
+                                                style="{{ slide.title_style | css_style }}">
+                                                {{ slide.title | safe }}
+                                            </h1>
+                                        {% else %}
+                                            <h1 class="hero-headline">
+                                                {{ content('home_hero_title_line1') or 'Discover Egypt with' }}<br>
+                                                <span class="accent">{{ content('home_hero_title_line2') or config.APP_NAME }}</span>
+                                            </h1>
+                                        {% endif %}
+                                        {% if slide.subtitle %}
+                                            <p class="hero-subhead mx-auto"
+                                               style="{{ slide.subtitle_style | css_style }}">
+                                                {{ slide.subtitle | safe }}
+                                            </p>
+                                        {% else %}
+                                            <p class="hero-subhead mx-auto">
+                                                {{ content('home_hero_subtitle') or 'Handpicked tours, world-class hotels, and all-inclusive packages across the Red Sea, Nile Valley, and beyond.' }}
+                                            </p>
+                                        {% endif %}
+                                        {% if slide.cta_text %}
+                                            <a href="{{ slide.cta_url or url_for('public.package_list') }}"
+                                               class="btn btn-eltut-primary btn-lg mt-3">
+                                                {{ slide.cta_text }}
+                                                <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 {% endfor %}
             {% else %}
                 <div class="carousel-item active"
-                     style="background-image: url('https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1920&q=80');"></div>
+                     style="background-image: url('https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=1920&q=80');">
+                    <div class="hero-overlay">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-10 text-center">
+                                    <span class="hero-eyebrow">
+                                        <i class="bi bi-stars"></i>
+                                        {{ content('home_hero_eyebrow') or "Egypt's warmest welcome" }}
+                                    </span>
+                                    <h1 class="hero-headline">
+                                        {{ content('home_hero_title_line1') or 'Discover Egypt with' }}<br>
+                                        <span class="accent">{{ content('home_hero_title_line2') or config.APP_NAME }}</span>
+                                    </h1>
+                                    <p class="hero-subhead mx-auto">
+                                        {{ content('home_hero_subtitle') or 'Handpicked tours, world-class hotels, and all-inclusive packages across the Red Sea, Nile Valley, and beyond.' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="carousel-item"
                      style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&q=80');"></div>
                 <div class="carousel-item"
@@ -45,22 +108,11 @@
         </div>
     </div>
 
+   {# ─── Search + stats — its own section, below the slideshow ─── #}
     <div class="hero-overlay">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-10 text-center">
-                    <span class="hero-eyebrow">
-                        <i class="bi bi-stars"></i>
-                        {{ content('home_hero_eyebrow') or "Egypt's warmest welcome" }}
-                    </span>
-                    <h1 class="hero-headline">
-                        {{ content('home_hero_title_line1') or 'Discover Egypt with' }}<br>
-                        <span class="accent">{{ content('home_hero_title_line2') or config.APP_NAME }}</span>
-                    </h1>
-                    <p class="hero-subhead mx-auto">
-                        {{ content('home_hero_subtitle') or 'Handpicked tours, world-class hotels, and all-inclusive packages across the Red Sea, Nile Valley, and beyond.' }}
-                    </p>
-
                     {% include "public/_search_widget.html" %}
 
                     <div class="hero-stats">

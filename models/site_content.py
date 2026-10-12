@@ -131,6 +131,16 @@ class SiteContent(Base, TimestampMixin):
     sort_order: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0",
     )
+    # ─── Optional style overrides (nullable = "no override") ───
+    font_family: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    font_size:   Mapped[str | None] = mapped_column(String(16), nullable=True)
+    font_weight: Mapped[str | None] = mapped_column(String(8),  nullable=True)
+    color:       Mapped[str | None] = mapped_column(String(16), nullable=True)
+    align:       Mapped[str | None] = mapped_column(String(12), nullable=True)
+    letter_spacing: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    line_height:    Mapped[str | None] = mapped_column(String(8),  nullable=True)
+    text_shadow:    Mapped[str | None] = mapped_column(String(32), nullable=True)
+    text_transform: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     # ─── Audit ──────────────────────────────────────────────────────
     # WHY nullable + SET NULL: keep the content row even if the admin
