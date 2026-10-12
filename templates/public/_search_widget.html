@@ -31,7 +31,7 @@
                     data-bs-target="#sw-package"
                     type="button"
                     role="tab">
-                <i class="bi bi-suitcase-lg"></i> <span class="d-none d-sm-inline">Packages</span>
+                <i class="bi bi-suitcase-lg"></i> <span class="d-none d-sm-inline">Holiday Packages</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -90,7 +90,7 @@
             </form>
         </div>
 
-        {# â”€â”€â”€ Packages â”€â”€â”€ #}
+        {# â”€â”€â”€ Tour Packages â”€â”€â”€ #}
         <div class="tab-pane fade {% if _widget_active_type == 'package' %}show active{% endif %}" id="sw-package" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
                 <input type="hidden" name="type" value="package">
