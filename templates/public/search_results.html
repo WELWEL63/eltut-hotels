@@ -260,323 +260,301 @@
                 </div>
 
                 {% if result['items'] %}
-                    <div class="row g-4">
-                        {% for item in result['items'] %}
-                            <div class="col-md-6 col-xxl-4">
-                                <article class="sr-card">
+    <div class="sr-rows">
 
-                                    {# ── Media / image / placeholder ── #}
-                                    <div class="sr-card-media">
-                                        {% if item.image_url %}
-                                            <img src="{{ item.image_url }}"
-                                                 alt="{{ item.name }}"
-                                                 class="sr-card-image"
-                                                 loading="lazy"
-                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                            <div class="sr-card-placeholder" style="display:none;">
-                                                <i class="bi bi-{{ {'hotel': 'building', 'package': 'suitcase-lg', 'activity': 'compass'}[result['product_type']] }} sr-card-placeholder-icon"></i>
-                                            </div>
-                                        {% else %}
-                                            <div class="sr-card-placeholder">
-                                                <i class="bi bi-{{ {'hotel': 'building', 'package': 'suitcase-lg', 'activity': 'compass'}[result['product_type']] }} sr-card-placeholder-icon"></i>
-                                            </div>
-                                        {% endif %}
+       
+        {# ─── Rows ─── #}
+        {% for item in result['items'] %}
+            <article class="sr-row">
 
-                                        {# Badge: stars (hotel only) #}
-                                        {% if item.stars %}
-                                            <span class="sr-card-badge sr-card-badge--stars">
-                                                {% for _ in range(item.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                            </span>
-                                        {% endif %}
+                {# ── LEFT: image + badges ── #}
+                <a href="{% if result['product_type'] == 'hotel' %}{{ url_for('public.hotel_detail', slug=item.slug) }}{% elif result['product_type'] == 'package' %}{{ url_for('public.package_detail', slug=item.slug) }}{% else %}{{ url_for('public.activity_detail', slug=item.slug) }}{% endif %}"
+                   class="sr-row-media">
 
-                                        {# Badge: destination #}
-                                        {% if item.destination_name %}
-                                            <span class="sr-card-badge sr-card-badge--destination">
-                                                <i class="bi bi-geo-alt-fill"></i>
-                                                {{ item.destination_name }}
-                                            </span>
-                                        {% endif %}
-
-                                        {# Badge: nights (hotel/package) #}
-                                        {% if item.nights and item.nights > 0 %}
-                                            <span class="sr-card-badge sr-card-badge--nights">
-                                                <i class="bi bi-moon-stars"></i>
-                                                {{ item.nights }} night{{ "" if item.nights == 1 else "s" }}
-                                            </span>
-                                        {% endif %}
-                                    </div>
-
-                                    {# ── Body ── #}
-                                    <div class="sr-card-body">
-
-                                        <h5 class="sr-card-title">{{ item.name }}</h5>
-
-                                        {# Address (hotels) #}
-                                        {% if item.address %}
-                                            <div class="sr-card-address">
-                                                <i class="bi bi-geo-alt"></i>
-                                                <span>{{ item.address }}</span>
-                                            </div>
-                                        {% endif %}
-
-                                        {# Star rating line #}
-                                        {% if item.stars %}
-                                            <div class="sr-card-stars">
-                                                {% for _ in range(item.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                                <span class="sr-stars-label">
-                                                    {{ item.stars }}-star
-                                                    {% if result['product_type'] == 'hotel' %}hotel{% endif %}
-                                                </span>
-                                            </div>
-                                        {% endif %}
-
-                                        {# Type-specific metadata #}
-                                        {% if result['product_type'] == 'package' and item.extra.package_type %}
-                                            <div class="mb-2">
-                                                <span class="badge bg-light text-dark border small">
-                                                    {{ item.extra.package_type|title }}
-                                                </span>
-                                                {% if item.extra.code %}
-                                                    <span class="text-muted small ms-1">
-                                                        <i class="bi bi-hash"></i>{{ item.extra.code }}
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-                                        {% if result['product_type'] == 'activity' %}
-                                            <div class="mb-2 d-flex gap-3 small text-muted">
-                                                {% if item.extra.category %}
-                                                    <span><i class="bi bi-tag"></i> {{ item.extra.category|title }}</span>
-                                                {% endif %}
-                                                {% if item.extra.duration_hours %}
-                                                    <span><i class="bi bi-clock"></i> {{ item.extra.duration_hours }}h</span>
-                                                {% endif %}
-                                                {% if item.extra.difficulty %}
-                                                    <span><i class="bi bi-bar-chart"></i> {{ item.extra.difficulty|title }}</span>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-
-                                        {# ─── Available package windows (dates + prices) ─── #}
-                                        {% if result['product_type'] == 'package' and item.extra.windows %}
-                                            <div class="sr-windows mb-3">
-                                                {% for w in item.extra.windows %}
-                                                    <div class="sr-window-row">
-                                                        <div class="sr-window-dates">
-                                                            <i class="bi bi-calendar-range"></i>
-                                                                                                                        {% if w.valid_from and w.valid_to %}
-                                                                <strong>{{ w.valid_from | uk_date }}</strong>
-                                                                <span class="text-muted mx-1">→</span>
-                                                                <strong>{{ w.valid_to | uk_date }}</strong>
-                                                            {% else %}
-                                                                <em class="text-muted">Flexible dates</em>
-                                                            {% endif %}
-                                                        </div>
-                                                        <div class="sr-window-price">
-                                                            {% if w.adult_price %}
-                                                                <span class="fw-semibold text-eltut-terracotta">
-                                                                    {{ w.currency }} {{ "%.0f"|format(w.adult_price) }}
-                                                                </span>
-                                                                <span class="text-muted small">/ adult</span>
-                                                            {% endif %}
-                                                            {% if w.child_price %}
-                                                                <span class="text-muted small ms-1">
-                                                                    · {{ "%.0f"|format(w.child_price) }}/child
-                                                                </span>
-                                                            {% endif %}
-                                                            {% if w.tier == 1 %}
-                                                                <span class="badge bg-success-subtle text-success-emphasis ms-2">Exact match</span>
-                                                            {% elif w.tier == 2 %}
-                                                                <span class="badge bg-info-subtle text-info-emphasis ms-2">Contains check-in</span>
-                                                            {% elif w.tier == 3 %}
-                                                                <span class="badge bg-info-subtle text-info-emphasis ms-2">Contains check-out</span>
-                                                            {% elif w.tier == 4 %}
-                                                                <span class="badge bg-warning-subtle text-warning-emphasis ms-2">Nearby dates</span>
-                                                            {% elif w.tier == 5 %}
-                                                                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-2">Flexible</span>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        {% endif %}
-
-                                        {# Facility pills (hotels only) #}
-                                        {% if item.facilities %}
-                                            <div class="sr-facility-row">
-                                                {% for f in item.facilities %}
-                                                    <span class="sr-facility-pill">
-                                                        <i class="bi {{ f.icon }}"></i>
-                                                        {{ f.name }}
-                                                    </span>
-                                                {% endfor %}
-                                                {% if item.room_count and item.room_count > 0 %}
-                                                    <span class="sr-facility-pill">
-                                                        <i class="bi bi-door-open"></i>
-                                                        {{ item.room_count }} room{{ "" if item.room_count == 1 else "s" }}
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-                                        {% elif item.room_count and item.room_count > 0 %}
-                                            <div class="sr-facility-row">
-                                                <span class="sr-facility-pill">
-                                                    <i class="bi bi-door-open"></i>
-                                                    {{ item.room_count }} room{{ "" if item.room_count == 1 else "s" }}
-                                                </span>
-                                            </div>
-                                        {% endif %}
-
-                                        {# ── PRICE PANEL ── #}
-                                        {% if item.total_price is not none and item.total_price > 0 %}
-                                            <div class="sr-price-panel">
-                                                                                                {% if item.check_in and item.check_out %}
-                                                    <div class="sr-price-dates">
-                                                        <i class="bi bi-calendar-range"></i>
-                                                        {{ item.check_in | uk_date }} → {{ item.check_out | uk_date }}
-                                                    </div>
-                                                {% elif item.check_in %}
-                                                    <div class="sr-price-dates">
-                                                        <i class="bi bi-calendar-event"></i>
-                                                        {{ item.check_in | uk_date }}
-                                                    </div>
-                                                {% endif %}
-
-                                                <div class="sr-price-party">
-                                                    {% if item.nights %}
-                                                        {{ item.nights }} night{{ "" if item.nights == 1 else "s" }}
-                                                        &middot;
-                                                    {% endif %}
-                                                    {{ item.adults }} adult{{ "" if item.adults == 1 else "s" }}
-                                                    {% if item.children %}
-                                                        + {{ item.children }} child{{ "" if item.children == 1 else "ren" }}
-                                                    {% endif %}
-                                                </div>
-
-                                                <div class="sr-price-total-row">
-                                                    <div>
-                                                        <div class="sr-price-total">
-                                                            {{ item.currency }} {{ "%.2f"|format(item.total_price) }}
-                                                        </div>
-                                                        <div class="sr-price-total-label">Total for your stay</div>
-                                                    </div>
-                                                    {% if item.nights and item.price_per_night %}
-                                                        <div class="sr-price-breakdown">
-                                                            <div>
-                                                                <strong>{{ item.currency }} {{ "%.2f"|format(item.price_per_night) }}</strong>
-                                                                / night
-                                                            </div>
-                                                            <div>
-                                                                {{ item.currency }} {{ "%.2f"|format(item.price_adult or 0) }}/adult
-                                                                {% if item.price_child and item.price_child > 0 %}
-                                                                    &middot; {{ item.currency }} {{ "%.2f"|format(item.price_child) }}/child
-                                                                {% endif %}
-                                                            </div>
-                                                        </div>
-                                                    {% elif item.price_basis == 'per_person_flat' %}
-                                                        <div class="sr-price-breakdown">
-                                                            <div>
-                                                                <strong>{{ item.currency }} {{ "%.2f"|format(item.price_adult or 0) }}</strong>
-                                                                / adult
-                                                            </div>
-                                                            {% if item.price_child and item.price_child > 0 %}
-                                                                <div>
-                                                                    {{ item.currency }} {{ "%.2f"|format(item.price_child) }}/child
-                                                                </div>
-                                                            {% endif %}
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                        {% elif item.price_adult is not none %}
-                                            <div class="sr-price-fallback">
-                                                from {{ item.currency }} {{ "%.2f"|format(item.price_adult) }}
-                                                <small class="text-muted fw-normal">
-                                                    {% if item.price_basis == 'per_night' %}/night{% else %}/person{% endif %}
-                                                </small>
-                                            </div>
-                                        {% else %}
-                                            <div class="sr-price-on-request">
-                                                <i class="bi bi-info-circle"></i>
-                                                Price on request
-                                            </div>
-                                        {% endif %}
-
-                                        {# CTA — carries dates + party size #}
-                                        {% set _link_args = {'slug': item.slug} %}
-                                        {% if result['product_type'] == 'activity' %}
-                                            {% if item.check_in %}{% set _ = _link_args.update({'date': item.check_in}) %}{% endif %}
-                                        {% else %}
-                                            {% if item.check_in %}{% set _ = _link_args.update({'check_in': item.check_in}) %}{% endif %}
-                                            {% if item.check_out %}{% set _ = _link_args.update({'check_out': item.check_out}) %}{% endif %}
-                                        {% endif %}
-                                        {% if item.adults %}{% set _ = _link_args.update({'adults': item.adults}) %}{% endif %}
-                                        {% if item.children is not none %}{% set _ = _link_args.update({'children': item.children}) %}{% endif %}
-
-                                        {% if result['product_type'] == 'hotel' %}
-                                            <a href="{{ url_for('public.hotel_detail', **_link_args) }}" class="sr-cta">
-                                                View rooms & book <i class="bi bi-arrow-right"></i>
-                                            </a>
-                                        {% elif result['product_type'] == 'package' %}
-                                            <a href="{{ url_for('public.package_detail', **_link_args) }}" class="sr-cta">
-                                                View package & book <i class="bi bi-arrow-right"></i>
-                                            </a>
-                                        {% else %}
-                                            <a href="{{ url_for('public.activity_detail', **_link_args) }}" class="sr-cta">
-                                                View details & book <i class="bi bi-arrow-right"></i>
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </article>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    {# ──────────────── Pagination ──────────────── #}
-                    {% if result.total_pages > 1 %}
-                        <nav class="mt-5" aria-label="Search results pagination">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item {% if result['page'] <= 1 %}disabled{% endif %}">
-                                    <a class="page-link"
-                                       href="{{ url_for('public.search_results', page=result['page']-1, **qs) }}">
-                                        <i class="bi bi-chevron-left"></i> Previous
-                                    </a>
-                                </li>
-                                <li class="page-item disabled">
-                                    <span class="page-link">
-                                        Page {{ result['page'] }} of {{ result['total_pages'] }}
-                                    </span>
-                                </li>
-                                <li class="page-item {% if result['page'] >= result['total_pages'] %}disabled{% endif %}">
-                                    <a class="page-link"
-                                       href="{{ url_for('public.search_results', page=result['page']+1, **qs) }}">
-                                        Next <i class="bi bi-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
+                    {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.name }}"
+                             loading="lazy"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="sr-row-placeholder" style="display:none;">
+                            <i class="bi bi-{{ {'hotel': 'building', 'package': 'suitcase-lg', 'activity': 'compass'}[result['product_type']] }}"></i>
+                        </div>
+                    {% else %}
+                        <div class="sr-row-placeholder">
+                            <i class="bi bi-{{ {'hotel': 'building', 'package': 'suitcase-lg', 'activity': 'compass'}[result['product_type']] }}"></i>
+                        </div>
                     {% endif %}
 
-                {% else %}
-                    {# ──────────────── Empty state ──────────────── #}
-                    <div class="sr-empty">
-                        <div class="sr-empty-icon"><i class="bi bi-binoculars"></i></div>
-                        <h3 class="sr-empty-title">No matches found</h3>
-                        <p class="sr-empty-text">
-                            We couldn't find any {{ result['product_type'] }}s matching
-                            your criteria. Try widening your dates, changing destinations,
-                            or reducing the party size.
-                        </p>
-                        <a href="{{ url_for('public.search_results', type=result['product_type']) }}"
-                           class="btn btn-eltut-primary">
-                            <i class="bi bi-arrow-counterclockwise"></i> Reset search
-                        </a>
+                    {% if item.stars %}
+                        <span class="sr-row-badge sr-row-badge--stars">
+                            {% for _ in range(item.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                        </span>
+                    {% endif %}
+
+                    {% if item.nights and item.nights > 0 %}
+                        <span class="sr-row-badge sr-row-badge--nights">
+                            <i class="bi bi-moon-stars"></i> {{ item.nights }}N
+                        </span>
+                    {% endif %}
+                </a>
+
+                {# ── MIDDLE: info ── #}
+                <div class="sr-row-info">
+
+                    <div class="sr-row-top">
+                        <span class="sr-row-type-chip">
+                            {% if result['product_type'] == 'hotel' %}
+                                <i class="bi bi-building"></i> Hotel
+                            {% elif result['product_type'] == 'package' %}
+                                <i class="bi bi-suitcase-lg"></i>
+                                {{ (item.extra.package_type or 'Package')|title }}
+                            {% else %}
+                                <i class="bi bi-compass"></i>
+                                {{ (item.extra.category or 'Activity')|title }}
+                            {% endif %}
+                        </span>
+                        {% if item.destination_name %}
+                            <span class="sr-row-dest-chip">
+                                <i class="bi bi-geo-alt-fill"></i> {{ item.destination_name }}
+                            </span>
+                        {% endif %}
                     </div>
+
+                    <h3 class="sr-row-name">{{ item.name }}</h3>
+
+                    {% if item.address %}
+                        <div class="sr-row-address">
+                            <i class="bi bi-house"></i> {{ item.address }}
+                        </div>
+                    {% endif %}
+
+                   {# ─── Package extras ─── #}
+{% if result['product_type'] == 'package' %}
+
+    {# Hotel line: stars + name + room type #}
+    {% if item.extra.hotel_name or item.extra.hotel_stars %}
+        <div class="sr-row-hotel-line">
+            {% if item.extra.hotel_stars %}
+                <span class="sr-row-inline-stars" style="color:#f2c964;display:inline-flex;gap:0.05rem;">
+                    {% for _ in range(item.extra.hotel_stars) %}
+                        <i class="bi bi-star-fill" style="color:#f2c964;"></i>
+                    {% endfor %}
+                </span>
+            {% endif %}
+            <i class="bi bi-building" style="color:#c9a227;"></i>
+            <strong style="color:#1e3a5f;">{{ item.extra.hotel_name or 'Hotel' }}</strong>
+            {% if item.extra.room_type %}
+                <span class="sr-row-room" style="border-left:1px solid rgba(28,25,23,0.12);padding-left:0.4rem;margin-left:0.2rem;color:#78716c;font-size:0.78rem;">
+                    <i class="bi bi-door-closed"></i> {{ item.extra.room_type }}
+                </span>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {# Flight-included badge with airline logo #}
+    {% if item.extra.has_flight or 'flight' in ((item.extra.inclusions or []) | map('lower') | join(' ')) %}
+        <span class="sr-row-flight-badge">
+            {% if item.extra.flight_airline_logo %}
+                <img src="{{ item.extra.flight_airline_logo }}"
+                     alt="{{ item.extra.flight_airline_name or 'airline' }}"
+                     class="sr-row-flight-logo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                <i class="bi bi-airplane-fill" style="display:none;"></i>
+            {% else %}
+                <i class="bi bi-airplane-fill"></i>
+            {% endif %}
+            <span>
+                Flight included
+                {% if item.extra.flight_route %}
+                    · {{ item.extra.flight_route }}
+                {% elif item.extra.flight_airline_name %}
+                    · {{ item.extra.flight_airline_name }}
                 {% endif %}
+            </span>
+        </span>
+    {% endif %}
+
+    {# Facility chips #}
+    {% if item.extra.facilities %}
+        <div class="sr-row-meta">
+            {% for f in item.extra.facilities[:3] %}
+                <span><i class="bi bi-check-circle"></i> {{ f }}</span>
+            {% endfor %}
+            {% if item.extra.facilities|length > 3 %}
+                <span class="text-muted">+ {{ item.extra.facilities|length - 3 }}</span>
+            {% endif %}
+        </div>
+    {% endif %}
+
+   
+
+    {# Price windows (dates + prices) #}
+    {% if item.extra.windows %}
+        <div class="sr-row-windows">
+            {% for w in item.extra.windows[:2] %}
+                <span class="sr-window-pill">
+                    <i class="bi bi-calendar-range"></i>
+                    {% if w.valid_from and w.valid_to %}
+                        {{ w.valid_from | uk_date }} → {{ w.valid_to | uk_date }}
+                    {% else %}
+                        Flexible
+                    {% endif %}
+                    {% if w.adult_price %}
+                        · <strong>{{ w.currency }} {{ "%.0f"|format(w.adult_price) }}</strong>
+                    {% endif %}
+                    {# Inclusions preview (2 items) — stays in the middle column #}
+    {% if item.extra.inclusions %}
+        <ul class="sr-row-includes">
+            {% for inc in item.extra.inclusions[:2] %}
+                <li><i class="bi bi-check-lg"></i> {{ inc }}</li>
+            {% endfor %}
+            {% if item.extra.inclusions|length > 2 %}
+                <li class="more">+ {{ item.extra.inclusions|length - 2 }} more</li>
+            {% endif %}
+        </ul>
+    {% endif %}
+
+                </span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+{% endif %}
+                    {# Activity: meta line #}
+                    {% if result['product_type'] == 'activity' %}
+                        <div class="sr-row-meta">
+                            {% if item.extra.duration_hours %}<span><i class="bi bi-clock"></i> {{ item.extra.duration_hours }}h</span>{% endif %}
+                            {% if item.extra.difficulty %}<span><i class="bi bi-bar-chart"></i> {{ item.extra.difficulty|title }}</span>{% endif %}
+                            {% if item.extra.min_age %}<span><i class="bi bi-person-badge"></i> {{ item.extra.min_age }}+</span>{% endif %}
+                        </div>
+                    {% endif %}
+
+                    {# Hotel: facility chips #}
+                    {% if result['product_type'] == 'hotel' and item.facilities %}
+                        <div class="sr-row-meta">
+                            {% for f in item.facilities[:3] %}
+                                <span><i class="bi {{ f.icon }}"></i> {{ f.name }}</span>
+                            {% endfor %}
+                            {% if item.room_count and item.room_count > 0 %}
+                                <span><i class="bi bi-door-open"></i> {{ item.room_count }} rooms</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    {# Right-side mini stats: use info density #}
+                    {% if item.stars %}
+                        <div class="sr-row-stars-line">
+                            <i class="bi bi-star-fill"></i>
+                            <strong>{{ item.stars }}-star</strong>
+                            {% if result['product_type'] == 'hotel' %}hotel{% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# ── RIGHT: price + CTA ── #}
+                <div class="sr-row-price">
+
+                    {% if item.total_price is not none and item.total_price > 0 %}
+                        <div class="sr-row-price-total">
+                            {{ item.currency }} {{ "%.2f"|format(item.total_price) }}
+                        </div>
+                        <div class="sr-row-price-label">
+                            total for
+                            {% if item.nights %}{{ item.nights }}N · {% endif %}
+                            {{ item.adults }} adult{{ "" if item.adults == 1 else "s" }}
+                        </div>
+                        {% if item.price_per_night %}
+                            <div class="sr-row-price-sub">
+                                {{ item.currency }} {{ "%.2f"|format(item.price_per_night) }} / night
+                            </div>
+                        {% endif %}
+                    {% elif item.price_adult is not none %}
+                        <div class="sr-row-price-total">
+                            {{ item.currency }} {{ "%.2f"|format(item.price_adult) }}
+                        </div>
+                        <div class="sr-row-price-label">
+                            from
+                            {% if item.price_basis == 'per_night' %}per night{% else %}per person{% endif %}
+                        </div>
+                    {% else %}
+                        <div class="sr-row-price-request">
+                            <i class="bi bi-info-circle"></i>
+                            Price on request
+                        </div>
+                    {% endif %}
+
+                    {% set _link_args = {'slug': item.slug} %}
+                    {% if result['product_type'] == 'activity' %}
+                        {% if item.check_in %}{% set _ = _link_args.update({'date': item.check_in}) %}{% endif %}
+                    {% else %}
+                        {% if item.check_in %}{% set _ = _link_args.update({'check_in': item.check_in}) %}{% endif %}
+                        {% if item.check_out %}{% set _ = _link_args.update({'check_out': item.check_out}) %}{% endif %}
+                    {% endif %}
+                    {% if item.adults %}{% set _ = _link_args.update({'adults': item.adults}) %}{% endif %}
+                    {% if item.children is not none %}{% set _ = _link_args.update({'children': item.children}) %}{% endif %}
+
+                    {% if result['product_type'] == 'hotel' %}
+                        <a href="{{ url_for('public.hotel_detail', **_link_args) }}" class="sr-row-cta">
+                            View rooms <i class="bi bi-arrow-right"></i>
+                        </a>
+                    {% elif result['product_type'] == 'package' %}
+                        <a href="{{ url_for('public.package_detail', **_link_args) }}" class="sr-row-cta">
+                            View package <i class="bi bi-arrow-right"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('public.activity_detail', **_link_args) }}" class="sr-row-cta">
+                            View details <i class="bi bi-arrow-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    {# ──────────────── Pagination ──────────────── #}
+    {% if result.total_pages > 1 %}
+        <nav class="mt-5" aria-label="Search results pagination">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if result['page'] <= 1 %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('public.search_results', page=result['page']-1, **qs) }}">
+                        <i class="bi bi-chevron-left"></i> Previous
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Page {{ result['page'] }} of {{ result['total_pages'] }}
+                    </span>
+                </li>
+                <li class="page-item {% if result['page'] >= result['total_pages'] %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('public.search_results', page=result['page']+1, **qs) }}">
+                        Next <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
+
+{% else %}
+    {# ──────────────── Empty state ──────────────── #}
+    <div class="sr-empty">
+        <div class="sr-empty-icon"><i class="bi bi-binoculars"></i></div>
+        <h3 class="sr-empty-title">No matches found</h3>
+        <p class="sr-empty-text">
+            We couldn't find any {{ result['product_type'] }}s matching
+            your criteria. Try widening your dates, changing destinations,
+            or reducing the party size.
+        </p>
+        <a href="{{ url_for('public.search_results', type=result['product_type']) }}"
+           class="btn btn-eltut-primary">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset search
+        </a>
+    </div>
+{% endif %}
 
             </div>
         </div>
     </div>
-</section>
 
 <style>
 /* ─── Available package windows ─── */

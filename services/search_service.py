@@ -1,4 +1,4 @@
-﻿"""
+"""
 services/search_service.py
 ───────────────────────────
 Cross-product search for activities, hotels, and packages.
@@ -201,9 +201,7 @@ def _search_hotels(
     if query_text:
         stmt = stmt.where(Hotel.name.ilike(f"%{query_text}%"))
 
-    # ── NEW: filter by room capacity ────────────────────────────────
-    # A hotel matches only if it has at least one active room whose
-    # max_occupancy can hold the whole party.
+    # ── Filter by room capacity ─────────────────────────────────────
     party_size = adults + children
     if party_size > 0:
         stmt = stmt.where(
@@ -537,13 +535,9 @@ def _has_same_month_overlap(price_row, check_in, check_out):
     if check_in is None or check_out is None:
         return False
 
-    # Clamp to same year check — allow any month in that calendar span
-    # Simplest robust test: does either end of the window fall inside
-    # the customer's month span, OR does the window fully span it?
     start = min(vf, vt) if (vf is not None and vt is not None) else (vf or vt)
     end = max(vf, vt) if (vf is not None and vt is not None) else (vf or vt)
 
-    # Build month-token sets for customer range
     def _months(d1, d2):
         out = set()
         y, m = d1.year, d1.month
@@ -611,18 +605,8 @@ def _search_packages(
     has_dates = check_in is not None and check_out is not None
 
     # ─── X3: SQL-level same-month filter ────────────────────────────
-    # We require a price row whose [valid_from, valid_to] window shares
-    # a calendar month with [check_in, check_out]. We do this in SQL
-    # so total + pagination are correct.
-    #
-    # Since "same month" is a semantic concept, we approximate with
-    # a range predicate that is exact for the common case: the window
-    # must overlap the customer's range widened to full calendar months.
     if has_dates:
-        # Customer's month span as dates: 1st of check_in's month →
-        # last day of check_out's month.
         month_start = check_in.replace(day=1)
-        # Last day of check_out's month:
         if check_out.month == 12:
             month_end = check_out.replace(
                 year=check_out.year + 1, month=1, day=1
@@ -632,10 +616,6 @@ def _search_packages(
                 month=check_out.month + 1, day=1
             ) - _td(days=1)
 
-        # EXISTS (SELECT 1 FROM package_prices WHERE package_id = Package.id
-        #         AND valid_from IS NOT NULL AND valid_to IS NOT NULL
-        #         AND valid_from <= month_end AND valid_to >= month_start)
-        from sqlalchemy import exists
         price_match = (
             select(PackagePrice.id)
             .where(PackagePrice.package_id == Package.id)
@@ -706,6 +686,19 @@ def _search_packages(
         )
         image_url = _first_image_url(getattr(p, "images", None))
 
+        # ─── Package's hotel + room for rich detail ────────────────
+        pkg_hotel = db.session.get(Hotel, p.hotel_id) if p.hotel_id else None
+        pkg_room = db.session.get(Room, p.room_id) if p.room_id else None
+        pkg_facilities = []
+        if pkg_hotel is not None:
+            facs = db.session.scalars(
+                select(HotelFacility)
+                .where(HotelFacility.hotel_id == pkg_hotel.id)
+                .order_by(HotelFacility.id.asc())
+                .limit(6)
+            ).all()
+            pkg_facilities = [f.name for f in facs][:6]
+
         items.append({
             "id": p.id,
             "name": p.name,
@@ -722,6 +715,13 @@ def _search_packages(
                 "duration_nights": p.duration_nights,
                 "package_type": p.package_type,
                 "code": p.code,
+                "hotel_stars": pkg_hotel.stars if pkg_hotel else None,
+                "hotel_name": pkg_hotel.name if pkg_hotel else None,
+                "room_type": pkg_room.type if pkg_room else None,
+                "facilities": pkg_facilities,
+                "inclusions": [
+                    inc.item for inc in (getattr(p, "inclusions", None) or [])
+                ][:6],
                 "windows": [
                     {
                         "id": w.id,
@@ -864,6 +864,12 @@ def _search_activities(
                 "category": a.category,
                 "difficulty": a.difficulty,
                 "duration_hours": float(a.duration_hours) if a.duration_hours else None,
+                "inclusions": [
+                    inc.item for inc in (getattr(a, "inclusions", None) or [])
+                ][:6],
+                "languages": [
+                    lang.language for lang in (getattr(a, "languages", None) or [])
+                ][:6],
             },
             "price_child": (
                 float(pricing["child_price"])

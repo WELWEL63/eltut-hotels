@@ -771,17 +771,19 @@
                             </div>
                         {% endif %}
 
-                        {% if rel.address %}
+                                               {% if rel.address %}
                             <div class="related-card-meta">
                                 <i class="bi bi-house"></i> {{ rel.address|truncate(50, true) }}
                             </div>
                         {% endif %}
 
+                        {# ─── Price per night ─── #}
+                        {% set rel_price = rel.rooms[0].base_price_per_night if rel.rooms else None %}
                         {% if rel_price %}
                             <div class="related-card-price">
                                 <span class="related-price-label">from</span>
                                 <span class="related-price">
-                                    EUR&nbsp;{{ "%.0f"|format(rel_price) }}
+                                    €{{ "%.0f"|format(rel_price) }}
                                 </span>
                                 <span class="related-price-unit">/ night</span>
                             </div>

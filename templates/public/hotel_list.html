@@ -4,34 +4,53 @@
 
 {% block content %}
 
-<section class="py-4 bg-light border-bottom">
+{# ═══════════════════════════════════════════════════════════════════
+   HOTEL LIST — Cinzel header, rich cards, BLUE price, per-night
+   ═══════════════════════════════════════════════════════════════════ #}
+<section class="htl-list-header">
     <div class="container">
-        <h1 class="mb-1">Hotels</h1>
-        <p class="text-muted mb-0">
-            {{ total }} hotel{{ "" if total == 1 else "s" }} found
-            {% if selected_destination %} in {{ selected_destination.name }}{% endif %}
-        </p>
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb small mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Hotels</li>
+            </ol>
+        </nav>
+        <div class="htl-list-header-row">
+            <div>
+                <span class="htl-list-eyebrow">
+                    <i class="bi bi-building"></i> Browse hotels
+                </span>
+                <h1 class="htl-list-title">
+                    Hotels{% if selected_destination %} in {{ selected_destination.name }}{% endif %}
+                </h1>
+                <p class="htl-list-sub">
+                    <strong>{{ total }}</strong> hotel{{ "" if total == 1 else "s" }} found
+                    {% if selected_stars %} · {{ selected_stars }}-star{% endif %}
+                    {% if selected_meal_plan %} · {{ selected_meal_plan|replace("_", " ")|title }}{% endif %}
+                    {% if query_text %} · matching "{{ query_text }}"{% endif %}
+                </p>
+            </div>
+        </div>
     </div>
 </section>
 
+{# ─── Filters + results ─── #}
 <section class="py-4">
     <div class="container">
         <div class="row g-4">
+
             {# ─── Filter sidebar ─── #}
             <aside class="col-lg-3">
                 <form method="GET" class="card shadow-sm">
                     <div class="card-body">
-                        <h6 class="card-title">Filters</h6>
+                        <h6 class="card-title"><i class="bi bi-sliders"></i> Filters</h6>
 
                         <div class="mb-3">
                             <label class="form-label small">Destination</label>
                             <select name="destination" class="form-select form-select-sm">
                                 <option value="">All destinations</option>
                                 {% for d in destinations %}
-                                    <option value="{{ d.slug }}"
-                                        {% if selected_destination and selected_destination.id == d.id %}selected{% endif %}>
-                                        {{ d.name }}
-                                    </option>
+                                    <option value="{{ d.slug }}"{% if selected_destination and selected_destination.id == d.id %} selected{% endif %}>{{ d.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -41,9 +60,7 @@
                             <select name="stars" class="form-select form-select-sm">
                                 <option value="">Any rating</option>
                                 {% for n in [5, 4, 3, 2, 1] %}
-                                    <option value="{{ n }}" {% if selected_stars == n %}selected{% endif %}>
-                                        {{ n }} star{{ "" if n == 1 else "s" }}
-                                    </option>
+                                    <option value="{{ n }}"{% if selected_stars == n %} selected{% endif %}>{{ n }} star{{ "" if n == 1 else "s" }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -53,33 +70,31 @@
                             <select name="meal_plan" class="form-select form-select-sm">
                                 <option value="">Any</option>
                                 {% for m in meal_plans %}
-                                    <option value="{{ m }}" {% if selected_meal_plan == m %}selected{% endif %}>
-                                        {{ m|replace("_", " ")|title }}
-                                    </option>
+                                    <option value="{{ m }}"{% if selected_meal_plan == m %} selected{% endif %}>{{ m|replace("_", " ")|title }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Search</label>
-                            <input type="text" name="q" class="form-control form-control-sm"
-                                   value="{{ query_text }}" placeholder="Hotel name">
+                            <input type="text" name="q" class="form-control form-control-sm" value="{{ query_text }}" placeholder="Hotel name">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Sort by</label>
                             <select name="sort" class="form-select form-select-sm">
-                                <option value="newest"     {% if sort == "newest" %}selected{% endif %}>Newest</option>
-                                <option value="name"       {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
-                                <option value="stars_desc" {% if sort == "stars_desc" %}selected{% endif %}>Stars: high first</option>
-                                <option value="price_asc"  {% if sort == "price_asc" %}selected{% endif %}>Price: low to high</option>
-                                <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
+                                <option value="newest"{% if sort == "newest" %} selected{% endif %}>Newest</option>
+                                <option value="name"{% if sort == "name" %} selected{% endif %}>Name A-Z</option>
+                                <option value="stars_desc"{% if sort == "stars_desc" %} selected{% endif %}>Stars: high first</option>
+                                <option value="price_asc"{% if sort == "price_asc" %} selected{% endif %}>Price: low to high</option>
+                                <option value="price_desc"{% if sort == "price_desc" %} selected{% endif %}>Price: high to low</option>
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
-                        <a href="{{ url_for('public.hotel_list') }}"
-                           class="btn btn-link btn-sm w-100 mt-2">Clear</a>
+                        <button type="submit" class="btn btn-eltut-primary btn-sm w-100">
+                            <i class="bi bi-check2-circle"></i> Apply filters
+                        </button>
+                        <a href="{{ url_for('public.hotel_list') }}" class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">Clear all</a>
                     </div>
                 </form>
             </aside>
@@ -87,50 +102,114 @@
             {# ─── Results ─── #}
             <div class="col-lg-9">
                 {% if items %}
+                    {% set _min_price = items|map(attribute='price')|select('number')|list|min if items|map(attribute='price')|select('number')|list else None %}
+
                     <div class="row g-4">
                         {% for item in items %}
-                            <div class="col-sm-6 col-xl-4">
-                                <div class="card h-100 shadow-sm">
-                                    {% set img_url = item.image_url %}
-                                    {% if img_url and (img_url.startswith('http') or img_url.startswith('/static')) %}
-                                        <img src="{{ img_url }}" class="card-img-top"
-                                             alt="{{ item.hotel.name }}"
-                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="card-img-top d-none align-items-center
-                                                    justify-content-center bg-secondary bg-opacity-10">
-                                            <i class="bi bi-building text-secondary fs-1"></i>
+                            {% set h = item.hotel %}
+                            {% set img = item.image_url %}
+                            {% set is_best_value = item.price and item.price == _min_price %}
+                            {% set dest = search_destinations()|selectattr('id', 'equalto', h.destination_id)|first if h.destination_id else None %}
+
+                            <div class="col-md-6 col-xxl-4">
+                                <article class="htl-card">
+                                    <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}" class="htl-card-link" aria-label="{{ h.name }}"></a>
+
+                                    {# ── Image + top badges ── #}
+                                    <div class="htl-card-media">
+                                        {% if img and (img.startswith('http') or img.startswith('/static')) %}
+                                            <img src="{{ img }}" alt="{{ h.name }}"
+                                                 loading="lazy"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="htl-card-placeholder" style="display:none;">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="htl-card-placeholder">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="htl-card-scrim"></div>
+
+                                        {% if h.stars %}
+                                            <span class="htl-card-badge htl-card-badge--stars">
+                                                {% for _ in range(h.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if dest %}
+                                            <span class="htl-card-badge htl-card-badge--dest">
+                                                <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+                                            </span>
+                                        {% endif %}
+
+                                        {% if is_best_value %}
+                                            <span class="htl-card-ribbon">
+                                                <i class="bi bi-award-fill"></i> Best value
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
+                                    {# ── Body ── #}
+                                    <div class="htl-card-body">
+
+                                        <h3 class="htl-card-name">{{ h.name }}</h3>
+
+                                        {% if h.address %}
+                                            <div class="htl-card-address">
+                                                <i class="bi bi-house"></i>
+                                                <span>{{ h.address|truncate(64, true) }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        {# Meta row: facilities / rooms #}
+                                        <div class="htl-card-meta">
+                                            {% if h.facilities %}
+                                                <span><i class="bi bi-stars"></i> {{ h.facilities|length }} facilities</span>
+                                            {% endif %}
+                                            {% if h.rooms %}
+                                                <span><i class="bi bi-door-open"></i> {{ h.rooms|length }} rooms</span>
+                                            {% endif %}
                                         </div>
-                                    {% else %}
-                                        <div class="card-img-top d-flex align-items-center
-                                                    justify-content-center bg-secondary bg-opacity-10">
-                                            <i class="bi bi-building text-secondary fs-1"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="mb-2">
-                                            {% for _ in range(item.hotel.stars) %}
-                                                <i class="bi bi-star-fill text-warning"></i>
-                                            {% endfor %}
-                                        </div>
-                                        <h5 class="card-title">{{ item.hotel.name }}</h5>
-                                        <p class="card-text text-muted small mb-2">
-                                            {{ item.hotel.address or "Egypt" }}
-                                        </p>
-                                        <div class="mt-auto d-flex justify-content-between align-items-center">
-                                            <div>
-                                                {% if item.price %}
-                                                    <small class="text-muted">from</small>
-                                                    <span class="fw-bold">
-                                                        &euro;{{ "%.2f"|format(item.price) }}
+
+                                        {# Facility chips #}
+                                        {% if h.facilities %}
+                                            <div class="htl-card-chips">
+                                                {% for f in h.facilities[:3] %}
+                                                    <span class="htl-chip">
+                                                        <i class="bi bi-check2"></i> {{ f.name }}
                                                     </span>
-                                                    <small class="text-muted">/ night</small>
+                                                {% endfor %}
+                                                {% if h.facilities|length > 3 %}
+                                                    <span class="htl-chip htl-chip--more">+ {{ h.facilities|length - 3 }}</span>
                                                 {% endif %}
                                             </div>
-                                            <a href="{{ url_for('public.hotel_detail', slug=item.hotel.slug) }}"
-                                               class="btn btn-sm btn-primary">View</a>
+                                        {% endif %}
+
+                                        {# ── Price + CTA (BLUE price) ── #}
+                                        <div class="htl-card-footer">
+                                            {% if item.price %}
+                                                <div class="htl-card-price">
+                                                    <span class="htl-price-label">from</span>
+                                                    <span class="htl-price-amount">€{{ "%.0f"|format(item.price) }}</span>
+                                                    <span class="htl-price-unit">/ night</span>
+                                                </div>
+                                            {% else %}
+                                                <div class="htl-card-price htl-card-price--empty">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    <span>Price on request</span>
+                                                </div>
+                                            {% endif %}
+
+                                            <span class="htl-card-cta">
+                                                View
+                                                <i class="bi bi-arrow-right"></i>
+                                            </span>
                                         </div>
+
                                     </div>
-                                </div>
+                                </article>
                             </div>
                         {% endfor %}
                     </div>
@@ -144,27 +223,33 @@
                         {% if query_text %}{% set _ = qs.update({"q": query_text}) %}{% endif %}
                         {% if sort %}{% set _ = qs.update({"sort": sort}) %}{% endif %}
 
-                        <nav class="mt-4">
+                        <nav class="mt-5" aria-label="Hotel list pagination">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                    <a class="page-link"
-                                       href="{{ url_for('public.hotel_list', page=page-1, **qs) }}">Previous</a>
+                                    <a class="page-link" href="{{ url_for('public.hotel_list', page=page-1, **qs) }}">
+                                        <i class="bi bi-chevron-left"></i> Previous
+                                    </a>
                                 </li>
                                 <li class="page-item disabled">
                                     <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
                                 </li>
                                 <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                                    <a class="page-link"
-                                       href="{{ url_for('public.hotel_list', page=page+1, **qs) }}">Next</a>
+                                    <a class="page-link" href="{{ url_for('public.hotel_list', page=page+1, **qs) }}">
+                                        Next <i class="bi bi-chevron-right"></i>
+                                    </a>
                                 </li>
                             </ul>
                         </nav>
                     {% endif %}
 
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No hotels match your filters.
-                        <a href="{{ url_for('public.hotel_list') }}">Clear filters</a>
+                    <div class="sr-empty">
+                        <div class="sr-empty-icon"><i class="bi bi-binoculars"></i></div>
+                        <h3 class="sr-empty-title">No hotels found</h3>
+                        <p class="sr-empty-text">Try widening your search or clearing a filter.</p>
+                        <a href="{{ url_for('public.hotel_list') }}" class="btn btn-eltut-primary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear filters
+                        </a>
                     </div>
                 {% endif %}
             </div>

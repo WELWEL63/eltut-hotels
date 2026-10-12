@@ -1,9 +1,1050 @@
 ﻿======================================================
-ELTUT TOURS — CODE REPORT
-Generated: 2026-10-11 19:17:25
+ELTUT TOURS — FULL CODE REPORT
+Generated: 2026-10-12 23:26:07
+Root:      C:\Users\washo\eltut-tours-platform
 ======================================================
 
-========== 1. MODELS ==========
+========== 1. FILE TREE (excluding noise) ==========
+         0  static\images\uploads\.gitkeep
+         0  static\videos\uploads\.gitkeep
+       120  Procfile
+       254  testing\_verify_package_route.py
+       285  code_report.txt
+       291  testing\_diag_meta.py
+       293  testing\_check_room_fields.py
+       298  testing\_bump.py
+       331  testing\_smoke_home.py
+       336  static\images\uploads\1b89de1d3be8b0fd1d7ae8e2e7114578981ae6a3.jpg
+       346  testing\_check_airlines.py
+       368  testing\_verify_currency.py
+       370  testing\_check_indexes2.py
+       374  testing\_verify_easyjet.py
+       403  testing\_verify_pkg_options_page.py
+       404  testing\_verify_airline_col.py
+       415  testing\_check_dest_images.py
+       421  testing\_verify_meta.py
+       432  .gitignore
+       432  testing\_fix_airline_name.py
+       450  testing\_test_quote.py
+       460  scripts\__init__.py
+       471  testing\_verify_all_currency.py
+       481  testing\_patch_airline_import.py
+       489  testing\_check_addons.py
+       496  testing\_check_airline_names.py
+       558  testing\_diag_meta2.py
+       563  testing\_test_addons2.py
+       594  testing\_find_slug.py
+       598  testing\_verify_modal_data.py
+       605  requirements.txt
+       678  testing\_check_pricing_math.py
+       695  testing\_patch_reco.py
+       748  testing\_verify_meta_images.py
+       754  testing\_check_booking_schema.py
+       765  testing\_timing.py
+       768  testing\_check_room_capacity.py
+       794  testing\_check_children.py
+       803  blueprints\api\__init__.py
+       848  testing\_check_meta_hero.py
+       869  testing\_fix_pkg_urls.py
+       873  testing\_migrate_currency.py
+       888  testing\_slug_check.py
+       889  testing\_check_activity_model.py
+       905  testing\_check_backfill.py
+       926  scripts\seed_cms_flights_max.py
+       945  testing\_diag_step3.py
+       949  testing\_patch_template.py
+       961  testing\_check_all_images.py
+       967  testing\_test_booking_service.py
+     1,014  testing\_patch_search.py
+     1,050  testing\_check_rate_dates.py
+     1,060  testing\_check_currencies.py
+     1,072  blueprints\__init__.py
+     1,097  testing\_check_facility_types.py
+     1,141  testing\_patch_flight_model.py
+     1,174  testing\_patch_routes_shape.py
+     1,218  blueprints\account\__init__.py
+     1,236  testing\_patch_content_append.py
+     1,269  testing\_check_prices.py
+     1,275  testing\_find_gap.py
+     1,314  testing\_patch_routes3.py
+     1,322  templates\public\quote_request_thanks.html
+     1,344  cloud_function\__init__.py
+     1,443  blueprints\auth\__init__.py
+     1,503  testing\_verify_airline2.py
+     1,522  templates\auth\forgot_password.html
+     1,544  testing\_patch_pkg_breakdown.py
+     1,696  blueprints\account\forms.py
+     1,789  templates\auth\reset_password.html
+     1,836  blueprints\admin\routes.py
+     1,849  .env.example
+     1,855  testing\_patch_content_helper.py
+     1,879  mongo\__init__.py
+     1,883  testing\_test_caps.py
+     1,885  testing\_check_prices2.py
+     1,990  .env
+     2,020  testing\_patch_meta2.py
+     2,059  testing\_airline_backfill2.py
+     2,086  testing\_patch_pricing.py
+     2,104  testing\_backup_261.py
+     2,107  testing\_patch_routes.py
+     2,121  testing\_patch_booking_pricing.py
+     2,129  testing\_patch_home_template.py
+     2,133  testing\_apply_patch.py
+     2,195  scripts\backfill_hotel_slugs.py
+     2,205  templates\public\contact.html
+     2,293  testing\_patch_seed.py
+     2,331  testing\_check_flights.py
+     2,370  testing\_verify_261.py
+     2,371  templates\auth\login.html
+     2,488  templates\public\about.html
+     2,525  models\room_rate.py
+     2,558  testing\_patch_reco_modal.py
+     2,650  testing\_find_rich_hotels.py
+     2,748  utils.py
+     2,868  testing\_patch_activity_routes.py
+     2,871  blueprints\public\__init__.py
+     2,966  testing\_check_hotel_fields.py
+     3,009  testing\_patch_option_logo.py
+     3,153  blueprints\auth\password_routes.py
+     3,374  blueprints\auth\forms.py
+     3,402  testing\_check_1001.py
+     3,457  blueprints\public\review_routes.py
+     3,460  templates\auth\register.html
+     3,476  models\home_offer.py
+     3,547  models\package_children.py
+     3,577  testing\_patch_package_routes.py
+     3,582  models\activity_children.py
+     3,593  testing\_backup_hotel_261.json
+     3,655  scripts\enrich_activity_maps.py
+     3,732  templates\public\booking_confirmation.html
+     3,735  testing\_patch_sidebar.py
+     3,770  models\airline.py
+     3,782  templates\account\index.html
+     3,783  testing\_patch_booking_sidebar.py
+     3,805  blueprints\public\enquiry_routes.py
+     3,853  templates\public\enquiry_form.html
+     3,879  testing\_patch_meta_images.py
+     3,932  blueprints\admin\__init__.py
+     3,994  config.py
+     4,073  models\booking.py
+     4,198  render.yaml
+     4,354  testing\_airline_backfill.py
+     4,402  testing\_seed_package_options.py
+     4,461  services\__init__.py
+     4,496  templates\account\bookings.html
+     4,657  scripts\seed_cover_images.py
+     4,824  templates\account\profile.html
+     5,030  testing\_patch_flight_route.py
+     5,069  testing\_patch_pkg_airline.py
+     5,074  templates\admin\hotel_list.html
+     5,076  scripts\fix_options.py
+     5,079  blueprints\auth\routes.py
+     5,125  templates\admin\activity_list.html
+     5,142  models\destination.py
+     5,143  templates\admin\package_list.html
+     5,207  models\package_option.py
+     5,287  templates\admin\user_list.html
+     5,355  models\newsletter.py
+     5,402  testing\_patch_home_route.py
+     5,460  templates\admin\base.html
+     5,687  scripts\reset_db.py
+     5,839  templates\admin\airline_list.html
+     5,902  models\booking_status_history.py
+     5,928  models\guide.py
+     5,957  templates\admin\quote_new.html
+     5,977  testing\_patch_fast_home.py
+     5,978  models\flight.py
+     6,131  blueprints\public\search_routes.py
+     6,210  templates\admin\destination_images.html
+     6,258  blueprints\admin\report_routes.py
+     6,403  static\images\airlines\c0f259fd12d0ae4c926548437f965b9441da8767.png
+     6,462  models\hotel_children.py
+     6,468  blueprints\admin\destination_admin.py
+     6,490  models\booking_traveller.py
+     6,697  testing\_enrich_261.py
+     6,776  models\supplier.py
+     6,808  templates\admin\review_list.html
+     6,838  templates\admin\airline_form.html
+     6,869  extensions.py
+     6,941  scripts\create_admin.py
+     6,991  templates\admin\booking_list.html
+     7,028  models\site_content.py
+     7,037  mongo\client.py
+     7,054  templates\admin\room_form.html
+     7,074  templates\admin\content_edit.html
+     7,084  templates\admin\content_index.html
+     7,110  models\booking_item.py
+     7,117  testing\_patch_home_route2.py
+     7,183  templates\public\quote_request_form.html
+     7,247  mongo\facilities_extras.py
+     7,279  cloud_function\worker.py
+     7,287  templates\admin\enquiry_list.html
+     7,421  cloud_function\tasks.py
+     7,531  scripts\import_trip_images.py
+     7,559  templates\admin\quote_requests.html
+     7,655  templates\account\booking_detail.html
+     7,669  models\payment.py
+     7,761  blueprints\account\routes.py
+     7,919  models\user.py
+     8,167  templates\admin\media_product.html
+     8,194  templates\admin\user_detail.html
+     8,244  blueprints\admin\user_admin.py
+     8,302  static\images\airlines\1deedf9b230ac1620304736d514b6ac1294db24c.png
+     8,553  templates\base.html.pre_home_theme.bak
+     8,711  templates\admin\index.html
+     8,882  blueprints\public\quote_routes.py
+     8,980  templates\base.html
+     8,980  templates\base.html.pre_logo.bak
+     8,980  templates\base.html.pre_polish.bak
+     8,980  templates\base.html.pre_trend2030.bak
+     8,986  mongo\logs.py
+     9,029  mongo\enquiries.py
+     9,069  scripts\consolidate_packages.py
+     9,092  templates\public\package_list.html
+     9,102  templates\admin\quote_list.html
+     9,118  models\room.py
+     9,167  templates\public\activity_list.html
+     9,282  blueprints\admin\review_admin.py
+     9,500  templates\admin\media_index.html
+     9,702  blueprints\api\hotels_api.py
+     9,732  blueprints\api\activities_api.py
+    10,102  blueprints\api\packages_api.py
+    10,232  mongo\search_events.py
+    10,280  blueprints\admin\offer_admin.py
+    10,327  templates\public\_search_widget.html
+    10,716  blueprints\public\activity_routes.py
+    10,928  services\recommendation_service.py
+    10,945  services\auth_service.py
+    11,096  services\report_service.py
+    11,146  services\pricing_service.py
+    11,237  blueprints\public\routes.py
+    11,416  blueprints\admin\airline_admin.py
+    11,471  static\images\airlines\124167c04b4a165a0136bc53621bc5ed9a862f6d.jpg
+    11,837  services\availability_service.py
+    12,129  blueprints\admin\quote_admin.py
+    12,154  mongo\reviews.py
+    12,334  blueprints\api\payments_api.py
+    12,435  models\__init__.py
+    12,501  blueprints\admin\booking_admin.py
+    12,744  templates\admin\report_index.html
+    12,765  templates\public\quote_view.html
+    13,103  templates\admin\booking_detail.html
+    13,201  testing\_index_clean.txt
+    13,423  static\images\airlines\3dc658a5efb1537cb385eb23d85d6dcdc0c93d02.jpg
+    13,571  templates\admin\offers.html
+    13,857  models\quote.py
+    14,181  blueprints\public\hotel_routes.py
+    14,537  models\hotel.py
+    15,042  static\css\search_results.css
+    15,145  services\payment_service.py
+    15,166  templates\admin\activity_form.html
+    15,313  blueprints\api\bookings_api.py
+    15,361  templates\public\hotel_list.html
+    15,472  app.py
+    15,891  testing\_index_content.txt
+    16,662  scripts\enrich_activity_faqs_tips.py
+    17,055  blueprints\admin\content_admin.py
+    17,170  testing\_audit.py
+    17,618  scripts\seed_package_details.py
+    17,623  blueprints\admin\activity_admin.py
+    18,158  static\images\uploads\2b029abc3237faea07339609906d0fad8d927213.jpeg
+    18,279  flash.text
+    18,456  scripts\enrich_package_faqs_tips.py
+    19,375  static\images\uploads\d1fcb04db92b9a339386098afac3b486a4c3fedd.jpg
+    19,751  services\email_service.py
+    20,775  templates\admin\quote_detail.html
+    21,731  models\activity.py
+    21,757  models\package.py
+    21,847  services\booking_service.py
+    21,989  services\quote_service.py
+    22,002  templates\public\_egypt_guide.html
+    22,529  blueprints\admin\hotel_admin.py
+    22,847  blueprints\public\package_routes.py
+    23,489  structure_report.txt
+    23,952  blueprints\admin\media_routes.py
+    24,370  templates\admin\hotel_form.html
+    24,384  static\images\destinations\5750386524a9221bfb2c059e5e930d761010461b.jpg
+    26,198  services\content_service.py
+    27,367  blueprints\admin\package_admin.py.bak
+    28,116  blueprints\public\booking_routes.py
+    28,117  blueprints\admin\package_admin.py
+    29,573  templates\public\search_results.html
+    31,003  templates\public\search_results.html.pre_stars_fix.bak
+    32,405  static\images\uploads\349be79dcc70c91c757db3ba85b3f6876b6194bb.jpg
+    32,908  PROJECT_STATE.md
+    34,844  services\search_service.py
+    37,407  templates\admin\content_slideshow.html
+    37,700  static\images\uploads\39620807d9b45e8952ab5a5ffbd259ceea285901.jpg
+    40,148  templates\admin\package_form.html
+    41,126  scripts\seed_from_csv.py
+    43,047  static\images\uploads\757cec9e35573c63601f3c7a7652851b5801c4ef.jpg
+    43,175  templates\public\activity_detail.html
+    49,344  static\images\uploads\9cb855d5acbf7ceb1f8a9248da927463a139451e.jpg
+    54,036  templates\public\booking_start.html
+    55,879  static\images\activities\4389e38a4f932a83adbdc135c151b70dde174022.jpg
+    56,496  templates\public\index.html
+    56,605  templates\public\hotel_detail.html
+    57,442  static\images\activities\72e0373778d7240c2b9c46de318301df9bf6660b.jpg
+    58,189  static\images\activities\fe533baa3ed4b04be9b326920d0c47c52efc37ed.jpg
+    58,959  static\images\activities\17f4dcd494bd1ae0e0308f5e2339b9bfc25923d3.jpg
+    59,604  static\images\activities\5612c35c4758bb1d7cd91866503043987c26159a.jpg
+    63,534  static\images\activities\6fcaa9b82b59f1e645594e9e15b1d1c87ea1bd6d.jpg
+    68,798  static\images\activities\63f1d570dda9f10fff9ec2f4b6858a599f31dd83.jpg
+    69,949  static\images\activities\d1240599667a9b72eab20dff28e81af97649e879.jpg
+    70,021  templates\public\package_detail.html
+    70,634  static\images\activities\93bc2874f0d11a853c1c02f51770537b96bb546e.jpg
+    71,363  static\images\activities\49cb6a7faae86116d14b80efd0b0f73ef6462167.jpg
+    72,551  static\images\activities\a0243058bb9ec5940b23b902e7f2c5fc7ca55eb1.jpg
+    73,700  static\images\uploads\2a29835022ceeb0b3b463d17d22673cc3d47e780.jpg
+    75,245  static\images\activities\ba2e4c119b290a9c296420545f485411d5c3129f.jpg
+    77,296  static\images\activities\6217a8fa4cad2310ebfe42ecc97d2519326b7e89.jpg
+    79,341  static\images\activities\2c7bffdc667b0534e7de70b8a36fa67e0c18c96e.jpg
+    79,588  static\images\activities\c8a67c8f6fc99e3640a12bf2db2898bd74fc87cd.jpg
+    81,008  static\images\heroes\holiday.jpg
+    81,008  static\images\uploads\593ccf7e9392e83eb2b499e552b94262311a42c7.jpg
+    83,824  static\images\activities\7a709afb5e6e46a0a4bd5e096b33e82307adc7ea.jpg
+    84,154  static\images\activities\954ad995c035130f848cd14d79346b32d82af8bc.jpg
+    84,154  static\images\destinations\954ad995c035130f848cd14d79346b32d82af8bc.jpg
+    87,256  static\images\activities\c647933a7dbd864acaba5fb37f8b4f4049e1eda5.jpg
+    88,978  static\images\activities\3b2ec9b224c1f0dd5f986d97af54e9410009ac50.jpg
+    90,681  static\images\activities\820c03da45616e4ff1ee1acd61232effc332d787.jpg
+    91,444  static\images\activities\0775eece36d2a54b4881d7bcddcafa8ade48038f.jpg
+    95,424  static\images\activities\c1c94e5db12c91f7f0960146daf7c3ad690dd266.jpg
+    97,065  static\css\eltut.css
+    97,418  static\images\activities\708deda3477a518c56e7daa7651bd261a283e85c.jpg
+   105,936  static\images\activities\dd7dfbee6981325ffc3b421912d38af4f27a2561.jpg
+   106,138  static\images\activities\837eb47d715f0614bc8584f105d016642bfb713c.jpg
+   109,752  static\images\activities\5ec107c90eaf208669ff0c3bc02c1869bd630861.jpg
+   115,515  static\images\activities\9d64ce73b4b36ed03b2292da179a4eff8e42649a.jpg
+   118,582  static\images\activities\41fb1d9cae78f6e24b507ec012caebc18af7dce7.jpg
+   121,775  static\images\activities\ab511bc7770ed986a19b7291fc66f85966f930b1.jpg
+   122,163  static\images\activities\5bae313709a02bc2c9282b168d45a89ffa9d90ea.jpg
+   122,352  static\images\activities\b2658f94354bf81417900392f00cfdbebba7e6cf.jpg
+   125,084  static\images\activities\6bbb8214856e4177331f5c92225b5f1a6dc6aaa6.jpg
+   126,863  static\images\activities\eaaf40f6f3b13f3f59b9a9cc3a201d4a3030244b.jpg
+   128,539  static\images\activities\8e619df797bfe0d431da3f85b8471646ab3f6b9b.jpg
+   130,242  static\images\activities\e829ae355681cd6ab59904287096417b5ae3396a.jpg
+   132,382  static\images\activities\f03b2667188276607186a6ea47b5a0d5bd8fc4cd.jpg
+   135,288  static\images\uploads\991c785a8e16493be74f71d6c1ea61aa6c7474f2.jpg
+   136,732  static\images\activities\cc976ef2e283f0916aa7f280b8245e38514e9243.jpg
+   138,427  static\images\activities\dd7a05f199ee9ca84974d2ee4e245089d3d841ed.jpeg
+   139,113  static\images\activities\e1699404e1a9bf0b56ed9385c66e7e93453dfca6.jpg
+   139,177  scripts\enrich_hotels.py
+   141,505  static\images\activities\2dcd8b8770753e1fe3be212a1bfc9cb298c01c1e.jpg
+   142,557  static\images\activities\79b6ba9a6ddc10681e5c6897fb7dff7011d3dbc3.jpg
+   144,392  static\images\activities\62fa8d087a1386d514b62ec067e442131becd8b9.jpg
+   145,374  static\images\activities\d6ea5b56b4f2723e14c13c64bb969021717637b0.jpg
+   145,698  static\images\activities\e835421e12d3f37958a622eee8c196062adb22b6.jpg
+   148,309  static\images\activities\05425318b43b0c7b061d80378c2d31887cd7823e.jpg
+   149,254  static\images\activities\0ebdc7610dc77c91d4af3ce02bc60140f25b512f.jpg
+   149,411  static\images\activities\7cd1111349c79b6886bb61adbe4e64ac212819d5.jpg
+   150,125  static\images\activities\d6a2c63cf783d36330d066ce46fcf4b56d405ed2.jpg
+   151,516  static\images\activities\64c586951972b1cc843fa37e0615eed434f35e42.jpg
+   151,668  static\images\activities\60a9eff49a1208b466b6bedc3f1a0ab5cf4365f6.jpg
+   154,060  static\images\activities\e66618416dd67cca1a1d2f569b9c6f3d0d670e47.jpg
+   158,372  static\images\activities\6b12627cdeca0a918acc4f8b6551d3ecf19655af.jpg
+   160,466  static\images\activities\a1306d2a4a1d1a30c5f3e2fbe63cb1e715043ed2.jpg
+   160,759  static\images\activities\416ba8e79860291042dc898cf2e094dce23cbb4e.jpg
+   161,172  static\images\activities\a5acd67a507c49d87bfe8dd1f560c5bf1a27b537.jpg
+   162,891  static\images\activities\4c57483f1d6f1bafeeb0f23caace7b1462b1aad3.jpg
+   164,574  static\images\activities\2cf9f5be24797667fcda07036ad3953fd80edb8f.jpg
+   166,068  static\images\activities\7b6ab34c004c0de851803dc6c60393e630788a9d.jpg
+   172,333  static\images\activities\041ec521adfee5ba8dc4a0d333fda1339f62b98a.jpg
+   172,709  static\images\activities\4ac8bbe6516db745709c6881d038f4b416e14357.jpg
+   173,803  static\images\activities\bf17def6d6bc23ba1e6aeacad2d2b16b5450a488.jpg
+   176,343  static\images\activities\a043540a9fe2bdedaeb5c3514da23955b76350df.jpg
+   176,684  static\images\activities\8daeb587cbbac20aca086f5e008210148fcd4605.jpg
+   177,903  static\images\activities\fb107abcaec7bfb3559b3617569d0013ef479680.jpg
+   179,731  static\images\activities\6582c351dc51bda81d962b3234960d0275ebdad3.jpg
+   180,573  static\images\activities\a6dccf3065b119ecdf1db024da1042922e1c6499.jpg
+   180,693  static\images\activities\625dc3e0176346ac5e23bbd8d3c06bdd1888ac53.jpg
+   180,746  static\images\activities\a03652cfe7b5fe66519841b3e6cc9b0ab8a22780.jpg
+   183,044  static\images\activities\63cf2c9aee0bd96c9435f8b92a28ea5a122dd507.jpg
+   187,326  static\images\activities\0227f24432114d0ec4402c7e9b4cb9a941f1c49c.jpg
+   188,291  static\images\activities\9ad493b5d320948d2ba00dbab973b9ea47103ff3.jpg
+   190,304  static\images\activities\13851b56f76a02caf41481467f10fe3a05fb220d.jpg
+   190,550  static\images\activities\9321b783ed865c5447cee84fabfc12df00ec3e71.jpg
+   193,083  static\images\activities\c4b69cab70e4d5da7eebdeca507467ec0508100d.jpg
+   193,361  static\images\activities\0751110d3ffdf0f6b6ebd98d90e4c882c9159b01.jpg
+   198,517  static\images\destinations\449b4f7b76aaa860aa17fb0a9ec0f0be76f2859f.jpg
+   198,517  static\images\uploads\449b4f7b76aaa860aa17fb0a9ec0f0be76f2859f.jpg
+   199,846  static\images\activities\56f2c1462c1fa885eb4345c3ce37452567779527.jpg
+   200,162  static\images\activities\753b02563d48b721b0fcce8fe756b70ef018f81f.jpg
+   202,042  static\images\activities\3cdefdda8e050b1b350b9be0a201afb1615c499e.jpg
+   207,416  static\images\activities\7d0dbfdbcad153ad83576c3a717eca8f3e2575b1.jpg
+   208,438  static\images\uploads\485bdb809fcdb406ea7e45c00e7d97744901e62c.jpg
+   208,497  static\images\uploads\43fae623ff97ff4032ecad5bcfd645260cbaa5f1.jpg
+   208,586  static\images\activities\e0dc45ad5060ccb628e1503b2a73c1830dd02350.jpg
+   210,460  static\images\activities\000ea7187739f2c034c730076c9e1fa0920e1f01.jpg
+   217,289  static\images\activities\dacd4ba051cb0bef9a9ec9aed926801cb8a4045e.jpg
+   217,840  data\egypttrips.csv
+   225,063  static\images\activities\4735c70775efe9f0ff74166868f7c7921f244cef.jpg
+   226,380  static\images\activities\47ab3affefbff8f9b65af285a1f4fe68a6c1fc25.jpg
+   233,748  static\images\activities\129a7de00da53250f12d8d2214194162e4fc9d04.jpg
+   237,764  static\images\uploads\f0e9d4b885aeee1275eb69512e58c04e503abcef.jpg
+   239,723  static\images\activities\fbaee52cd1a1901232df9823da952da67b0a046a.jpg
+   240,575  static\images\activities\fd75e1931a34cd6b99bd6517f2595236d748afc8.jpg
+   242,049  static\images\activities\0385918d7d2a76ba2e6540236e81a5bf54b6f6c6.jpg
+   246,321  static\images\activities\15f68bda166c220ce2a659fe6ebfe9765ae052ba.jpg
+   247,136  static\images\activities\ec7cf7c04d629f0298d5b1d6fb4ce74ba08ff1a6.jpg
+   248,191  static\images\activities\829f2727d8ffc95d2aa2159b53c627c334b5a267.jpg
+   251,083  static\images\activities\2ba095c29da0454c10d49a227d3c352ec83b61d1.jpg
+   251,669  static\images\activities\a88ef665dbd7c4759f69129f430c974d044ed251.jpg
+   258,513  static\images\activities\b47122fe6c174bad364538ca871bf8e4ac8296c0.jpg
+   259,462  static\images\activities\ef6d6d206306c2cbd5fd1c9accdc4b62c2ccc8de.jpg
+   264,201  static\images\activities\8c19192c541635f88880a902534eb07d46bbdaca.jpg
+   265,680  static\images\activities\0f165663e4674f90f997f394f026bd67a48d3c3a.jpg
+   266,196  static\images\activities\13bc4f3f71de67301133afdcd4fbf5e4d9a03daf.jpg
+   267,280  static\images\activities\0f6cef4c8916541dcc57a0a1adfe8abf5960c0b3.jpg
+   267,706  static\images\activities\2aa0251f051ab07ff756e6d440204b8957ee5a94.jpg
+   268,277  static\images\activities\57e1e436c9a310dbe84fb289a011dcafc190cbe0.jpg
+   268,878  static\images\activities\09d840623170effc12003e5dd32e33cd2749682c.jpg
+   271,163  static\images\activities\1bcf8321b07b5e85075a34da65ebfcf8ae5be1c7.jpg
+   271,163  static\images\destinations\1bcf8321b07b5e85075a34da65ebfcf8ae5be1c7.jpg
+   271,163  static\images\heroes\boat.jpg
+   276,363  static\images\activities\b33f3612e6ea62d75fb0e664d8ba34db44248a21.jpg
+   278,792  static\images\activities\758809f0e5e5e9adb66669793700ba334724a268.jpg
+   286,054  static\images\uploads\c2b8d29d6109a4650ce3c84da518f34d80e2211a.jpg
+   287,431  static\images\activities\601297670983b42c40deb29da5be878303b11aa5.jpg
+   289,165  static\images\activities\852ae469c263c4fbd129ad1b8454ff25dce2387a.jpg
+   289,651  static\images\activities\b728990b46de2002f907b0c382599e5e46a496cf.jpg
+   294,287  static\images\activities\fa5f068b0ddd2ece485cbfe1d85caad439efa2d9.jpg
+   295,224  static\images\activities\82d16a1fd4f2c93463c5ec48846156f317bd1cf5.jpg
+   295,776  static\images\activities\9e54d278b62336a24683a5670d13b6e894468b39.jpg
+   296,025  static\images\activities\6e563406e320179e8160961130e5128e81a05adb.jpg
+   296,669  static\images\activities\ffb818d317551dfaf2c49847ba343ae7086f90c4.jpg
+   297,742  static\images\activities\778029e92671aa07b40dad1bd823b9bec94fa515.jpg
+   302,740  static\images\activities\606494564f0731be179996a484e61d8442aebc94.jpg
+   304,996  static\images\activities\5ca7db59c7d255f826d5dca2b658500a7416b70a.jpg
+   305,842  static\images\activities\640470a35c928417faee44d12fc89624b0c2963b.jpg
+   305,888  static\images\activities\a453166fde1004008a68a062d3ec1e5e0b44fb80.jpg
+   305,959  static\images\activities\93529dd551e09d5cd9bf6298a902c3e3fb97ce3e.jpg
+   306,672  static\images\activities\518e8321e2d71f30f48ae5a1def70c6ff1271b36.jpg
+   311,862  static\images\activities\1f8969cba1505ea8cc2b39ff58ef2fc1b033be1a.jpg
+   312,742  static\images\activities\fe0e0d1dc51702fa6a9d9ed5f5f6e80d34a9e662.jpg
+   312,898  static\images\activities\45b3cc236b68f5dd0204c30722dd62287aa8a038.jpg
+   313,398  static\images\activities\ce8981f895988518f79ae12265c7e18a048e107a.jpg
+   317,651  static\images\uploads\2a886e214f8a0815182bca8f82b47d66031a5d0e.jpg
+   322,278  static\images\activities\b27e5076622eabd02c9d290ddc7c0d9857555dde.jpg
+   330,892  static\images\activities\2bbb799de24850d8efc10f7bcf23132a32a654df.jpg
+   333,478  static\images\activities\6c570e5ae7823c29fb563ee9bdb3d34fe6d42dfb.jpg
+   334,461  static\images\activities\b467f2a7bf28ff8d3d53a260a2c98a1a02111c5b.jpg
+   339,430  static\images\activities\2ac20aaf26fed634db82d608737cbce4a1f8079e.jpg
+   339,673  static\images\activities\9024c9db3bb79bca8dd615a2ce33fc63f64292fe.jpg
+   339,676  static\images\activities\be9e0e352b44c2e36fe72beddb1653461f207525.jpg
+   346,842  static\images\activities\88c4a4dc873323ccba8a5bfd930715d97bae5517.jpg
+   349,230  static\images\activities\926334011f3f44e815490a6147bee3fee4848a4f.jpg
+   349,944  static\images\activities\797744589ea7f4538e4a42d56b3ba0a8316876fb.jpg
+   350,035  static\images\activities\53668b58ca030133635f2568d08386dfcca69c5a.jpg
+   351,258  static\images\activities\6286e8746cee0ae81bb69b50b470d0cd20127f03.jpg
+   351,433  static\images\activities\227ce1fb8885221c96f7c05ea752b912af352373.jpg
+   355,822  static\images\activities\6556d84231637521266b927fe4bc4617de2c4c74.jpg
+   357,752  static\images\activities\8fe30b778c6881b6502574f29bac4396446c4441.jpg
+   360,015  static\images\activities\87048dbcd998dd12a53bda3ac0a5ae7c0c971b29.jpg
+   362,907  static\images\activities\b0b90ace96dbf6564e6a7d7f5b4ce1b599fc93f3.jpg
+   368,746  static\images\activities\ff91e48b3b5a93bef1c719267f5de496a1f9c1bb.jpg
+   377,741  static\images\activities\5fd0655e6430ac100de840c3a8ca09f4219109f5.jpg
+   387,171  static\images\activities\fac17d8fbcda2237cc734f58a57ad1a07d72765e.jpg
+   387,444  static\images\activities\ca02c2625378d06581f4dc10133be24c0b53d045.jpg
+   395,741  static\images\activities\ebf4a108bc0a2fbe66a05e2ad65ff1ca0bb965f0.jpg
+   397,124  static\images\activities\4cf3cd4171f1b7ac6e0914980b7d2e88490bfa3a.jpg
+   399,113  static\images\activities\81ca6402af8fe3fca2e6225ee4514da0f4a4ff79.jpg
+   403,888  static\images\activities\810745fe0398391882dc11e8f3765968b1f616d7.jpg
+   405,371  static\images\activities\f183a079a96658b900b81efa655a788d3b770e04.jpg
+   406,422  static\images\activities\3357995eb73d85a0a13062414d3293150dd7ffc5.jpg
+   412,830  static\images\activities\a430d327155cdcba137b00c2fc2b5e47d9091fac.jpg
+   416,044  static\images\activities\ba32e96b43d99b41eea26b05cf3d7f69d80e2e26.jpg
+   416,226  static\images\activities\23b64b2aef604938c7ab27860ffeb8ed91087341.jpg
+   420,559  static\images\activities\1cbf2108182b75733126c62ff89d211de8fb1d8d.jpg
+   423,264  static\images\activities\46d900ca137ab17837bc70670db8f89f0a7b0679.jpg
+   425,427  static\images\heroes\search-activity.jpg
+   434,279  static\images\activities\80f3494e35d72e9deda13eb2e3eb17a030b21909.jpg
+   434,678  static\images\activities\4de37b479d99c4804973a893f74c3d4e5f36e621.jpg
+   436,090  static\images\activities\742c3909259713f2e8658cacb66154cfc0919464.jpg
+   445,210  static\images\activities\bfa7aa07f8a0617a2533815c3f7af340962560bb.jpg
+   451,506  static\images\heroes\search-package.jpg
+   454,135  static\images\activities\a03b515989c553d62016a21ea0e05eff322df0bb.jpg
+   455,702  static\images\activities\495513d9eed910eb767caccf6a03ce71a330f813.jpg
+   459,646  static\images\activities\dde1ab51b3d0f331a0f9ef19b195cf173e6284f6.jpg
+   464,070  static\images\uploads\380bb27b65b207ac45a1fbb7515985eb4a806c11.jpg
+   470,918  static\images\activities\bbb232b9948cc60f0efc6d4cf92e3726bc771d73.jpg
+   473,217  static\images\activities\c568f795bb3139d90d45a0aa4d698113ded7a3f8.jpg
+   478,554  static\images\activities\44208fd258fd3ca8fc9c31e843d196b33baef37a.jpg
+   480,192  static\images\activities\5d648d4be0a56affe4bcf4a1f86943a8e5309557.jpg
+   483,094  static\images\activities\af447f2099c4732c61c0ccc52e6bfb1f36ebac4f.jpg
+   498,194  static\images\activities\a2f3dd9e53caaef2f64f5755cd8876464854bff4.jpg
+   498,447  static\images\activities\0fe03f14e09414eaa136ebe0d9ff9802045d19f5.jpg
+   499,076  static\images\activities\5e45a03fae8974499744ef34642b49dd5098343d.jpg
+   507,775  static\images\activities\a1db5c77e56b56eb56b9954c7dff22b6496c1385.jpg
+   521,390  static\images\activities\ade8d829fd990be923d588be57469e464bf600e8.jpg
+   521,965  static\images\heroes\summer.jpg
+   521,965  static\images\uploads\1e6bd8a0ae247585e7f40d614a43c900fd6de7ca.jpg
+   530,056  static\images\activities\719f0178066d9fbe177262714f6fe3caa851ad1f.jpg
+   536,276  static\images\activities\bb26d0ab7a648d68ba30305f4c7c2ea69a3b6308.jpg
+   536,863  static\images\activities\840a2f650c5b21de1b50b663da250808ac70b235.jpg
+   538,422  static\images\activities\e0538b0aa241fa57a62f8a69fc551bb6bc948255.jpg
+   544,715  static\images\activities\9adaed51704f8b3ae8342e52dba99c6a06811a2f.jpg
+   546,043  static\images\activities\94be8c72c7f409c73145e9fbe113f79a8e885252.jpg
+   563,467  static\images\activities\dd784e943a12dc6a7d89ddcf3ab32696f4440618.jpg
+   565,156  static\images\activities\3d462630560569de10485a43f6b4eec661f4cf40.jpg
+   569,335  static\images\destinations\92b1474c9ddf342125f239327ed8ccfd676d82cc.jpg
+   571,542  static\images\activities\4d971edf17a2f5468a47298a12bd3b3ba31efa9b.jpg
+   573,603  static\images\activities\2fe2482abfe12af3cbadb1b1b4d5cea2375ffbe7.jpg
+   588,828  static\images\activities\1a90a317ea51b4840f6c5769188571319f297f22.jpg
+   596,601  static\images\activities\9d02f1c814356d737c3bb00fc09d4f20025585c7.jpg
+   601,240  static\images\activities\38824892dd2c5e7f9e235e07bf91dad9d8898dc4.jpg
+   615,386  static\images\activities\746eaecc38f43746910fe617631128dd8e273791.jpg
+   625,402  static\images\activities\6f296f0349992b6ce8cd6f3d1668187590776123.jpg
+   629,001  static\images\activities\b0bc39f5ee15a919635255adba4dc7defc6864ba.jpg
+   630,011  static\images\activities\870d1959a4d471e2c3d10fa90e7b88aeb295a5c1.jpg
+   642,318  static\images\activities\9858e30b7950ad4246035ac3aeaf99a16f167caa.jpg
+   651,689  static\images\activities\9b64f342c417258a2c4f52e3e536c28b91821f53.jpg
+   655,978  static\images\activities\5ac0017168207e88b9bed6b663f214ce1b376648.jpg
+   656,625  static\images\activities\700ca447b9edf96f9e09cd0097571acc0af120dd.jpg
+   660,692  static\images\activities\915f98b4c12d69db80cbab4d963dc8b810155821.jpg
+   665,127  static\images\activities\1a2639f9554ae8173cba8d0fcebaef9ea67f212c.jpg
+   668,709  static\images\activities\47f668b148f172bac641b5946f2c349f57d38417.jpg
+   672,809  static\images\activities\9c1be47ca9885799250c29c2774db31ff2afb75e.jpg
+   674,185  static\images\activities\9a9f642ce6b1a38682cf7d3f78c0b2e26379023a.jpg
+   676,243  static\images\activities\b449564122c569b4a2b04fed4a988bb699f1e0f2.jpg
+   686,286  static\images\activities\aba4054783741c20b396fd71345c2491e6958d99.jpg
+   696,796  static\images\activities\6daca32956f9175095fe1cb761dd46b37fc83e00.jpg
+   708,318  static\images\activities\f66328883a25e4016df517672f080e449eccb9e9.jpg
+   713,442  static\images\activities\72dee2bbc251034413e08147acae7fc543bc1225.jpg
+   715,524  static\images\activities\a992ce73a7f6c7d8a6d1379ac6973ea83f9b22eb.jpg
+   721,515  static\images\activities\a43779ed074d3e5f2175ec9410253c274a740e39.png
+   727,644  static\images\activities\fff67f6e8504e9a138ff695eab81780a68d680c4.jpg
+   730,238  static\images\activities\8adfa09053a89392652cb7a0953c6ceccce532f1.jpg
+   754,838  static\images\activities\d99f9fe29149d0d5e5eddda4729b0f2684a574a8.jpg
+   756,760  static\images\activities\db1bc82aa4bae7adba8e43533756f08d7868adaa.jpg
+   756,760  static\images\destinations\db1bc82aa4bae7adba8e43533756f08d7868adaa.jpg
+   756,760  static\images\heroes\fish.jpg
+   756,760  static\images\uploads\db1bc82aa4bae7adba8e43533756f08d7868adaa.jpg
+   771,628  static\images\activities\015982d22f75778c91053a3f93c2a7d4935bf79a.jpg
+   777,861  static\images\activities\cb38af51dbdc31f9f70a12c6cdd0dfb5203365a8.jpg
+   779,646  static\images\activities\0f97aefa153dba30d1ca6a5fc7bc57cafe8ba6c8.jpg
+   783,290  static\images\activities\88574bc8c9fb88221a3be1987970f0eca6236cee.jpg
+   795,783  static\images\activities\94dda9739c6756a36d6025db9e724b7f92dc89a7.jpg
+   799,728  static\images\activities\a5e5728f1a82fbd86ca4d14cd8576ba2b5933684.jpg
+   802,947  static\images\destinations\ddc1dd8efe86df60cd3d7b0af4be14ced8f6bf65.jpg
+   802,947  static\images\heroes\camels.jpg
+   802,947  static\images\uploads\ddc1dd8efe86df60cd3d7b0af4be14ced8f6bf65.jpg
+   813,418  static\images\activities\5b0d44c034f464a163d3aae43caea760fc88f040.jpg
+   814,426  static\images\activities\8f0ce05177a82079309451227e341e5d1b634954.jpg
+   818,860  static\images\activities\160fdff4a2b30bc611044696cf8944f07ad64f62.jpg
+   824,074  static\images\activities\de61cc0c963a1a4360a6b4be79ec30d1b6c606b7.jpg
+   824,733  static\images\uploads\8f5b624dcaf857ca11801d536c0798a0ff6a52e9.jpg
+   839,687  static\images\activities\3495dd2dab1dc10e253835f7ac27d170a875727a.jpg
+   841,020  static\images\activities\f42eb5b478009b7c8c18ae6c84c74d935091f159.jpg
+   843,016  static\images\activities\eed6c46dd8584d9b548d95cef6753cb6774a51ce.jpg
+   844,758  static\images\activities\0b0a83ab1701fc8f2a62dc9afcbc9059c69c5df4.jpg
+   849,967  static\images\activities\ff4467e3c9c7ccef1c80ac3e15e82088fa2494fa.jpg
+   855,782  static\images\activities\6dfdb296423f111f9bdc011160d76e66053cfb98.jpg
+   870,986  static\images\activities\2ad0b23a6f43dd9b6cd3640dd6a0691f21a536ef.jpg
+   883,943  static\images\activities\0d7060201417294528f50a58e0e3ea83f4bbdc63.jpg
+   889,725  static\images\activities\09fc3815ba703c2bc5bc999748fbd24ebde6a66b.jpg
+   889,934  static\images\activities\117d6e7c6d9f8eb3dd2972d87457f770bbd9909d.jpg
+   907,642  static\images\activities\180be81dda12b5fc63e66b093f314ded72da1def.jpg
+   912,888  static\images\activities\8867ce6942bad855a1e5091bd8b78815e35c3fb0.jpg
+   915,406  static\images\activities\a26f66ba5e78f7d7f178430740fe95d9103cf873.jpg
+   925,829  static\images\activities\96930bf922f3f8882521739a319276d637d07686.jpg
+   929,709  static\images\activities\c794f05d486f1ea9cbde787e3117aa899b23c32a.jpg
+   930,552  static\images\activities\e8e7779aa84772a1aa66d83b4d55aa393ab70e86.jpg
+   931,434  static\images\activities\5b85bcf6c2c99199cd80f4694cf3b0e5441feaac.jpg
+   933,239  static\images\activities\ea8208b55b07c4e4829b555260682b535a9369f2.jpg
+   946,614  static\images\activities\2797ad171d3e60a5567daea4705d3fc2c34e69b3.jpg
+   951,552  static\images\activities\11a69defd66296f3da859c18016da5bd2e64a59d.jpg
+   964,424  static\images\activities\109ab2977ffd08d18fcb7a2d3e1009b0a5d3b5a8.jpg
+   969,347  static\images\activities\6859c1e4d0996d51a0bb32984a48cfb96e7ada35.jpg
+   977,371  static\images\activities\e2e6b969e08ef6b6adefd68898590fbf54e6ed10.jpg
+   987,414  static\images\activities\446414c0e59fea65bf871e5c9a8f65d6921196a2.jpg
+   988,235  static\images\activities\39b1a372cfbe05e945d4561d5347dfc857342299.jpg
+   991,262  static\images\activities\698488a381243540921ca3059382c7f338b6e2ba.jpg
+   992,189  static\images\activities\b2ca5d9bf787292e133f456dc3c9e632172ba2d5.jpg
+   995,356  static\images\activities\f0f85d2ebf5c489bbf526112a8f121c86cd106c3.jpg
+ 1,001,217  static\images\activities\26557441081c1f6428d38dafdbf6df4cc0f55840.jpg
+ 1,007,473  static\images\activities\0b15364a7cfff365c6448d0555984b478095a9e3.jpg
+ 1,012,881  static\images\activities\5423b149198399d5e6c5a3e00e848b7e844dd54b.jpg
+ 1,019,597  static\images\activities\2afd29e50ceffb3693e77e1ea3156abfc7f1a6d9.jpg
+ 1,027,287  static\images\activities\28df6f53e2c429f70cb72f01835dd8e4a53b4c12.jpg
+ 1,027,589  static\images\activities\38826776defc92c7294f11ba3d0a71c349ec042f.jpg
+ 1,033,209  static\images\activities\4db682711d300b9eae793ace1516aee6f448efc8.jpg
+ 1,036,841  static\images\activities\5465b1f8f298d287f5ad46c35562436739518d9b.jpg
+ 1,036,927  static\images\activities\43f069079e440b139013c37dd17ddad31d9b39c6.jpg
+ 1,049,658  static\images\activities\27b6df9061ed254c701bc596f2c5c037f0217bc8.jpg
+ 1,063,852  static\images\activities\cc4c1c7dde220ef200adf2d5553938fba5030d92.jpg
+ 1,077,772  static\images\activities\00622f6723e0e265ce3379c3ff7674524dd08654.jpg
+ 1,080,832  static\images\activities\82b5011e797acc5b676dfa81906b53b45b867906.jpg
+ 1,086,036  static\images\activities\2c22848d989391804285bb7f17e4abede5f5e63d.jpg
+ 1,089,932  static\images\activities\31d21b34c71d6beaf20833d1e7a2c2048679e1c7.jpg
+ 1,098,260  static\images\activities\edf785a2af55486a19dae91aab7bc0aa5b445c6e.jpg
+ 1,111,292  static\images\activities\bfe962f64ea925f0d0c4a0e2c4ac55ded7081afc.jpg
+ 1,122,360  static\images\activities\c3ed7664ef3e54250ce903b92fbde4051f054854.jpg
+ 1,122,645  static\images\activities\30c3e5e4bd8f02c0d3f3d017b3e1051a4c8c9137.jpg
+ 1,125,266  static\images\activities\a59397d7bf77b1abe27b701d539631f31a398210.jpg
+ 1,134,681  static\images\activities\40603c87d0166d0e6f9531638209b655236bf2f3.jpg
+ 1,135,421  static\images\activities\5add996c3c261883983c758ad502f168f00f8855.jpg
+ 1,138,799  static\images\activities\9c5ea95cb256bb60da1a7cc229f04327a244f0ae.jpg
+ 1,142,733  static\images\activities\5ef4272954ef6a12eff82b0318e26d4f05c8519b.jpg
+ 1,143,903  static\images\activities\6ab334ef5b9cf413ab57d6986a64c366125cf719.jpg
+ 1,160,580  static\images\activities\b1f8904a7ff5d7985cd3764471a0017531fbf130.jpg
+ 1,161,061  static\images\activities\2b74a656eb4d46b18c2c6a4eafac11fd509c7334.jpg
+ 1,169,859  static\images\activities\d21a091147aac4efbd32af196b429c32be46fe41.jpg
+ 1,172,251  static\images\activities\3d9a09658ecca0723ac0662c6474ff690dbde1af.jpg
+ 1,175,620  static\images\activities\67ea6ccaf535a15f3f65e9f8aa448f44272d5d87.jpg
+ 1,177,104  static\images\activities\01ee1f22188303def9cc5d82ac03015177d9f974.jpg
+ 1,183,090  static\images\activities\0778619007bdf175d8005011a2c2d10ff6453cf0.jpg
+ 1,187,782  static\images\activities\f95bc24c3507f17c1f096a943d60d01434902d4b.jpg
+ 1,188,469  static\images\activities\96745822a14d86bbda6328d6ac0be5e9bef60a43.jpg
+ 1,201,251  static\images\activities\53c18e89ad8ccc9cf4d5b3e24b21af7f2be081c8.jpg
+ 1,232,915  static\images\activities\d555f699dd299b816a4a4b243d999e01b0c5319c.jpg
+ 1,234,392  static\images\activities\4152974aff8689458027f55e21ea7a5bb7556a59.jpg
+ 1,234,806  static\images\activities\622c3da91f98b61f72ca2d6f3eb869525eb9188c.jpg
+ 1,240,655  static\images\activities\60aa02475ce98790785b893aaf662dd41c7b5bb1.jpg
+ 1,240,969  static\images\activities\bd82be3ce8b4b2a519c318bdccf280ca7037f266.jpg
+ 1,246,114  static\images\activities\3e952274ecd49d7012937823ff4caade9d6c86de.jpg
+ 1,247,299  static\images\activities\8de23c3dbd721038ee2a3977ec291c20ea1713a7.jpg
+ 1,253,684  static\images\activities\4052bca537bd4e61334774778a8f0040034be642.jpg
+ 1,258,702  static\images\activities\de133c3b53d18c578f51767217469ebf3fe1c363.jpg
+ 1,263,347  static\images\activities\f3489e33dc49047d688f3e89f78a882342af81de.jpg
+ 1,266,091  static\images\activities\ca142222a3d0a3a3d22771fb2bef90ec6e0e2055.jpg
+ 1,266,306  static\images\activities\69a4a9a5924ae5fe823cbb330179efda5068be3b.jpg
+ 1,269,879  static\images\activities\ec637337ef58e45fd1e392542f50883da4d36c4a.jpg
+ 1,283,081  static\images\activities\02c0e263a330afbf06ef2cb57b580f6b147f0702.jpg
+ 1,290,165  static\images\activities\b3fe22037fe1eee66bc1e567f7aad25d659907e0.png
+ 1,310,298  static\images\activities\bb4e4fbad6bdb1be68853c77e0126eee2d6b52f9.jpg
+ 1,310,574  static\images\activities\91d41cebfdbcb123b4044f35396abd1edd218700.jpg
+ 1,311,450  static\images\activities\895dc4f6a4a2243e1483cea63f524bffe09188c5.jpg
+ 1,317,751  static\images\activities\8bfa235a8f16796785a63e78d2cc2b7f144e42bb.jpg
+ 1,320,339  static\images\activities\62a2244f4f839be794bbdc2cf68dd01e08e823c4.jpg
+ 1,335,695  static\images\activities\4280d748e5257067d1546d67144725f60b76bd6b.jpg
+ 1,337,742  static\images\activities\86ac8dfb340dd9addfbd4da2929e335196060d0d.jpg
+ 1,346,975  static\images\activities\afe812a566eb385fb2d28cab9f135007fa242825.jpg
+ 1,349,400  static\images\activities\6c96b0084578301847c265be067427134b8aa50a.jpg
+ 1,351,994  static\images\activities\62586375e9b5c8bff5520e2270251d86e96e54c9.jpg
+ 1,357,207  static\images\activities\1c2c2bd0f3ed85e2911541543d2c0a5ca27c6ecd.jpg
+ 1,362,776  static\images\activities\399946dcdabd4af306dd30ddede439ba92aa424d.jpg
+ 1,362,873  static\images\activities\5b668823ca76c2bb58175935f9e5a02c58241f41.jpg
+ 1,363,054  static\images\activities\f86adf4bdbbf6a7716d63d7932318f80aa36756b.jpg
+ 1,376,054  static\images\activities\91110df668089d7951348ba645c077fe2771bc5b.jpg
+ 1,376,888  static\images\activities\5973abd8464229ba2f1f2b341870303027c93399.jpg
+ 1,377,060  static\images\activities\fc0119495b8387429f772cfefd57adc02d0ef720.jpg
+ 1,384,262  static\images\activities\3fe59ebb8c18cf90472b94cc167f30c7919efdf3.jpg
+ 1,388,730  static\images\activities\163ef4add1d7402a26da4ee231f19b7e14a71608.jpg
+ 1,408,470  static\images\activities\71aa7091e08c589f39d7a29cbbc43d3ad40d2a41.jpg
+ 1,409,525  static\images\activities\eb840490cd4f076894e564cf3de1ccd38755e3e6.jpg
+ 1,423,900  static\images\activities\d935faa7ad96db8dbd0370f488cdc261c4739021.jpg
+ 1,432,002  static\images\activities\71689d1be12ccb6ea067e915e1e4f01f499a2824.jpg
+ 1,432,064  static\images\activities\bdf1925e89d64c7bf5b2ebe03ade509735536686.jpg
+ 1,440,133  static\images\activities\37eb143c2438311e7cb6f1eab8feb3774cd8c46e.jpg
+ 1,445,362  static\images\activities\c660a11d692302095ded55bf9ac26cf78c23d213.jpg
+ 1,465,620  static\images\activities\356c531b14c68cfdda922cde8e4f71142de6ec54.jpg
+ 1,492,561  static\images\activities\3006bf2be08296ba8e7468595b97eb0a9f4dcd95.jpg
+ 1,498,363  static\images\activities\955a6e60aa909b868497b26f0500548a2e40375c.jpg
+ 1,502,730  static\images\activities\c7da46d3174c37fa2afbfc1366549c8a110f91df.jpg
+ 1,505,125  static\images\activities\5b8e478124495f1feca1805e935c9682bb2e00de.jpg
+ 1,510,051  static\images\activities\7fb03744c7a3c79d81673c41370d7b00b81f085e.jpg
+ 1,512,122  static\images\activities\735c243c934a4719c4a162baf30f8ab60be35246.jpg
+ 1,527,718  static\images\activities\576606d90cbf06cc92c81e3ba693ca025a6a7d74.jpg
+ 1,530,657  static\images\activities\6c8f45a698be695baded7b498454e94faf56f6f1.jpg
+ 1,532,660  static\images\activities\35a960e8a25913699c7fdccf98641d333fe7926c.jpg
+ 1,534,073  static\images\activities\f8a4bbf16bdcb585f0dbe3b6aa2c37f6a638e663.jpg
+ 1,543,327  static\images\activities\498505b373e0730f71d063402f98949d9dc7f47f.jpg
+ 1,544,796  static\images\activities\8ff70084ecc056e136daac6bdac49b7e7bf6efa4.jpg
+ 1,547,625  static\images\activities\96aee8638b70ea58c4d550c9b4551d57b77e9b2d.jpg
+ 1,548,152  static\images\activities\0fc59387da2628a300e4171eca69fbcdf7826300.jpg
+ 1,553,777  static\images\activities\278a94cce9123e6a4ec5b633205cfb59e8ec6775.jpg
+ 1,558,525  static\images\activities\cea2ee28a7a102982d09cd8e10217c6508e9b94d.jpg
+ 1,560,809  static\images\activities\cdc3f9e3a99038561ba01782e82255ec8261be37.jpg
+ 1,566,135  static\images\activities\6cd5caaa5d0678f639e67f12be3fea15a0e4e04f.jpg
+ 1,568,508  static\images\activities\567b2adb4c693a5cd4fc91c6edde5a9c9924fa51.jpg
+ 1,568,857  static\images\activities\a27291079e14b6cfbc93ddab6557d1061ab32dc3.jpg
+ 1,569,091  static\images\activities\869062731aee58b112e425978af771a799d97087.jpg
+ 1,570,318  static\images\activities\bccff2ece7d6882f50214d1adc163c880e4982d8.jpg
+ 1,577,854  static\images\activities\4f5dbe151a029b0a428544b74e005a14c38f21e5.jpg
+ 1,579,602  static\images\activities\58298ae94cfd5b3a5b5d1a3482bcbefe0eb84c49.jpg
+ 1,586,132  static\images\activities\34aa26935888c39451acd7e3b18fd510355200c7.jpg
+ 1,590,024  static\images\activities\df64b96dbc42da272679eeffb1c8ad77352dfed4.jpg
+ 1,603,748  static\images\activities\66eb41458d75f1628807cd12704db48875d21540.jpg
+ 1,604,213  static\images\activities\5ec469292536177bfbfa561b7dc9a944cbfe90ea.jpg
+ 1,607,657  static\images\activities\6c339dcd38018305de81c69e766e3123e890b9a8.jpg
+ 1,613,893  static\images\activities\00436e05dbb666f7857bbc7187482b5a01d79480.jpg
+ 1,617,650  static\images\activities\91f2149001d1d381e13e774a0c4b2b458d2d8ec3.jpg
+ 1,622,858  static\images\activities\5178bfc53c5aa06d3c7d539d31d9a3a27e74168a.jpg
+ 1,624,594  static\images\activities\636364ce4bdeef0221108305aff4ba8a6e774722.jpg
+ 1,630,138  static\images\activities\77783e8eff6d7926c4cb068e170093979037f6d4.jpg
+ 1,632,508  static\images\activities\d80517c613bdb84847f13657ec968bdd7124c96a.jpg
+ 1,633,017  static\images\activities\a9636038fd528689d277fcc3869bbf3bd811d720.jpg
+ 1,658,429  static\images\activities\97e10c74ab4c468965f36ee0c950900faa4f21ab.jpg
+ 1,661,593  static\images\activities\c74c2c91169faa93f5673af0d18698391c8e8e8a.jpg
+ 1,663,507  static\images\activities\8d330500351c8cdcacf68905a0e5bc6a8023ef6a.jpg
+ 1,669,462  static\images\activities\783c1cd20b41307f82babfc87d0e9dd458a8ace3.jpg
+ 1,671,714  static\images\activities\9058cd4a4f0139346b08b5d19f8d89bfe46d7423.jpg
+ 1,684,524  static\images\activities\b278a294287eec48fff208b2743c6bfae7529438.jpg
+ 1,689,071  static\images\activities\5745107d6c1493bcce10d3ce5263b4547f9e4c33.jpg
+ 1,694,119  static\images\activities\8df164f1edf422292991ee038c2a905869335237.jpg
+ 1,703,267  static\images\activities\4d4113b7f8435f4a21b0028fc450d3254b54df20.jpg
+ 1,717,220  static\images\activities\66755a08f1ea731364db1cc025bc4639d8a093c3.jpg
+ 1,718,395  static\images\activities\988f9145520189b7588c4edea9666e543528e755.jpg
+ 1,719,804  static\images\activities\8dd342db380119628b2dee7a43af25b77146914c.jpg
+ 1,721,523  data\Egypt.csv
+ 1,729,412  static\images\activities\baa859cade44af23459c50729dad25b334088c74.jpg
+ 1,733,967  static\images\activities\c61dd9655113eb137d4e6e22c38638519b5c9fd0.jpg
+ 1,735,836  static\images\activities\d20e67ba06603da397cdb05991541b3d68d344ec.jpg
+ 1,736,127  static\images\activities\c77750805e025f8c56214acde52235f5ff7647f3.jpg
+ 1,743,880  static\images\activities\226e571a6bfd36aacb5d6240966a2b9be70458ac.jpg
+ 1,747,896  static\images\activities\4a4043aedefa4429b8526f659c919f2d652c9870.jpg
+ 1,751,435  static\images\activities\5b357cf110b0b7bc3634b3a55f1e04328cdcae3d.jpg
+ 1,757,977  static\images\activities\a1626e5dca654abcdd646ac916e900a7f5cd93c5.jpg
+ 1,759,283  static\images\activities\fed073498eafc491dfd95d53377b39d25852c3c5.jpg
+ 1,760,377  static\images\activities\2d3c1134164e27376a6f7b860086c678370504e3.jpg
+ 1,765,806  static\images\activities\311d79ba21b756a7d3ce04a0e8dd6f6c5871c3b0.jpg
+ 1,770,259  static\images\activities\735e5ffb2ce472629a5f065fee54718d759390f3.jpg
+ 1,771,691  static\images\activities\be6509e6932e2d48331c2f4bbfcd037b027b6b5a.jpg
+ 1,786,176  static\images\activities\1bb136ebf3a4123ee0e20f2b59e74f68ee97312d.jpg
+ 1,787,283  static\images\activities\cae330b28b42a54b8dc0a2479f0f39614983a564.jpg
+ 1,790,431  static\images\activities\5d6e51f1c67354c6edac8df468f561a44fbc1686.jpg
+ 1,790,796  static\images\activities\ee7c45769c705a32b44d410dfb9fa2fc1903cc0e.jpg
+ 1,791,419  static\images\activities\8ab543f81581ba91002e2287a64dc2fe692ef69d.jpg
+ 1,809,640  static\images\activities\7be8a63ee340fd74bf2aee15eb653087bf6fd557.jpg
+ 1,813,151  static\images\activities\fd83796a93c39c0e8d186bb49aec0ddf672e5ddb.jpg
+ 1,817,484  static\images\activities\ff7e74a0a7820c16b505d742fbb29ddba5b8b5b1.jpg
+ 1,819,187  static\images\activities\0b64d1bfbc8fb4f8b8ca97a7e65685ee7e11d2ad.jpg
+ 1,823,801  static\images\activities\c6d56f847fb1fe085b084579558f0fdd0302e8a6.jpg
+ 1,826,798  static\images\activities\69af794767ad07888ade406e1ec7937d91fe1f63.jpg
+ 1,830,734  static\images\activities\e7fc008e65c85cdab53e3c0f85afa7e0c94621d7.jpg
+ 1,856,763  static\images\activities\4497f012eccc20bc92d87e36684a8d9119467412.jpg
+ 1,857,413  static\images\activities\18148eab0ae5563336a3831de5cf82574848c669.jpg
+ 1,860,985  static\images\activities\cc1fade013cbbaec9032f857583f2864e4e24781.jpg
+ 1,864,401  static\images\activities\fe449d9b856f08ee42313757a5225a4924d5d328.jpg
+ 1,883,251  static\images\activities\f1c88224f2f9a2824d7e57c75f638ad4b71cc6ab.jpg
+ 1,886,114  static\images\activities\f5f36211e553a64dc666d0eff510e2c69e3d21d4.jpg
+ 1,896,992  static\images\activities\ed23f61963b39de291f87a97986970883a94c006.jpg
+ 1,907,181  static\images\activities\4ddd512f2748cb750f9dc45134d99a6e654cb3ce.jpg
+ 1,915,382  static\images\activities\efa9c52fd3f1a7a53a49772533a1c650d9b61030.jpg
+ 1,916,079  static\images\activities\068c20431f105bb8589a59a5a1dadbe86e30521c.jpg
+ 1,930,943  static\images\activities\71124b1ce15d61d6ed1aed031d7a3f27c1c6f156.jpg
+ 1,958,954  static\images\activities\f665874a15694480eb73100ce3e14e7de17d9722.jpg
+ 1,960,749  static\images\activities\5be5b34bbc2e897938d42ed075577f4d9b21091e.jpg
+ 1,965,390  static\images\activities\61fc8678aa75c27dc445d7dfc3dd6eb05e0b7d63.jpg
+ 1,965,675  static\images\activities\e58f5209798049e4c8bc62ede227182107b3b8dd.jpg
+ 1,977,547  static\images\activities\75e2d2ce165bf8221b80116d14f5547c2a279a1b.jpg
+ 1,981,496  static\images\activities\14f45591251be7e3aaa8cb004b36caaccbc2dcad.jpg
+ 1,986,074  static\images\activities\b843b5d344e5abf82bc8fbbdf1c4cb951678b5e4.jpg
+ 1,992,638  static\images\activities\dfab4b7bb0cd6eb3a22b78e5f69a46f8b280c2e2.jpg
+ 2,005,285  static\images\activities\fbca46f49f01845320f89e36f13d47faa0691903.jpg
+ 2,033,613  static\images\activities\417cf8e9da3dff8eccbfad27fd5e47809bf76084.jpg
+ 2,034,889  static\images\activities\b16d2bb05ef35e270286ec18dcb68932ceeff66a.jpg
+ 2,050,692  static\images\activities\4c9d2944b26a821b2517741edbb6ff7255ac14b3.jpg
+ 2,052,300  static\images\activities\78b061da95f4e00122bef0e424dd9f07a880547a.jpg
+ 2,067,426  static\images\activities\70bd365831e11c55d13078d039aff1837b21a21f.jpg
+ 2,068,512  static\images\activities\2ef699c87e04263406818e30743169c1a131f6cb.jpg
+ 2,073,223  static\images\activities\81e114f25a53cb50485d8c1602e8189bc39e3e4a.jpg
+ 2,073,639  static\images\activities\bc4454802585670bac85c77cd8cc6ce3b79810ea.jpg
+ 2,081,141  static\images\activities\bc747640a2f440fcd8819f085cc51bd339fe5908.jpg
+ 2,083,380  static\images\activities\52b77e95198290c35a206a5976a9a4f58f6102f8.jpg
+ 2,091,769  static\images\activities\1839bef428634ad9d260d96cb8902746dc2ec13e.jpg
+ 2,092,830  static\images\activities\d184c15dea48d512d5dd4e046e849b07b488e084.jpg
+ 2,107,661  static\images\activities\0c9d6d71b20fea7ab55866ab89a7057b09dfd060.jpg
+ 2,112,945  static\images\activities\d92d98030bbe0d99b2081f5ec28a4681264ae404.jpg
+ 2,114,364  static\images\activities\8d3c75d6166be763dadbea92e248a8121826e0f1.jpg
+ 2,114,848  static\images\activities\db8199726238fec82997f7fec4397a130ce36f9e.jpg
+ 2,118,594  static\images\activities\8d429ec5a0caebd272c14359388681ea43b0985b.jpg
+ 2,133,086  static\images\activities\b7a0d9e2356ec80ac8c67a682ff2ef7241680445.jpg
+ 2,140,389  static\images\activities\b61e6ca525a6a852704a32b27152afab73aa3bfd.jpg
+ 2,155,964  static\images\activities\726d3ffad9d01da83e945b03cab5e3ef36188017.jpg
+ 2,159,398  static\images\activities\2b2442ec209dd8b1437f9ed920335885ff4c2cd1.jpg
+ 2,171,376  static\images\activities\24a5e8591e5a3dd5897a77e569730f2093c2addd.jpg
+ 2,172,137  static\images\activities\92b2def2aff0acf1f2b7d46cc09f7dc4a7838477.jpg
+ 2,181,708  static\images\activities\92339176978fd0f30ec1611aeb5f9ff8363851ca.jpg
+ 2,189,639  static\images\activities\a7bbde161a7aa4e7f9d76e00604a36c7d01565d8.jpg
+ 2,190,971  static\images\activities\9eadea2bffe08507a61c2568b8643448c5c447d5.jpg
+ 2,191,356  static\images\activities\e8e8a3253414c532e0e33992fa101fd827e0af9a.jpg
+ 2,192,399  static\images\activities\da14e0321dce437de729556a23e4f6e6e504ca1d.jpg
+ 2,202,506  static\images\activities\e4627e58333163b28063db0b280b57bf4f561b65.jpg
+ 2,218,709  static\images\activities\69c41c359b02ac54dc957d5fe4618c79d1c13ea4.jpg
+ 2,218,709  static\images\uploads\69c41c359b02ac54dc957d5fe4618c79d1c13ea4.jpg
+ 2,230,385  static\images\activities\2aecdd52da3c45b7717e3e4415dad70565f01e06.jpg
+ 2,269,039  static\images\activities\73aa53bc8a4a1f04b58cbd289ad6511e37119a60.jpg
+ 2,270,305  static\images\activities\450244eb5d115c385e2a96c6c788275753fa1fab.jpg
+ 2,280,301  static\images\activities\a4746a608739095fed770f40871890c2884dc732.jpg
+ 2,282,455  static\images\activities\0e4b908048f2b2a4806e11d26db3f19416092de9.jpg
+ 2,287,614  static\images\activities\1d0577bfdd73294ae378e33dcbe5c5a01024ede5.jpg
+ 2,291,906  static\images\activities\95166771b4a1b40be1ada2de2ebbbb3cb58ab752.jpg
+ 2,294,328  static\images\activities\ee442ec32727980e200bb20ae220e6ed99406710.jpg
+ 2,307,082  static\images\activities\ce5e5f7918497d547687ab66ed397bcab78f0778.jpg
+ 2,314,216  static\images\activities\e79d534c02f46446df1b9c01a9e0b15161e9d6ba.jpg
+ 2,323,811  static\images\activities\9f9e734db07fb94d4d38513e0eef4733391ee39f.jpg
+ 2,332,003  static\images\activities\649525e89fa9597fe84322e02799270131b60575.jpg
+ 2,332,339  static\images\activities\7e37e5882b5bf2084b81e5cdcd7d5597a69752d8.jpg
+ 2,332,477  static\images\activities\8ec7ca5c712ce44d47620aa0587366d35f91f3db.jpg
+ 2,346,716  static\images\activities\8937d8240178a12ca979c3a9863bf65c665bee55.jpg
+ 2,361,400  static\images\activities\8e2305bb57d4c6a10c6f2877bedb5c769c97dcc2.jpg
+ 2,387,268  static\images\activities\b83b2bff0fc68462c1808fc2aefbb75af523f6b7.jpg
+ 2,389,674  static\images\activities\73266acd3931efb3d195462a6bc54279dad6458c.jpg
+ 2,402,669  static\images\activities\c8c2c5eca0e97f58252bba59920c2f450472a5fa.jpg
+ 2,426,189  static\images\activities\5981edf447d08438c57f07e4a66f0d95b7c1acdc.jpg
+ 2,427,399  static\images\activities\9648fc549eb7214253d92cad49f5e1da5118218e.jpg
+ 2,427,399  static\images\destinations\9648fc549eb7214253d92cad49f5e1da5118218e.jpg
+ 2,436,382  static\images\activities\2214370282ac15905159fc81250d8fb396b2b781.jpg
+ 2,436,547  static\images\activities\89292a0d2be6f18302dce5625e5ee6661dafcc91.jpg
+ 2,456,172  static\images\activities\32e83988ab4fa7914d79c946983f458f6075e9ef.jpg
+ 2,462,558  static\images\activities\71f205a486599be56fadf8ae2a193666cbcc50dc.jpg
+ 2,496,215  static\images\activities\1dfe7ff9183507ee9a7e57d547606dbe29504f08.jpg
+ 2,509,577  static\images\activities\002d7afb2e2b90a0f42f65db6ae2ab2d1ada65a4.jpg
+ 2,510,627  static\images\activities\92d4a9f4b6effa7f2bba3090272c356dc4528053.jpg
+ 2,521,792  static\images\activities\590ff85e29c2d52fc73caa78c15e18d98afaca17.jpg
+ 2,523,681  static\images\activities\aaf220745aecf26402fdebd2c7b1dddc57c18279.jpg
+ 2,532,884  static\images\activities\a3176e618febe7e25a48741d35813bf822ade5e3.jpg
+ 2,536,923  static\images\activities\ad7b4d45bb261c11e6881460e0879416ab956d9e.jpg
+ 2,547,811  static\images\activities\c19ea9fde2d53600f8fb3809b6ea1bc52bce67f6.jpg
+ 2,551,157  static\images\activities\d34ebd4f109457905e95dee462778cc4a15cbb7c.jpg
+ 2,566,873  static\images\activities\a039f59e98a1aa88205cea9ed7319b84080b9b03.jpg
+ 2,590,120  static\images\activities\9498b6b9172ff8d8722a59628f6a0f8881730d9c.jpg
+ 2,606,667  static\images\activities\8b49ea843e193d7cc0c8179e64b9edbde2217904.jpg
+ 2,608,016  static\images\activities\3ef6735d54046d0a13d41e759dbc8637976a3f61.jpg
+ 2,621,335  static\images\activities\a9e12a1f385f1d2c2262f7c577eebb035cfa025f.jpg
+ 2,623,485  static\images\activities\61d621ff267d522bb8b118d74eab3d6af5fcbfdc.jpg
+ 2,626,995  static\images\activities\9fabe73bd0cc97ff01da95375a6c2cee6134709e.jpg
+ 2,644,988  static\images\activities\9320d558158a5901cd0c24510245c9d777645d72.jpg
+ 2,668,175  static\images\activities\358e21825f6558cabc0ddd8e81f302dd282d642a.jpg
+ 2,669,915  static\images\activities\d48af68886e2f19a94a0b3fb6b49879a8c0c1a2d.jpg
+ 2,698,708  static\images\activities\f90dd90210ccc24c175b10bd590817c88cee88ef.jpg
+ 2,714,133  static\images\activities\7d4bb77ec395b35052b01a350f4b0d2e966dd810.jpg
+ 2,721,063  backups\packages_before_consolidation.json
+ 2,748,109  static\images\activities\2747ed4da62e8f8ed900115eb3edff6359b5f2b1.jpg
+ 2,764,047  static\images\activities\b03b5a6fa3e419027cb513572288fd0f980eadf2.jpg
+ 2,777,260  static\images\activities\ad362ce109a63c012b66f967eb775ca3143800ef.jpg
+ 2,777,260  static\images\destinations\ad362ce109a63c012b66f967eb775ca3143800ef.jpg
+ 2,784,693  static\images\activities\76baa09bd301439101157d3224cec9e087c4b471.jpg
+ 2,785,783  static\images\activities\372850920dbf46969956b8870333e0eeee8216f4.jpg
+ 2,794,314  static\images\activities\794cc3f3ee11c535de6aa001862539a060d33061.jpg
+ 2,795,973  static\images\activities\4bf1f458d8415c1c7aeee84319f8c3f45d5746aa.jpg
+ 2,800,329  static\images\activities\05d3313cb9e75f5fbe7d2d042de3c2a73976bb57.jpg
+ 2,805,705  static\images\activities\1ed5338405d706d9712161a1fdd4063e4f52685e.jpg
+ 2,806,128  static\images\activities\438d7e5487722a50cf98786e65d9c4f876e03d7c.jpg
+ 2,812,298  static\images\activities\90453ce5382b6087df7be893ac1abb55d93b2d49.jpg
+ 2,829,591  static\images\activities\28612a2c4a863b48f5d7a7f778fc2d07cd194dd4.jpg
+ 2,855,390  static\images\activities\ffa91a29e561883d1c6bf4a74231d8f74b401a4f.jpg
+ 2,904,319  static\images\activities\f3c5a9af88d8d536c5981bcb0cc92c06e1a399b6.jpg
+ 2,912,969  static\images\activities\3767804473dc95d2959e9244008d1a6599c4e304.jpg
+ 2,940,183  static\images\activities\02b8c8dce4d0efb84005d0903c339785e3c02274.jpg
+ 2,944,288  static\images\activities\3c35de1da8aed4079fa4ada1d97838ffabb747f6.jpg
+ 2,945,233  static\images\activities\594261565eadba2e55690263398aa281fb403c28.jpg
+ 2,945,329  static\images\activities\7bfd4491db36c07f969eb785fdd18433bfe9874d.jpg
+ 2,962,992  static\images\activities\636b424494f5197e44d1463874cef14f710392cd.jpg
+ 2,970,955  static\images\activities\bc496bf2f1301f2d69cf5d328eeeb1769277ae1b.jpg
+ 2,972,378  static\images\activities\322fe5baa131b265bd8cbd3bc813d801e4594398.jpg
+ 2,973,513  static\images\activities\9a0d96b65138d36b02d26ed5d3079474804888fa.jpg
+ 2,983,278  static\images\activities\a5e08c319824077da737939348347822bed866fb.jpg
+ 2,999,042  data\Egypt-Packages.csv
+ 3,000,841  static\images\activities\606ba9cfab477e7393045b57a9aa54afd53682df.jpg
+ 3,048,364  static\images\activities\ae57c5ccff8ac9fe047d51704ec894f74899415c.jpg
+ 3,048,414  static\images\activities\453b95fc1b7570130147b017e3bf75d66362239f.jpg
+ 3,067,594  static\images\activities\7fff0e0f31a02f7451950b76197fc9dddfc90ddc.jpg
+ 3,073,790  static\images\activities\43f78d41792679a6b33739c375b1d669820fc7bc.jpg
+ 3,085,776  static\images\activities\e4a856f9baaa771d5fdf0623fa271432ff388072.jpg
+ 3,086,766  static\images\activities\6dec4ed9547cf3ef8b9d5cd406293596f118a7f3.jpg
+ 3,088,710  static\images\activities\d18c1c4b622322d832523bde3560afd11640a417.jpg
+ 3,112,209  static\images\activities\e379c0783645b4200a3d58160abfd27c5e765ea1.jpg
+ 3,128,645  static\images\activities\6c4079803bad83e4c4af61dc2f5218acf4fea5b9.jpg
+ 3,135,478  static\images\activities\ef569313d2dea6c5afd91f62509349e997d745d4.jpg
+ 3,137,068  static\images\activities\555a745e7c4c1a2fa3a61888b0a6dfcb01c2deb3.jpg
+ 3,170,262  static\images\activities\f2ff144f38d3323c9f07b8f0e628248f2f580c9b.jpg
+ 3,197,724  static\images\activities\9b90ba1d765526f0c94cc196897d950117d1940c.jpg
+ 3,204,722  static\images\activities\dcfcea9017b426f2e0c0bd92d0420ea4cf00a474.jpg
+ 3,259,478  static\images\activities\accb01c7d369cccc8af4a3f06350f3de1ace9166.jpg
+ 3,261,001  static\images\activities\090875c1c069a1625dff0143889e4fcbc67391ac.jpg
+ 3,262,317  static\images\activities\9b54f1fe8602de404074c687e19151129d8ad144.jpg
+ 3,264,918  static\images\activities\5c34b23116aa43be77c68a54dc7dbd52eea21d8b.jpg
+ 3,264,918  static\images\uploads\5c34b23116aa43be77c68a54dc7dbd52eea21d8b.jpg
+ 3,295,411  static\images\activities\4d99f2b5674039c56485db54365e7ff5e4ce8d31.jpg
+ 3,295,863  static\images\activities\8ee0d27af3fa3c85a7141c5f74b4214e1e60fc3f.jpg
+ 3,300,045  static\images\activities\ff5aa4f36486eea3b018babb02dd0ce9bc24031b.jpg
+ 3,305,547  static\images\activities\1f927fbdd135430e3f87e35738bc3c6f247d9a55.jpg
+ 3,308,083  static\images\activities\70f1a10b65b6f9c3faeeed60cbbeb96e4c348629.jpg
+ 3,317,544  static\images\activities\dab390cd29c0419a56a499dc19062ac84568218c.jpg
+ 3,317,544  static\images\destinations\dab390cd29c0419a56a499dc19062ac84568218c.jpg
+ 3,338,639  static\images\activities\8d5e5dcb16247bb12b6127f502ae8b9e56843de4.jpg
+ 3,355,413  static\images\activities\b9fea65c329a9b4e837169215a37f5190a3335d7.jpg
+ 3,360,006  static\images\activities\063cc090d25a2a9354993568c5f614569eb1928c.jpg
+ 3,386,929  static\images\activities\72d63721f0b5ea238d1f6cadd6f00905bc1bb692.jpg
+ 3,428,449  static\images\activities\451eeba581ff64f583d275e6a98a7e0f88825205.jpg
+ 3,435,026  static\images\activities\9de4e2c012ff4c9d52cc8533f1ec4dc44bc169d4.jpg
+ 3,443,342  static\images\activities\d30a1ead2da244495df420df45030b5af12f91aa.jpg
+ 3,443,451  static\images\activities\97a0bdc658c1332d8b8936dc79dd016251f51270.jpg
+ 3,444,962  static\images\activities\f30cc6a7bc2c8a7ba35a232be373f9a85c3bd021.jpg
+ 3,466,918  static\images\activities\0fd78372c23a1da330934971084290bec123fb9e.jpg
+ 3,491,602  static\images\activities\3e78dc41ea5b1d4946fb807af9f1fdc20e44ec7f.jpg
+ 3,520,854  static\images\activities\01bb04fb05e7440940a66696fa7583491f931e62.jpg
+ 3,558,423  static\images\activities\a5e4ae6de8a8faf84c1d7777b567b41a60cffc5b.jpg
+ 3,593,667  static\images\activities\a1b05d3fd246c12cdae49657ccc3c32a768e2434.jpg
+ 3,599,569  static\images\activities\7eced963aeaf6bd3c39aab8850d35cc4ed55c2dd.jpg
+ 3,602,382  static\images\activities\805f15b00cf771c4e398f334b434bf88f426de42.jpg
+ 3,623,457  static\images\activities\0ca2f8ca85b34060bc0edf78e776890ae10a467c.jpg
+ 3,632,288  static\images\activities\3b5f6c1b9bb7787ceed5c4eeba76a9a099ce5340.jpg
+ 3,642,007  static\images\activities\7c03805df1c278ca7e0e22e7f5fd80aa18afff07.jpg
+ 3,645,702  static\images\activities\8911e06a0eee24bde9a39565a00b03dc5d106833.jpg
+ 3,676,888  static\images\activities\2329ea8ca42fbd2a0bbd9347c7e2ee7497780a57.jpg
+ 3,693,315  static\images\activities\ca14d18d7d2b03fa900b519194d291009a37aa85.jpg
+ 3,693,531  static\images\activities\edc113042eab678fd9cb8018b034294493d7d98b.jpg
+ 3,700,328  static\images\activities\11553410e02a9be4079690d5d772b65c4017e183.jpg
+ 3,703,831  static\images\activities\db686ab5f1696174066a5fcebac656cb9a014fc7.jpg
+ 3,767,177  static\images\activities\8f54c6f3bde9db7d2640753f1e8cf60995be01e8.jpg
+ 3,775,180  static\images\activities\6517a02b4bca97212e29197b19871ad60077153d.jpg
+ 3,785,675  static\images\activities\882fdfd26da7a26c107ba6a5167204c60fe6df79.jpg
+ 3,804,821  static\images\activities\dd7dc28568ca2f47d687eefa1ff22c6de86dc193.jpg
+ 3,805,524  static\images\uploads\3a091d2a1dd5fba7bf3943686f088455a279a3e4.jpg
+ 3,810,842  static\images\activities\ffc15d42de60f8860f5caf4d51480079383af590.jpg
+ 3,842,817  static\images\activities\2e9a6b59bd0c4412033a359921f1e860c35d3344.jpg
+ 3,857,344  static\images\activities\1d12fb8b47bae2d5a590e809da45b6c702c1abd5.jpg
+ 3,861,265  static\images\activities\fbd9b8e83dbe717b474ef38f90bdb69a9fe43e6a.jpg
+ 3,897,584  static\images\activities\3c33c6147b5a0917086e249ae91ab0cb5c4b60ba.jpg
+ 3,931,921  static\images\activities\019efa4418a7619b55d0008d6666c0e16b03ff95.jpg
+ 3,936,876  static\images\activities\3b097a9746578b19b011e2b089566319c1c66c6e.jpg
+ 3,943,887  static\images\activities\86a9b1baa62337b8f36487ca05dda7eebd603adc.jpg
+ 3,949,677  static\images\activities\ce503691331096efd91b7b3a8271908c503b12cc.jpg
+ 3,970,243  static\images\activities\06e4102ebca79c08d029d8ebb38010e69c2e37c8.jpg
+ 3,974,750  static\images\activities\b3a78d8ae929bb84ec90fae40bea886c17286aae.jpg
+ 3,977,438  static\images\activities\748ac08148fc1850f746bcc2f1a5f9d08c0df900.jpg
+ 4,022,374  static\images\activities\7077d4ac914b087f10a4f430f5ccf26d06cae1ba.jpg
+ 4,026,106  static\images\activities\43fe0093c1334469bbbf1b1bea177a1f494e759d.jpg
+ 4,030,554  static\images\activities\68d9faddcf5b1119bb49c7c0d2b6675e01be299b.jpg
+ 4,048,937  static\images\activities\b2c0b6530eb279fb67c5932af503163345efc82d.jpg
+ 4,073,836  static\images\activities\6d5b34a8ad32553ffa33beaa0b3d7dd0d7faaaf4.jpg
+ 4,080,674  static\images\activities\51d974db23db6d1ce66492fdb997fd49e6859c05.jpg
+ 4,111,000  static\images\activities\82055de6e83f69986c7ad548cae377e9b6d55a4d.jpg
+ 4,131,861  static\images\activities\ebe5fd24e5243b92875f735a0ac926d59505cf4b.jpg
+ 4,140,946  static\images\activities\bdbccbc51e6b886862e33a761cc65776d127dcec.jpg
+ 4,145,236  static\images\activities\befa96c93731a83d0f32cdcda9f3cba355ef646e.jpg
+ 4,148,812  static\images\activities\b64e3fab8331b5a3a14e9545f12219274c9d2669.jpg
+ 4,175,330  static\images\activities\962ed29b44d3bf16e7fc3df572c6885719b554e9.jpg
+ 4,213,034  static\images\activities\9117e5e762e41fb8a82fe1f50f3734632e6d030b.jpg
+ 4,219,832  static\images\activities\bc07091b6a61b5cdf56f6df671d8fd846e73835c.jpg
+ 4,240,068  static\images\activities\09ea2670220f4b9f8d150cb0cb46c613baf70396.jpg
+ 4,252,732  static\images\activities\b36bc2b89fae8e73d52e2bb8ed704a70afee0ac8.jpg
+ 4,296,928  static\images\activities\49ab5505d6f806c154bb7b6142271956b9878a00.jpg
+ 4,300,089  static\images\activities\f7b35bca5c4a0237a3991d898290562cd252bbe2.jpg
+ 4,326,685  static\images\activities\a08b5f863d2800e1ff26edb7188185e8ee48c1b9.jpg
+ 4,345,878  static\images\activities\689443d17d8b5204afe3af7fb407b06e7159d464.jpg
+ 4,368,967  static\images\activities\a846a91e57f23e5e26378bd4eddb8bc2ca0c3463.jpg
+ 4,378,442  static\images\activities\d3b2572c57054d4ead9079bfe39d99caad40af0a.jpg
+ 4,386,303  static\images\activities\cfb124fe5939c774f7803b5fdd34476d8b190579.jpg
+ 4,427,172  static\images\activities\7e934648cf2b893621057ad2d0049fe53e69fd20.jpg
+ 4,432,749  static\images\activities\aad1554f388f3725b21820297cd91088d8ce5245.jpg
+ 4,486,572  static\images\activities\34f11038b198b5542cc3e30ee072b9281206ce1b.jpg
+ 4,512,685  static\images\activities\901776fc233143d7aef34b036200f570944b8dc8.jpg
+ 4,519,241  static\images\activities\b0babfbcf469ca2a952ea88076afeecb8bdd878d.jpg
+ 4,552,031  static\images\activities\a8c4bae2c865f83ec51fae811225d093fb2ff4eb.jpg
+ 4,567,701  static\images\activities\542052da54b829fa2ffaa29dfe99976a3eb3d5cd.jpg
+ 4,569,438  static\images\activities\4ef78873c62810ca6d63064d20a090a152420b47.jpg
+ 4,587,986  static\images\activities\9990fc66a49c8caa30e5bc1eed1995faeaf17fcc.jpg
+ 4,607,256  static\images\activities\65f219a2e8ed9f1ab16e4640737820fce4f8c86c.jpg
+ 4,635,945  static\images\activities\ea8d781848e1ddbd9ccb3e90e420d858fd24a567.jpg
+ 4,722,027  static\images\activities\81e4c02822e4fa49ea601448e4e1e7907e67d449.jpg
+ 4,732,517  static\images\activities\9d9882a9f84c1e5ec11c2f54db9534b149796723.jpg
+ 4,790,264  static\images\activities\1cee7cbff197292d3341fc4ea6480d5bf2085901.jpg
+ 4,844,506  static\images\activities\1fefa753bcf4bd4d843d1a82a5971e3a801c079b.jpg
+ 4,901,695  static\images\activities\2a86f3d497be50d29783d9b494a503d738f1c1c3.jpg
+ 4,918,023  static\images\activities\a83b195ce3065a3bff8f5f778282cc9f8e4d786c.jpg
+ 5,013,495  static\images\activities\99bef473345d3f31cfb80104752aadb97e815c4e.jpg
+ 5,035,828  static\images\activities\d444718596bbc0874a881b7ade78c71ab0a330f0.jpg
+ 5,038,973  static\images\activities\32293ef3edf9a3afc3448467b91a872a7e220aec.jpg
+ 5,053,646  static\images\activities\e936084ca2806ab4a7504a14c1c39077a846bf6f.jpg
+ 5,080,703  static\images\activities\3d9b96d434c07f6fa7faae7636585100028eabaf.jpg
+ 5,132,255  static\images\activities\70d6d4e6993969dcad30690fb60951c2fbc1be1a.jpg
+ 5,154,519  static\images\activities\633b01550102ff5ab0eaf6e025ec87351e983d07.jpg
+ 5,194,266  static\images\activities\c859f9f9baa46c75dd29e4d363fadc9b39dbc524.jpg
+ 5,212,105  static\images\activities\a02db2c9971da3c61580445f35e893cf8ff01d3f.jpg
+ 5,263,672  static\images\activities\618157ec7c4528974c784332605544e94bb3a375.jpg
+ 5,281,310  static\images\activities\df363cdd5128826f96632d90f48d25afdb7d92bc.jpg
+ 5,281,465  static\images\activities\d79f1d3ea68baf5fccb574331e3fc1d3de70f11c.jpg
+ 5,294,213  static\images\activities\604c1c4411ef0ddb18eae36123d8fe1790d0b96f.jpg
+ 5,386,560  static\images\activities\c120a11fa7753bf8d9141c319f5b039916150ba8.jpg
+ 5,407,660  static\images\activities\2d09c68f5dfee7a1968dfb5a93434f695b2761ba.jpg
+ 5,469,795  static\images\activities\f930677893c4afe60c21ffed8d774502f666f5d4.jpg
+ 5,525,038  static\images\activities\6f5e9331e002457a9920625fde65c83906737db2.jpg
+ 5,635,888  static\images\activities\3f1607877224827c3f39cc1f0521011ab5887c6e.jpg
+ 5,645,512  static\images\activities\df1a6e441a2f9f7c0e996343084ec8f126c24e22.jpg
+ 5,769,571  static\images\activities\e811fd19ef820951dc6f66c6781f0c1fceb5c4d5.jpg
+ 5,812,824  static\images\activities\a202929633b5dd2f2d7072c2ca5e917c7cc8d95f.jpg
+ 5,818,717  static\images\activities\1f3db6ddbc78a4496aead84d6503a1bbc95efc45.jpg
+ 5,823,291  static\images\activities\c05a69f92559b0413d7aab1fd1d59082d9cc81b3.jpg
+ 5,884,550  static\images\activities\674e870263cb143bf058d28fb669444eba8c62c0.jpg
+ 5,928,399  static\images\activities\37e9f36ef18c21a1d44d375d9ed637e713ddac82.jpg
+ 6,048,765  static\images\activities\8322b6e932768f1519db91ed5bdd4226ef9863a2.jpg
+ 6,253,881  static\images\activities\cc980e3c937ec31ec8f732dbddcadfd5a690e26c.jpg
+ 6,254,942  static\images\activities\aeeb0210d008c39443ebc4417a1517a955859bbe.jpg
+ 6,265,618  static\images\activities\cca678f03578d62117c00811182af795a8af7d49.jpg
+ 6,353,080  static\images\activities\f865de752ecde634820e3748dda37cfadbd4e806.jpg
+ 6,506,823  static\images\activities\5b2e39801b75cdbd902e75d5b00db87441192b87.jpg
+ 6,516,797  static\images\activities\44b7b4c06938c2a3933520c1daa6a79d05f256b0.jpg
+ 6,518,109  static\images\activities\69f12998802cbe7102dc032f05832de7b54396a9.jpg
+ 6,644,492  static\images\activities\cdd7c80fe69715d0181861cdd8dbbbfc74332c1a.jpg
+ 6,700,959  static\images\activities\b4529265f25fa782ce8ec98a4f808477e214b924.jpg
+ 6,712,744  static\images\activities\bd203a0a04cef95f9be3739357ea1aa6039b713d.jpg
+ 6,772,934  static\images\activities\5d769d7059e271913d1870df5426730a50648a67.jpg
+ 6,882,189  static\images\activities\e228c91fa9a79d511940ed917662ed9d6a553ff4.jpg
+ 6,894,272  static\images\activities\3fb4a423d15f4717be7b83f06ecb98b074d6b6e8.jpg
+ 6,897,935  static\images\activities\526414b76f7a38ea4e3536c75cda0a673d87f743.jpg
+ 6,906,631  static\images\activities\eb0047327c8b26518694fcb12d62902ca4499662.jpg
+ 6,933,902  static\images\activities\84bd3e2a5f4c2244a6cd830f24e4e1ba6b186e15.jpg
+ 7,103,050  static\images\activities\3fa7ecb38ac60b31ab22defdb69b6773e44537a3.jpg
+ 7,273,844  static\images\activities\04f7ac8a104c0127448719462bcb309d8733ec46.jpg
+ 7,358,981  static\images\activities\1deb7fcb917815e45170b216f48017dc6136f73f.jpg
+ 7,505,764  static\images\activities\41b2339b958a6faf95f9b0a183d11839c39b6a16.jpg
+ 7,553,533  static\images\activities\47d954e37e01b7e848a8f1024423878cdad66ec6.jpg
+ 7,692,272  static\images\activities\2d7e70ffb5a6683de3d01628d20c98803ebd50fc.jpg
+ 7,766,668  static\images\activities\d3daa1eaf94a10980f5e9bc55fcf3d7bd5a74f48.jpg
+ 7,785,912  static\images\uploads\8aedb14ce6f1c9038c045dd6048c43787a0b0b66.mp4
+ 7,818,931  static\images\activities\0e9f6c562e7647241c7d749c34aad2d51d76668a.jpg
+ 7,874,025  static\images\activities\87e8e7ed45e10f6a5f1e3103937929a5d5be0a60.jpg
+ 7,942,181  static\images\activities\d15310f773549549db615420397018b89b83b7bf.jpg
+ 8,168,341  static\images\activities\8ddad5b7b8b3413ea09d67a35ed9fecaca51c9a2.jpg
+ 8,251,577  static\images\activities\f7d12cec638f0b0ae53b259b85cb10b5caa27459.jpg
+ 8,324,382  static\images\activities\34d96cf7fcf0fdb28faef5f82b442a5c0d4c620a.jpg
+ 8,362,717  static\images\activities\9a630094729de264c82d18d4e061515252deace8.jpg
+ 8,435,655  static\images\activities\36ac00b5f2d6c4a866ce10182a0182dff85a3222.jpg
+ 8,579,276  static\images\activities\9be38eda94eac54b7e9fdd0bd14768b20e45df28.jpg
+ 8,724,789  static\images\activities\6ac0c8a036f17c7242dce6712013b97a3bf0f021.jpg
+ 8,779,989  static\images\activities\03bcefc3d3def636d23e71c6b1449e20d3e8c64c.jpg
+ 8,930,824  static\images\activities\27a54241002eb9175c5174ee28e9f9c1ee4a4b6e.jpg
+ 9,268,121  static\images\activities\78178f07acca13ee101ae6845eacedb6dd076ecc.jpg
+ 9,436,275  static\images\activities\be08a94b959c83041e312cdc9769bfb8e0b9eeb2.jpg
+ 9,714,271  static\images\activities\1c519901228c96b1a015ff045593e672043f55cb.jpg
+11,303,934  static\images\activities\b49be571a5d3afad626ed52d67d4b8f29f30937f.jpg
+11,338,845  static\images\activities\c2b6989d528060caacb2e71e6d8cfe3854e1a297.jpg
+11,807,127  static\images\activities\123e7afd09defff41d58e926411f228e18ed25a4.jpg
+12,383,796  static\images\activities\fe5f7db9e88602d8a3b9c8907a5cc4f7bf7c1b55.jpg
+12,620,712  static\images\activities\4c39cc1a7a42fff594a185848388bc3b82926997.jpg
+12,640,607  static\images\activities\044220d5c232e6d5d1cda04f93761567db8992f2.jpg
+13,317,921  static\images\activities\1b4a450745aeaecb2b3e664c47bd7e6c494a86e3.jpg
+13,891,353  static\images\activities\286018152908945533486b38c45c4033a68679be.jpg
+14,273,666  static\images\activities\44d574d0c7975be8b77f1d242891d845fe3ee70e.jpg
+14,893,216  static\images\activities\2d890ba781b1808934c63d40955acf37232f26ab.jpg
+15,119,454  static\images\activities\a608fefe27e66c458d14721e0ad727ad5ad6d75b.jpg
+15,227,879  static\images\activities\a344d315b420e1fa7fb65ba18c4869e0e1204558.jpg
+15,833,796  static\images\activities\8f8838fc6801f408bb6d9c8e6ff88487adaba1a2.jpg
+16,808,254  static\images\activities\c898e86050f87d1e7c5af55c4c320a3faefb2265.jpg
+19,432,757  static\images\activities\7cc8a56f4d2df46f41cd345fffeadb884cf10333.jpg
+
+========== 2. TOP-LEVEL FOLDERS ==========
+backups                                      1 files
+blueprints                                  40 files
+cloud_function                               3 files
+data                                         3 files
+instance                                     0 files
+logs                                         0 files
+migrations                                   0 files
+models                                      25 files
+mongo                                        7 files
+scripts                                     15 files
+services                                    12 files
+static                                     753 files
+templates                                   61 files
+testing                                     88 files
+
+========== 3. MODELS (classes, columns, relationships) ==========
 
 ### FILE: models\__init__.py
 class Base(DeclarativeBase):
@@ -97,6 +1138,7 @@ class ActivityTip(Base):
     tip: Mapped[str] = mapped_column(Text, nullable=False)
     sort_order: Mapped[int] = mapped_column(
     activity: Mapped["Activity"] = relationship(back_populates="tips")  # noqa: F821
+__all__ = [
 
 ### FILE: models\airline.py
 class Airline(Base, SlugMixin, TimestampMixin):
@@ -106,8 +1148,21 @@ class Airline(Base, SlugMixin, TimestampMixin):
     country: Mapped[str | None] = mapped_column(String(80), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(
+__all__ = [
 
 ### FILE: models\booking.py
+PRODUCT_TYPE_ACTIVITY = "activity"
+PRODUCT_TYPE_HOTEL = "hotel"
+PRODUCT_TYPE_PACKAGE = "package"
+PRODUCT_TYPE_FLIGHT = "flight"
+VALID_PRODUCT_TYPES = (
+STATUS_PENDING = "pending"
+STATUS_CONFIRMED = "confirmed"
+STATUS_CANCELLED = "cancelled"
+STATUS_COMPLETED = "completed"
+STATUS_REFUNDED = "refunded"
+VALID_BOOKING_STATUSES = (
+DEFAULT_BOOKING_STATUS = STATUS_PENDING
 class Booking(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     reference: Mapped[str] = mapped_column(String(20), nullable=False, unique=True, index=True)
@@ -215,6 +1270,14 @@ class Guide(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(
 
 ### FILE: models\home_offer.py
+SECTION_TOP_EXPERIENCE = "top_experience"
+SECTION_BEST_HOTEL = "best_hotel"
+SECTION_AFFORDABLE_PACKAGE = "affordable_package"
+VALID_SECTIONS = {
+PRODUCT_ACTIVITY = "activity"
+PRODUCT_HOTEL = "hotel"
+PRODUCT_PACKAGE = "package"
+VALID_PRODUCT_TYPES = {PRODUCT_ACTIVITY, PRODUCT_HOTEL, PRODUCT_PACKAGE}
 class HomeOffer(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     section: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
@@ -293,6 +1356,7 @@ class HotelTip(Base):
     tip: Mapped[str] = mapped_column(Text, nullable=False)
     sort_order: Mapped[int] = mapped_column(
     hotel: Mapped["Hotel"] = relationship(back_populates="tips")  # noqa: F821
+__all__ = [
 
 ### FILE: models\newsletter.py
 class Newsletter(Base, SlugMixin, TimestampMixin):
@@ -393,6 +1457,7 @@ class PackageTip(Base):
     tip: Mapped[str] = mapped_column(Text, nullable=False)
     sort_order: Mapped[int] = mapped_column(
     package: Mapped["Package"] = relationship(back_populates="tips")  # noqa: F821
+__all__ = [
 
 ### FILE: models\package_option.py
 class PackageOption(Base, TimestampMixin):
@@ -410,6 +1475,7 @@ class PackageOption(Base, TimestampMixin):
     flight: Mapped["Flight | None"] = relationship(  # noqa: F821
     price: Mapped["PackagePrice | None"] = relationship(  # noqa: F821
     room: Mapped["Room | None"] = relationship(  # noqa: F821
+__all__ = ["PackageOption"]
 
 ### FILE: models\payment.py
 class Payment(Base, TimestampMixin):
@@ -459,6 +1525,7 @@ class Quote(Base, TimestampMixin):
     accepted_booking_id: Mapped[int | None] = mapped_column(
     created_by_user_id: Mapped[int | None] = mapped_column(
     internal_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+__all__ = [
 
 ### FILE: models\room.py
 class Room(Base, TimestampMixin):
@@ -501,7 +1568,17 @@ class SiteContent(Base, TimestampMixin):
     label: Mapped[str] = mapped_column(String(200), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     sort_order: Mapped[int] = mapped_column(
+    font_family: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    font_size:   Mapped[str | None] = mapped_column(String(16), nullable=True)
+    font_weight: Mapped[str | None] = mapped_column(String(8),  nullable=True)
+    color:       Mapped[str | None] = mapped_column(String(16), nullable=True)
+    align:       Mapped[str | None] = mapped_column(String(12), nullable=True)
+    letter_spacing: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    line_height:    Mapped[str | None] = mapped_column(String(8),  nullable=True)
+    text_shadow:    Mapped[str | None] = mapped_column(String(32), nullable=True)
+    text_transform: Mapped[str | None] = mapped_column(String(16), nullable=True)
     updated_by_user_id: Mapped[int | None] = mapped_column(
+__all__ = [
 
 ### FILE: models\supplier.py
 class Supplier(Base, TimestampMixin):
@@ -527,7 +1604,7 @@ class User(Base, TimestampMixin, UserMixin):
     reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     reset_token_expires: Mapped[datetime | None] = mapped_column(
 
-========== 2. SERVICE SIGNATURES ==========
+========== 4. SERVICE SIGNATURES ==========
 
 ### FILE: services\__init__.py
 def service_info(name: str) -> str:
@@ -604,6 +1681,7 @@ def list_bookings_for_user(user) -> list[Booking]:
 ### FILE: services\content_service.py
 log = logging.getLogger(__name__)
 class ContentSpec:
+def _slide_key(slot: int, suffix: str) -> str:
 def registry() -> dict[str, ContentSpec]:
 def defaults() -> dict[str, str]:
 def _cache_key() -> str:
@@ -615,6 +1693,8 @@ def get(key: str, default: str | None = None) -> str | None:
 def by_page(page: str | None = None) -> dict[str, list[SiteContent]]:
 def set_value(key: str, value: str | None, user: Any = None) -> SiteContent:
 def slideshow_slides() -> list[dict[str, Any]]:
+        def _get(suffix: str) -> str:
+def set_slide_props(slot: int, data: dict[str, Any], user: Any = None) -> int:
 def seed_defaults(session=None) -> int:
 def destination_image(slug, fallback=None):
 def all_destination_images():
@@ -775,7 +1855,7 @@ def _cheapest_room_price(hotel_id: int) -> tuple[Decimal | None, str]:
 def _first_image_url(images: list | None) -> str | None:
 __all__ = [
 
-========== 3. MONGO FUNCTIONS ==========
+========== 5. MONGO FUNCTIONS ==========
 
 ### FILE: mongo\__init__.py
 
@@ -880,68 +1960,145 @@ def top_destinations(
 def zero_result_searches(*, limit: int = 20) -> list[dict[str, Any]]:
 def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
 
-========== 4. ALL ROUTES ==========
+========== 6. ALL BLUEPRINT ROUTES ==========
 
 ### BLUEPRINT: public
 --- blueprints\public\__init__.py ---
 --- blueprints\public\activity_routes.py ---
   @public_bp.route("/activities")
   @public_bp.route("/activities/<slug>")
+    def _int_arg()
+    def _get_first_price()
+    def _avg_rating()
+    def activity_list()
+    def activity_detail()
+    def _parse_date_arg()
 --- blueprints\public\booking_routes.py ---
   @public_bp.route("/booking/start/<product_type>/<int:product_id>", methods=["GET"])
   @public_bp.route("/booking/create", methods=["POST"])
   @public_bp.route("/booking/paypal/return")
   @public_bp.route("/booking/paypal/cancel")
   @public_bp.route("/booking/confirmation/<reference>")
+    def _to_int()
+    def _parse_date()
+    def _parse_amount()
+    def _load_product()
+    def _product_meta()
+    def _room_stay_pricing()
+    def _package_pricing()
+    def _activity_pricing()
+    def booking_start()
+    def booking_create()
+    def booking_paypal_return()
+    def booking_paypal_cancel()
+    def booking_confirmation()
 --- blueprints\public\enquiry_routes.py ---
   @public_bp.route("/enquiries/new")
   @public_bp.route("/enquiries", methods=["POST"])
+    def _to_int()
+    def enquiry_form()
+    def enquiry_submit()
 --- blueprints\public\hotel_routes.py ---
   @public_bp.route("/hotels")
   @public_bp.route("/hotels/<slug>")
+    def _int_arg()
+    def _parse_date_arg()
+    def _cheapest_room_price()
+    def _avg_rating()
+    def hotel_list()
+    def hotel_detail()
+    def _stay_pricing()
 --- blueprints\public\package_routes.py ---
   @public_bp.route("/packages")
   @public_bp.route("/packages/<slug>")
+    def _int_arg()
+    def _first_package_price()
+    def _avg_rating()
+    def _surcharge_for()
+    def package_list()
+    def package_detail()
+    def _parse_date_arg()
+    def _resolve_airline()
+    def _pick_dynamic_price()
 --- blueprints\public\quote_routes.py ---
   @public_bp.route("/quote/request", methods=["GET", "POST"])
   @public_bp.route("/quote/request/thanks")
   @public_bp.route("/quote/<reference>")
   @public_bp.route("/quote/<reference>/accept", methods=["POST"])
   @public_bp.route("/quote/<reference>/decline", methods=["POST"])
+    def _parse_date()
+    def _int_arg()
+    def quote_request()
+    def quote_request_thanks()
+    def quote_view()
+    def quote_accept()
+    def quote_decline()
+    def current_user_or_none()
 --- blueprints\public\review_routes.py ---
   @public_bp.route("/reviews/submit", methods=["POST"])
+    def _to_int()
+    def review_submit()
 --- blueprints\public\routes.py ---
   @public_bp.route("/")
   @public_bp.route("/about")
   @public_bp.route("/contact")
+    def _offers_for_section()
+    def _section_price_for()
+    def _cheapest_per_destination()
+    def _hotel_price_subquery()
+    def _package_price_subquery()
+    def _activity_price_subquery()
+    def index()
+    def about()
+    def contact()
 --- blueprints\public\search_routes.py ---
   @public_bp.route("/search")
   @public_bp.route("/search/results")
+    def _parse_date()
+    def _int_arg()
+    def search_shortcut()
+    def search_results()
 
 ### BLUEPRINT: auth
 --- blueprints\auth\__init__.py ---
 --- blueprints\auth\forms.py ---
+    def _strong_password()
 --- blueprints\auth\password_routes.py ---
   @auth_bp.route("/forgot-password", methods=["GET", "POST"])
   @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+    def forgot_password()
+    def reset_password()
 --- blueprints\auth\routes.py ---
   @auth_bp.route("/register", methods=["GET", "POST"])
   @auth_bp.route("/login", methods=["GET", "POST"])
   @auth_bp.route("/logout", methods=["POST"])
   @auth_bp.route("/verify-email/<token>")
+    def register()
+    def login()
+    def logout()
+    def verify_email()
 
 ### BLUEPRINT: account
 --- blueprints\account\__init__.py ---
 --- blueprints\account\forms.py ---
+    def _strong_password()
 --- blueprints\account\routes.py ---
   @account_bp.route("/")
   @account_bp.route("/bookings")
   @account_bp.route("/bookings/<reference>")
   @account_bp.route("/bookings/<reference>/cancel", methods=["POST"])
   @account_bp.route("/profile", methods=["GET", "POST"])
+    def index()
+    def bookings()
+    def booking_detail()
+    def booking_cancel()
+    def profile()
 
 ### BLUEPRINT: admin
 --- blueprints\admin\__init__.py ---
+    def admin_required()
+    def wrapper()
+    def _admin_guard()
 --- blueprints\admin\activity_admin.py ---
   @admin_bp.route("/activities")
   @admin_bp.route("/activities/new", methods=["GET", "POST"])
@@ -953,6 +2110,18 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
     "/activities/<int:activity_id>/children/<child_type>/<int:row_id>/delete",
     methods=["POST"],
 )
+    def _log()
+    def activity_list()
+    def _apply_form_to_activity()
+    def _maybe_int()
+    def _get_form_choices()
+    def activity_new()
+    def activity_edit()
+    def activity_toggle()
+    def activity_delete()
+    def _next_child_sort_order()
+    def activity_child_new()
+    def activity_child_delete()
 --- blueprints\admin\airline_admin.py ---
   @admin_bp.route("/airlines")
   @admin_bp.route("/airlines/new", methods=["GET", "POST"])
@@ -961,11 +2130,28 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/airlines/<int:airline_id>/logo", methods=["POST"])
   @admin_bp.route("/airlines/<int:airline_id>/logo/delete", methods=["POST"])
   @admin_bp.route("/airlines/<int:airline_id>/delete", methods=["POST"])
+    def _log()
+    def _logo_dir()
+    def _apply_form()
+    def _count_referencing_flights()
+    def airline_list()
+    def airline_new()
+    def airline_edit()
+    def airline_toggle()
+    def airline_logo_upload()
+    def airline_logo_delete()
+    def airline_delete()
 --- blueprints\admin\booking_admin.py ---
   @admin_bp.route("/bookings")
   @admin_bp.route("/bookings/<reference>")
   @admin_bp.route("/bookings/<reference>/status", methods=["POST"])
   @admin_bp.route("/bookings/<reference>/cancel", methods=["POST"])
+    def _log()
+    def _parse_date()
+    def booking_list()
+    def booking_detail()
+    def booking_status()
+    def booking_cancel()
 --- blueprints\admin\content_admin.py ---
   @admin_bp.route("/content")
   @admin_bp.route("/content/edit/<path:key>", methods=["GET", "POST"])
@@ -975,10 +2161,29 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/content/slideshow/<int:slot>/upload", methods=["POST"])
   @admin_bp.route("/content/slideshow/<int:slot>/delete", methods=["POST"])
   @admin_bp.route("/content/slideshow/<int:slot>/update-url", methods=["POST"])
+  @admin_bp.route("/content/slideshow/<int:slot>/save", methods=["POST"])
+    def _log()
+    def content_index()
+    def content_edit()
+    def content_reset()
+    def content_seed()
+    def _slideshow_dir()
+    def content_slideshow()
+    def content_slideshow_upload()
+    def content_slideshow_delete()
+    def content_slideshow_update_url()
+    def content_slideshow_save()
 --- blueprints\admin\destination_admin.py ---
   @admin_bp.route("/destinations/images")
   @admin_bp.route("/destinations/<int:dest_id>/image/upload", methods=["POST"])
   @admin_bp.route("/destinations/<int:dest_id>/image/delete", methods=["POST"])
+    def _images_dir()
+    def _current_url_for()
+    def _set_url_for()
+    def _log()
+    def destination_images()
+    def destination_image_upload()
+    def destination_image_delete()
 --- blueprints\admin\hotel_admin.py ---
   @admin_bp.route("/hotels")
   @admin_bp.route("/hotels/new", methods=["GET", "POST"])
@@ -997,12 +2202,45 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
 )
   @admin_bp.route("/hotels/<int:hotel_id>/facilities/new", methods=["POST"])
   @admin_bp.route("/hotel-facilities/<int:facility_id>/delete", methods=["POST"])
+    def _log()
+    def hotel_list()
+    def _apply_form_to_hotel()
+    def hotel_new()
+    def hotel_edit()
+    def hotel_toggle()
+    def hotel_delete()
+    def _apply_form_to_room()
+    def room_new()
+    def room_edit()
+    def room_delete()
+    def room_rate_new()
+    def _float()
+    def _date()
+    def room_rate_delete()
+    def _next_child_sort_order()
+    def hotel_child_new()
+    def hotel_child_delete()
+    def hotel_facility_new()
+    def hotel_facility_delete()
 --- blueprints\admin\media_routes.py ---
   @admin_bp.route("/media")
   @admin_bp.route("/media/product/<product_type>/<int:parent_id>")
   @admin_bp.route("/media/product/<product_type>/<int:parent_id>/upload", methods=["POST"])
   @admin_bp.route("/media/<product_type>/<int:image_id>/delete", methods=["POST"])
   @admin_bp.route("/media/<product_type>/<int:image_id>/reorder", methods=["POST"])
+    def _model_for()
+    def _image_meta()
+    def _upload_dir()
+    def _log()
+    def _parent_name()
+    def media_index()
+    def _browse_hotels()
+    def _browse_packages()
+    def _browse_activities()
+    def media_for_product()
+    def media_upload()
+    def media_delete()
+    def media_reorder()
 --- blueprints\admin\offer_admin.py ---
   @admin_bp.route("/offers")
   @admin_bp.route("/offers/<section>/search")
@@ -1010,6 +2248,14 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/offers/<int:offer_id>/remove", methods=["POST"])
   @admin_bp.route("/offers/<int:offer_id>/toggle", methods=["POST"])
   @admin_bp.route("/offers/<int:offer_id>/move", methods=["POST"])
+    def _get_section_or_404()
+    def _resolve_products()
+    def offers_index()
+    def offers_search()
+    def offers_add()
+    def offers_remove()
+    def offers_toggle()
+    def offers_move()
 --- blueprints\admin\package_admin.py ---
   @admin_bp.route("/packages")
   @admin_bp.route("/packages/new", methods=["GET", "POST"])
@@ -1034,6 +2280,37 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/packages/<int:package_id>/options/new", methods=["POST"])
   @admin_bp.route("/packages/<int:package_id>/options/<int:option_id>/update", methods=["POST"])
   @admin_bp.route("/options/<int:option_id>/delete", methods=["POST"])
+    def _log()
+    def package_list()
+    def _form_choices()
+    def _rooms_for_hotel()
+    def _apply_form_to_package()
+    def _maybe_int()
+    def package_new()
+    def package_edit()
+    def package_toggle()
+    def package_delete()
+    def package_itinerary_new()
+    def package_itinerary_delete()
+    def package_inclusion_new()
+    def package_inclusion_delete()
+    def package_exclusion_new()
+    def package_exclusion_delete()
+    def _next_child_sort_order()
+    def package_child_new()
+    def package_child_delete()
+    def package_price_new()
+    def _dec()
+    def _date()
+    def package_price_delete()
+    def package_flight_new()
+    def package_flight_delete()
+    def _apply_option_form()
+    def _maybe_int()
+    def _maybe_date()
+    def package_option_new()
+    def package_option_update()
+    def package_option_delete()
 --- blueprints\admin\quote_admin.py ---
   @admin_bp.route("/quotes")
   @admin_bp.route("/quotes/requests")
@@ -1041,31 +2318,106 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/quotes/<reference>", methods=["GET", "POST"])
   @admin_bp.route("/quotes/<reference>/send", methods=["POST"])
   @admin_bp.route("/quotes/<reference>/cancel", methods=["POST"])
+    def _log()
+    def _parse_date()
+    def quote_list()
+    def quote_requests()
+    def quote_new()
+    def quote_detail()
+    def quote_send()
+    def quote_cancel()
 --- blueprints\admin\report_routes.py ---
   @admin_bp.route("/reports")
   @admin_bp.route("/reports/export")
+    def _parse_date()
+    def _date_range_from_request()
+    def _range_stats()
+    def report_index()
+    def report_export()
 --- blueprints\admin\review_admin.py ---
   @admin_bp.route("/reviews")
   @admin_bp.route("/reviews/<review_id>/delete", methods=["POST"])
   @admin_bp.route("/enquiries")
   @admin_bp.route("/enquiries/<enquiry_id>/status", methods=["POST"])
+    def _log()
+    def review_list()
+    def review_delete()
+    def enquiry_list()
+    def enquiry_status()
 --- blueprints\admin\routes.py ---
   @admin_bp.route("/")
+    def index()
 --- blueprints\admin\user_admin.py ---
   @admin_bp.route("/users")
   @admin_bp.route("/users/<int:id>")
   @admin_bp.route("/users/<int:id>/toggle", methods=["POST"])
   @admin_bp.route("/users/<int:id>/role", methods=["POST"])
+    def _log()
+    def _admin_count()
+    def user_list()
+    def user_detail()
+    def user_toggle()
+    def user_role()
 
 ### BLUEPRINT: api
 --- blueprints\api\__init__.py ---
+    def _register_route_modules()
+    def api_health()
 --- blueprints\api\activities_api.py ---
+    def _ok()
+    def _err()
+    def _to_int()
+    def _to_decimal()
+    def _first_price_for()
+    def _serialise_activity()
+    def activities_list()
+    def activities_detail()
 --- blueprints\api\bookings_api.py ---
+    def _ok()
+    def _err()
+    def _parse_iso_date()
+    def _parse_int()
+    def _parse_quantity()
+    def _serialise_booking_summary()
+    def _serialise_item()
+    def _serialise_traveller()
+    def _serialise_history()
+    def _serialise_booking_full()
+    def bookings_create()
+    def bookings_detail()
 --- blueprints\api\hotels_api.py ---
+    def _ok()
+    def _err()
+    def _to_int()
+    def _to_decimal()
+    def _min_price_subquery()
+    def _serialise_hotel()
+    def _serialise_rate()
+    def _serialise_room()
+    def hotels_list()
+    def hotels_detail()
 --- blueprints\api\packages_api.py ---
+    def _ok()
+    def _err()
+    def _to_int()
+    def _to_decimal()
+    def _to_bool()
+    def _serialise_package()
+    def packages_list()
+    def packages_detail()
 --- blueprints\api\payments_api.py ---
+    def _ok()
+    def _err()
+    def _get_json()
+    def _find_payment_for_booking()
+    def payments_create_order()
+    def payments_capture_order()
+    def payments_paypal_webhook()
+    def _handle_capture_completed()
+    def _handle_capture_denied()
+    def _find_payment_by_provider_id()
 
-========== 5. CLOUD FUNCTION ==========
+========== 7. CLOUD FUNCTION ==========
 
 ### FILE: cloud_function\__init__.py
 
@@ -1090,7 +2442,192 @@ def _mark_failed(booking_id: int) -> None:
 def _process_one_batch() -> int:
 def main() -> int:
 
-========== 6. ENV KEYS (values hidden) ==========
+========== 8. SCRIPTS ==========
+
+### FILE: scripts\__init__.py
+
+### FILE: scripts\backfill_hotel_slugs.py
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+def main() -> None:
+            def slugify(text: str) -> str:  # type: ignore
+        def make_unique_slug(name: str, hotel_id: int) -> str:
+
+### FILE: scripts\consolidate_packages.py
+ROOT = Path(__file__).resolve().parent.parent
+def _dump_backup(path: Path) -> None:
+def consolidate(dry_run: bool) -> int:
+def main() -> int:
+
+### FILE: scripts\create_admin.py
+log = logging.getLogger("create_admin")
+def _configure_logging() -> None:
+def _validate_email(email: str) -> str:
+def _validate_password(password: str) -> str:
+def _validate_role(role: str) -> str:
+def _upsert_user(
+def _delete_user(session: Session, email: str) -> bool:
+def main() -> None:
+
+### FILE: scripts\enrich_activity_faqs_tips.py
+ROOT = Path(__file__).resolve().parent.parent
+def _bucket(category: str | None, name: str | None) -> str:
+BUCKET_FAQS = {
+BUCKET_TIPS = {
+def enrich(dry_run: bool, force: bool) -> int:
+def main() -> int:
+
+### FILE: scripts\enrich_activity_maps.py
+ROOT = Path(__file__).resolve().parent.parent
+def _dest_key(name: str) -> str:
+def _embed_url(activity_name: str, dest_name: str) -> str:
+def enrich(dry_run: bool, force: bool) -> int:
+def main() -> int:
+
+### FILE: scripts\enrich_hotels.py
+ROOT = Path(__file__).resolve().parent.parent
+_ALLOWED_FACILITY_TYPES = {
+_FACILITY_TYPE_MAP = {
+def _safe_facility_type(raw: str | None) -> str:
+FACILITIES_BY_STARS = {
+INCLUSIONS_TEMPLATE = {
+EXCLUSIONS_TEMPLATE = [
+DESTINATION_FAQS = {
+DESTINATION_TIPS = {
+DESTINATION_NEIGHBORHOOD = {
+FAQ_TEMPLATE_FALLBACK = [
+TIP_TEMPLATE_FALLBACK = [
+def _dest_key(name: str) -> str:
+def _coords_for(dest_name: str) -> tuple[float, float]:
+def _maps_url(hotel_name: str, coords: tuple[float, float]) -> str:
+def _hotel_type_from_name(name: str) -> str:
+def _find_curated(name: str) -> dict | None:
+def _template_description(name: str, stars: int, dest_key: str) -> str:
+def _clear_children(hotel: Hotel, dry_run: bool) -> None:
+def _apply_curated(hotel: Hotel, curated: dict, dry_run: bool) -> None:
+def _apply_template(hotel: Hotel, dest_name: str, dry_run: bool) -> None:
+def enrich(dry_run: bool, only_curated: bool) -> int:
+def main() -> int:
+
+### FILE: scripts\enrich_package_faqs_tips.py
+ROOT = Path(__file__).resolve().parent.parent
+def _bucket(package: Package, dest_name: str, hotel_name: str) -> str:
+BUCKET_FAQS = {
+BUCKET_TIPS = {
+def enrich(dry_run: bool, force: bool) -> int:
+def main() -> int:
+
+### FILE: scripts\fix_options.py
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_MAX = 4
+def _lookup_cms_max() -> int:
+def _cheapest_price(package_id: int):
+def fix(dry_run: bool) -> int:
+def main() -> int:
+
+### FILE: scripts\import_trip_images.py
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SRC = Path(
+NAME_RE = re.compile(
+VALID_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+MAX_BYTES = 25 * 1024 * 1024  # 25 MB safety cap
+def parse_filename(name: str) -> tuple[int, int] | None:
+def images_dir() -> Path:
+def sha1_bytes(data: bytes) -> str:
+def main() -> int:
+
+### FILE: scripts\reset_db.py
+log = logging.getLogger("reset_db")
+def _configure_logging() -> None:
+def _truncate_all(app) -> None:
+def _drop_and_recreate(app) -> None:
+def _run_subprocess(module: str, *args: str) -> None:
+def main() -> None:
+
+### FILE: scripts\seed_cms_flights_max.py
+ROOT = Path(__file__).resolve().parent.parent
+app = create_app()
+
+### FILE: scripts\seed_cover_images.py
+ROOT = Path(__file__).resolve().parent.parent
+SEED_QUERY = "?auto_seed=1"          # URL suffix â€” the reversal marker
+HOTEL_TYPE = "exterior"              # satisfies hotel_images type CHECK
+PACKAGE_TYPE = "cover"               # satisfies package_images type CHECK
+DRY_RUN = "--dry-run" in sys.argv
+def main() -> int:
+
+### FILE: scripts\seed_from_csv.py
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+TRIPS_CSV = DATA_DIR / "egypttrips.csv"
+HOTELS_CSV = DATA_DIR / "Egypt.csv"
+PACKAGES_CSV = DATA_DIR / "Egypt-Packages.csv"
+log = logging.getLogger("seed")
+def _configure_seed_logging() -> None:
+PLACEHOLDER_TOKENS = {
+def _is_placeholder(value: str | None) -> bool:
+def _clean(value: str | None) -> str | None:
+def _split_list(value: str | None) -> list[str]:
+def _to_int(value: str | None) -> int | None:
+def _to_decimal(value: str | None) -> Decimal | None:
+_DATE_FORMATS = ("%d/%m/%Y", "%d/%m/%y", "%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y")
+def _to_date(value: str | None) -> date | None:
+def _duration_to_hours(value: str | None) -> Decimal:
+def _age_range(value: str | None) -> tuple[int | None, int | None]:
+_DIFFICULTY_MAP = {
+_CATEGORY_TOKENS = (
+_TRANSPORT_TOKENS = ("bus", "car", "boat", "walking", "flight")
+_MEAL_TOKENS = (
+_MEAL_CODE_MAP = {
+_IMAGE_COLUMN = re.compile(r"hotelpicture\s*(\d+)", re.IGNORECASE)
+_DAY_COLUMN = re.compile(r"^Day\s+(\d+)\s+Itinerary$", re.IGNORECASE)
+def _pick_category(value: str | None) -> str:
+def _pick_difficulty(value: str | None) -> str:
+def _pick_transport(value: str | None) -> str:
+def _pick_meals(value: str | None) -> str:
+def _pick_meal_code(value: str | None) -> str:
+def _read_csv(path: Path, encoding: str) -> list[dict[str, str]]:
+class _LookupCache:
+    def __init__(self, session, model, key_attr: str):
+    def get(self, key):
+    def get_by_slug(self, slug):
+    def add(self, obj) -> None:
+def _unique_activity_name(
+def _unique_package_name(
+def _get_or_create_destination(
+def _get_or_create_guide(session: Session, raw_name: str | None) -> Guide | None:
+def _get_or_create_supplier(
+def seed_activities(session: Session, rows: list[dict[str, str]]) -> int:
+def seed_hotels(session: Session, rows: list[dict[str, str]]) -> int:
+def _extract_day_itineraries(row: dict[str, str]) -> dict[int, str]:
+def seed_packages(session: Session, rows: list[dict[str, str]]) -> int:
+def _run(file_key: str, dry_run: bool) -> None:
+def main() -> None:
+
+### FILE: scripts\seed_package_details.py
+ROOT = Path(__file__).resolve().parent.parent
+START_DATE = date(2026, 10, 11)
+END_DATE = date(2027, 10, 11)
+WEEK_STEP = 7  # generate one window per week
+DURATIONS = [7, 10, 14]  # nights
+DURATION_MULT = {
+CHILD_FACTOR = Decimal("0.70")
+def season_multiplier(d: date) -> Decimal:
+AIRLINE_SURCHARGE = {
+ORIGIN_PREMIUM = {
+def _airline_surcharge(name: str | None) -> tuple[Decimal, Decimal]:
+def _origin_premium(origin: str | None) -> Decimal:
+def _round_eur(v: Decimal) -> Decimal:
+DESCRIPTIONS = {
+ITINERARIES = {
+INCLUSIONS = {
+EXCLUSIONS = {
+def _dest_key(name: str | None) -> str:
+def _base_price(package: Package) -> Decimal:
+def _weekly_dates():
+def seed(dry_run: bool) -> int:
+def main() -> int:
+
+========== 9. ENV KEYS (values hidden) ==========
 # ═══════════════════════════════════════════════════════════════════
 #  eltut-tours-platform — .env.example
 #  Copy to .env  →  NEVER commit .env
@@ -1143,7 +2680,7 @@ ITEMS_PER_PAGE=***HIDDEN***
 UPLOAD_FOLDER=***HIDDEN***
 MAX_CONTENT_LENGTH=***HIDDEN***
 
-========== 6b. .env.example ==========
+========== 9b. .env.example ==========
 # ═══════════════════════════════════════════════════════════════════
 #  eltut-tours-platform — .env.example
 #  Copy to .env  →  NEVER commit .env
@@ -1196,20 +2733,34 @@ ITEMS_PER_PAGE=12
 UPLOAD_FOLDER=static/images/uploads
 MAX_CONTENT_LENGTH=16777216
 
-========== 7. GIT ==========
+========== 10. GIT ==========
 --- git status -s ---
- M blueprints/public/activity_routes.py
- M blueprints/public/package_routes.py
+ M blueprints/public/hotel_routes.py
  M code_report.txt
- M templates/admin/activity_form.html
- M templates/admin/package_form.html
+ M services/search_service.py
+ M static/css/eltut.css
+ M templates/base.html
  M templates/public/activity_detail.html
  M templates/public/hotel_detail.html
- M templates/public/package_detail.html
-?? scripts/enrich_activity_faqs_tips.py
-?? scripts/enrich_activity_maps.py
-?? scripts/enrich_package_faqs_tips.py
---- git log --oneline -20 ---
+ M templates/public/hotel_list.html
+ M templates/public/index.html
+ M templates/public/search_results.html
+?? templates/public/search_results.html.pre_stars_fix.bak
+
+--- git branch -a ---
+* main
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/main
+
+--- git log --oneline -30 ---
+6f797fd Add collapsible Egypt travel guide section to homepage
+171517f Remove unused CSS and utility functions for a cleaner codebase
+98ef303 Add homepage template and utility functions for URL handling
+903c81a fix: Adjust styles for header, slideshow, and logo elements
+d5ea0e2 feat: Update homepage styles and structure for Vision 2030 theme
+f1d5b27 Add quote view template with detailed status and pricing breakdown
+5104c96 feat: Add stay picker for date and party selection on hotel detail page
+c083c69 feat: Enhance hotel and package detail pages with location maps, FAQs, and tips
 4ade519 Add scripts for package options and CMS flight settings
 c72e594 yes
 301bcbb routes home page
@@ -1230,8 +2781,10 @@ e9cbc86 Add airline management templates and logo upload functionality
 abd5fd3 feat: add functionality for managing package price windows and flights
 3354935 Add reviews section and quote request functionality
 a5b5e24 Add admin templates for managing quotes and site content
+30ec42b feat: enhance media handling and notification tracking
+ae49d1f feat: Enhance media management interface with improved filtering and carousel galleries
 
-========== 8. MIGRATIONS ==========
+========== 11. MIGRATIONS ==========
 FILE: 3656e6880fd2_add_party_pricing_to_quotes.py
 FILE: 3d06a807b617_add_detail_content_columns_to_products.py
 FILE: 4b821243b413_add_airline_id_to_flights.py
@@ -1242,28 +2795,830 @@ FILE: 80b58a92c6c3_add_detail_children_site_content_quotes_.py
 FILE: 825673d7150e_add_notification_tracking_to_bookings.py
 FILE: 8c336c1e6093_restore_indexes_on_bookings.py
 FILE: a1b2c3d4e5f6_add_slideshow_page_check.py
+FILE: a2b3c4d5e6f7_add_more_style_columns.py
 FILE: d1359aad31a6_add_home_offers_table.py
 FILE: d29577bbff16_add_how_heard_and_payment_method_to_.py
 FILE: ef8ff8cfed4a_add_media_type_and_poster_url_to_image_.py
 FILE: f13d4c55bfe1_add_package_options_table.py
+FILE: f1e2d3c4b5a6_add_site_content_style_columns.py
 FILE: relax_room_rates_validity.py
 
-========== 9. IMPORT SMOKE TEST ==========
-python : [2026-10-11 19:17:32,007] WARNING in app: MONGO_URI is unset or still a placeholder 
+========== 12. TEMPLATES ==========
+     7,655  templates\account\booking_detail.html
+     4,496  templates\account\bookings.html
+     3,782  templates\account\index.html
+     4,824  templates\account\profile.html
+    15,166  templates\admin\activity_form.html
+     5,125  templates\admin\activity_list.html
+     6,838  templates\admin\airline_form.html
+     5,839  templates\admin\airline_list.html
+     5,460  templates\admin\base.html
+    13,103  templates\admin\booking_detail.html
+     6,991  templates\admin\booking_list.html
+     7,074  templates\admin\content_edit.html
+     7,084  templates\admin\content_index.html
+    37,407  templates\admin\content_slideshow.html
+     6,210  templates\admin\destination_images.html
+     7,287  templates\admin\enquiry_list.html
+    24,370  templates\admin\hotel_form.html
+     5,074  templates\admin\hotel_list.html
+     8,711  templates\admin\index.html
+     9,500  templates\admin\media_index.html
+     8,167  templates\admin\media_product.html
+    13,571  templates\admin\offers.html
+    40,148  templates\admin\package_form.html
+     5,143  templates\admin\package_list.html
+    20,775  templates\admin\quote_detail.html
+     9,102  templates\admin\quote_list.html
+     5,957  templates\admin\quote_new.html
+     7,559  templates\admin\quote_requests.html
+    12,744  templates\admin\report_index.html
+     6,808  templates\admin\review_list.html
+     7,054  templates\admin\room_form.html
+     8,194  templates\admin\user_detail.html
+     5,287  templates\admin\user_list.html
+     1,522  templates\auth\forgot_password.html
+     2,371  templates\auth\login.html
+     3,460  templates\auth\register.html
+     1,789  templates\auth\reset_password.html
+     8,980  templates\base.html
+    22,002  templates\public\_egypt_guide.html
+    10,327  templates\public\_search_widget.html
+     2,488  templates\public\about.html
+    43,175  templates\public\activity_detail.html
+     9,167  templates\public\activity_list.html
+     3,732  templates\public\booking_confirmation.html
+    54,036  templates\public\booking_start.html
+     2,205  templates\public\contact.html
+     3,853  templates\public\enquiry_form.html
+    56,605  templates\public\hotel_detail.html
+    15,361  templates\public\hotel_list.html
+    56,496  templates\public\index.html
+    70,021  templates\public\package_detail.html
+     9,092  templates\public\package_list.html
+     7,183  templates\public\quote_request_form.html
+     1,322  templates\public\quote_request_thanks.html
+    12,765  templates\public\quote_view.html
+    29,573  templates\public\search_results.html
+
+========== 13. PROJECT_STATE.md ==========
+## STEP 3 â€” SQLAlchemy Models âœ… (28 / 28 tables)
+
+**Files delivered (16):**
+models/__init__.py, user.py, destination.py, guide.py, supplier.py,
+activity.py (6 tables), hotel.py (3 tables), room.py (2 tables),
+package.py (6 tables), flight.py, booking.py, booking_item.py,
+booking_traveller.py, payment.py, booking_status_history.py, newsletter.py
+
+**Locked patterns:**
+1. SQLAlchemy 2.x API: DeclarativeBase + Mapped[T] + mapped_column()
+2. Suffix-only constraint names (naming_convention adds ck_<table>_ prefix)
+3. Instance defaults in __init__ via kwargs.setdefault(...)
+4. Strip every free-text string field in __init__
+5. Lowercase emails in __init__
+6. Never Mapped[object] â€” always a real type; JSON/ARRAY use explicit type
+7. Cross-file relationships: declare on the parent side with backref
+8. Never order_by="ClassName.col" â€” order in the service layer
+9. Every new model file must be added to models/__init__.py
+
+**Tables (28):**
+users, destinations, guides, suppliers,
+activities, activity_prices, activity_images,
+activity_inclusions, activity_exclusions, activity_languages,
+hotels, hotel_facilities, hotel_images,
+rooms, room_images,
+packages, package_prices, package_images, package_inclusions,
+package_exclusions, package_itineraries,
+flights,
+bookings, booking_items, booking_travellers, payments,
+booking_status_history,
+newsletters
+
+**Verified:**
+- `import models` loads cleanly
+- Base.metadata.tables contains all 28 tables
+- all 28 model classes accessible via models.<ClassName>
+
+## STEP 4 â€” MongoDB Layer âœ… (5 collections)
+
+**Files delivered (7):**
+- mongo/__init__.py            (re-exports constants, accessors, repos)
+- mongo/client.py              (connection, collection accessors, indexes)
+- mongo/reviews.py             (reviews collection)
+- mongo/enquiries.py           (enquiries collection)
+- mongo/logs.py                (activity_logs collection)
+- mongo/search_events.py       (search_events collection)
+- mongo/facilities_extras.py   (hotel_dynamic_facilities collection)
+
+**Collections (5):**
+- reviews                    product reviews (polymorphic product_type/id)
+- enquiries                  quote requests + contact messages
+- activity_logs              admin/system audit trail (TTL 90 days)
+- search_events              anonymous search analytics (TTL 180 days)
+- hotel_dynamic_facilities   free-form per-hotel amenity extras
+
+**Indexes (created in mongo/client.py::ensure_indexes):**
+- reviews:                    (product_type, product_id, created_at DESC),
+                              user_id,
+                              UNIQUE(user_id, product_type, product_id)
+- enquiries:                  (status, created_at DESC), email
+- activity_logs:              (user_id, created_at DESC), TTL 90 days
+- search_events:              created_at DESC, TEXT(destination),
+                              TTL 180 days
+- hotel_dynamic_facilities:   UNIQUE(hotel_id)
+
+**Locked patterns:**
+1. One repo file per collection, no Flask imports
+2. Public API returns plain dicts with _id stringified â€” no BSON leaks
+3. Validation functions raise domain-specific exceptions
+4. Validators run BEFORE Mongo â€” tests need no live Atlas connection
+5. Aggregations use pipelines, never read-modify-write
+6. Counter updates use atomic $inc / $push / $pull
+7. ensure_indexes() is graceful: returns False (does not raise) if Mongo
+   is not yet initialised, so the app boots pre-Atlas
+8. TTL indexes handle automatic data expiry â€” no cron needed
+
+**Verified:** Section test prints all 5 constants + 5 repos + ensure_indexes
+returns False; every repo's validators and write guards exercised.
+
+
+## STEP 5 â€” Flask-Migrate + Neon Migration âœ… (28 tables live)
+
+**Files delivered:**
+- migrations/                        (Flask-Migrate scaffold)
+- migrations/env.py                  (patched: get_metadata() returns
+                                      _ModelsBase.metadata)
+- migrations/versions/xxxx_initial_schema_28_tables.py
+                                     (28 create_table calls)
+
+**Neon connection:**
+- Region:       eu-central-1 (AWS Frankfurt)
+- Host:         ep-polished-king-b2wuynli-pooler.c-6.eu-central-1.aws.neon.tech
+- Database:     neondb
+- Postgres:     18.6 (aarch64)
+- Connection:   pooled, sslmode=require, channel_binding=require
+
+**Verified in Neon (29 tables):**
+activities, activity_exclusions, activity_images, activity_inclusions,
+activity_languages, activity_prices, alembic_version, booking_items,
+booking_status_history, booking_travellers, bookings, destinations,
+flights, guides, hotel_facilities, hotel_images, hotels, newsletters,
+package_exclusions, package_images, package_inclusions,
+package_itineraries, package_prices, packages, payments, room_images,
+rooms, suppliers, users
+
+**Locked lesson (for report):**
+Flask-Migrate 4.x's default `get_metadata()` reads
+`target_db.metadatas[None]` or `target_db.metadata` â€” neither reflects a
+custom Base. Alembic autogenerate returned "No changes in schema detected"
+until we patched `migrations/env.py`:
+
+    from models import Base as _ModelsBase
+
+    def get_metadata():
+        return _ModelsBase.metadata
+
+This is a common gotcha and worth a paragraph in the "Problems
+Encountered" section.
+
+**Commands used:**
+    flask db init
+    flask db migrate -m "initial schema 28 tables"
+    flask db upgrade
+
+**Reminder:** rotate the Neon password before the coursework video â€”
+the URL was shared publicly during development.
+
+
+## STEP 6 (partial) â€” Activities seeded âœ…
+
+**Rows written to Neon:**
+- destinations           9
+- guides                 1
+- activities             177
+- activity_prices        177
+- activity_images        177
+- activity_inclusions    708
+- activity_exclusions    531
+- activity_languages     1062
+
+**Verified:**
+- Sample rows have correct name/slug/category/difficulty/duration
+- 11 duplicate names correctly disambiguated with " â€” <destination>"
+  or " (<code>)" suffixes (matches the 11 collisions found in the CSV)
+- 4 blank rows skipped
+- Enum mapping working: "Moderate" -> "moderate", "7 Hours" -> 7.00
+
+**Remaining for Step 6:**
+- scripts/create_admin.py  (next)
+- scripts/reset_db.py      (after admin)
+- Then seed hotels and packages
+
+## STEP 6 (continued) â€” Hotels seeded âœ…
+
+**Rows written to Neon:**
+- destinations            15  (9 from activities + 6 new: Dahab, El Gouna,
+                                Sahl Hasheesh, Soma Bay, Taba, Safaga)
+- hotels                  167
+- hotel_facilities        334
+- hotel_images            0    (CSV placeholder "Picture" â€” skipped)
+- rooms                   615
+- room_images             0    (no room-specific images in CSV)
+
+**Verified:**
+- Dry run showed the exact count (167) before the real commit
+- Cache optimisation applied: pre-loads destinations/hotels/rooms so bulk
+  seeding is 100x faster than per-row SELECTs
+- Multi-currency prices preserved (some hotels in EUR, some in USD)
+- Room grouping by (HotelId, RoomTypeId) worked
+- Placeholder detection: "Picture" values correctly skipped
+
+**Data source:** Egypt.csv (6,605 rate rows â†’ 167 hotels + 615 rooms)
+
+**Remaining:** packages CSV, then create_admin.py, reset_db.py
+
+## STEP 6 (continued) â€” Packages dry run âœ…
+
+**1645 packages parsed in 23m 39s, no errors.**
+
+New destinations discovered:
+  Nile Cruise (plus previous 15 â†’ 16 total)
+
+**Row counts (post-commit, pending):**
+  packages              ~1645
+  package_prices        ~1645
+  package_images        ~4900  (avg 3 per package)
+  package_inclusions    ~8200  (avg 5 per package)
+  package_exclusions    ~6500  (avg 4 per package)
+  package_itineraries   ~14000 (avg 8.5 days per package)
+  flights               ~1500
+  suppliers             ~3-10 airlines (easy jet, TUI, Wizz air, ...)
+
+**Performance note for report:**
+  ~28 SQL round-trips per package Ã— 1645 packages = ~46,000 round-trips
+  to Neon (Frankfurt). At ~50 ms each this is ~24 minutes total.
+  Bottleneck is NETWORK, not CPU. A bulk-insert rewrite would cut this
+  to ~2 minutes, but was not worth the risk for a one-time seed.
+
+
+  ## STEP 6 â€” Seed scripts âœ… (COMPLETE)
+
+**Files delivered:**
+- scripts/__init__.py
+- scripts/seed_from_csv.py     (all 3 CSVs â†’ 30,144 rows)
+- (create_admin.py, reset_db.py pending in File 2 & 3 of Step 6)
+
+**Data seeded (30,144 rows across 28 tables):**
+Reference:      16 destinations, 1 guide, 3 suppliers
+Activities:     177 activities, 177 prices, 177 images, 708 inclusions,
+                531 exclusions, 1,062 languages
+Hotels:         180 hotels, 334 facilities, 631 rooms
+Packages:       1,645 packages, 1,645 prices, 2,997 inclusions,
+                1,998 exclusions, 16,217 itineraries, 1,645 flights
+Booking engine: 0 rows (populated by user actions at runtime)
+
+**Seed script features:**
+- Reads three CSVs with encoding-aware loader (utf-8 / utf-8-sig for BOM)
+- Parses "7 Hours" â†’ Decimal, "2-70 Year Old" â†’ (2, 70), "BB" â†’ breakfast
+- Detects placeholder values ("Picture", "url6") and skips them
+- Disambiguates duplicate names ("Cairo By Air â€” Hurghada")
+- Disambiguates duplicate slugs ("cairo-by-air-2")
+- Uses in-memory _LookupCache to avoid per-row SELECTs
+- Idempotent: re-running updates existing rows by business key
+- --dry-run flag: parses and builds objects, then rolls back
+- --file trips|hotels|packages|all to seed individual CSVs
+
+**Lessons for report (problems encountered section):**
+1. Duplicate marketing names across business codes required a
+   disambiguation ladder: plain â†’ "name â€” destination" â†’ "name (code)".
+2. Slug uniqueness needed the same treatment â€” added
+   _generate_unique_slug(source, session) to SlugMixin.
+3. Cross-CSV spelling differences ("Sharm El Sheikh" vs "Sharm el
+   Sheikh") required destination lookup by slug, not name.
+4. Per-row session.flush() caused ~46,000 SQL round-trips to Neon for
+   packages alone (~24 min). Bottleneck was network latency, not CPU.
+   An in-memory lookup cache for existing rows dropped hotels from
+   ~15 min to ~4.5 min.
+5. Packages seed originally failed with NOT NULL on hotel_id because
+   session.flush() ran before FKs were set. Fixed by passing required
+   FKs to the Package() constructor.
+
+**Timing observed:**
+- activities (181 rows)  :  ~3 min
+- hotels (6,605 rows)    :  ~5 min
+- packages (1,645 rows)  : ~24 min
+Total: ~32 minutes for a full seed.
+
+**Next step:** scripts/create_admin.py â†’ scripts/reset_db.py â†’ close
+Step 6 â†’ Step 7 (services layer).
+
+
+## STEP 6 Â· File 2 â€” create_admin.py âœ…
+
+**Verified:**
+- 11 validation cases (email/password/role) all pass
+- Admin created: admin@eltuttours.com (id=1, role=admin)
+- Idempotent: re-run reports "unchanged" instead of duplicating
+- --force resets password
+- --role customer creates a test customer
+- --delete removes an account
+
+**Admin credentials stored in .env:**
+  ADMIN_EMAIL=admin@eltuttours.com
+  ADMIN_PASSWORD=ChangeMe123!
+  ADMIN_NAME=ElTut Admin
+
+
+  ## STEP 6 â€” Seed scripts âœ… COMPLETE
+
+**Files delivered (4):**
+- scripts/__init__.py
+- scripts/seed_from_csv.py    (all 3 CSVs â†’ 30,144 rows)
+- scripts/create_admin.py     (admin + customer creation, validated)
+- scripts/reset_db.py         (dev helper with safety guards)
+
+**Final DB state (30,144 rows):**
+  destinations              16
+  guides                     1
+  suppliers                  3
+  activities               177  + prices 177 + images 177 +
+                                 inclusions 708 + exclusions 531 +
+                                 languages 1,062
+  hotels                   180  + facilities 334 + rooms 631
+  packages               1,645  + prices 1,645 + inclusions 2,997 +
+                                 exclusions 1,998 + itineraries 16,217 +
+                                 flights 1,645
+  users                      1  (admin@eltuttours.com, role=admin)
+  Booking engine tables all 0 (populated at runtime)
+
+**Commands reference:**
+  python -m scripts.seed_from_csv [--file trips|hotels|packages|all] [--dry-run]
+  python -m scripts.create_admin [--force] [--role customer] [--email X] [--password Y] [--name "N"] [--delete]
+  python -m scripts.reset_db --truncate|--drop [--yes] [--with-seed] [--with-admin] [--confirm-prod]
+
+**Key learnings captured:**
+1. Duplicate names â†’ disambiguation ladder (plain â†’ "name â€” dest" â†’ "name (code)")
+2. Slug uniqueness â†’ _generate_unique_slug(source, session) on SlugMixin
+3. Cross-CSV spelling diffs â†’ destination lookup by slug, not name
+4. Per-row flush â†’ ~46k round-trips to Neon = 24 min for packages.
+   In-memory lookup cache cut hotels from ~15 min to ~4.5 min.
+5. FK ordering: required FKs must be set BEFORE first flush, or
+   NOT NULL fails on packages.hotel_id.
+6. Constants must be re-exported in models/__init__.py to be importable.
+
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 7 of 15 (services layer)
+Last Completed File: services/pricing_service.py (signed off â€” all guards
+                     verified)
+Next File: services/availability_service.py â†’ then
+           services/recommendation_service.py
+Decisions Locked Since Last State:
+  - services/pricing_service.py fully verified (8 test groups pass,
+    including guard rails on missing product, bad date range, zero
+    guests).
+  - services/availability_service.py delivered with:
+      Domain exceptions: AvailabilityError, ProductNotFound,
+        InvalidAvailabilityInput
+      @dataclass AvailabilityResult with .as_dict()
+      activity_availability / hotel_room_availability /
+        package_availability
+      check_availability (structured result)
+      activity_is_bookable / room_is_bookable / package_is_bookable
+      Half-open-interval overlap predicate for hotels
+      Filters to item_type='primary' so add-ons don't count toward
+        parent capacity
+      Reads only â€” no writes
+      No Flask request imports
+  - ACTIVE_STATUSES = ('pending', 'confirmed')
+Blockers: awaiting 6 test outputs
+=== END STATE ===
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 7 of 15 (services layer)
+Last Completed File: services/availability_service.py (signed off â€” all
+                     6 test groups pass including 5-case overlap test)
+Next File: services/recommendation_service.py â†’ then
+           services/payment_service.py
+Decisions Locked Since Last State:
+  - services/availability_service.py verified:
+      activity 20â†’18 after 2-seat booking âœ…
+      hotel 5â†’3 after 2-room booking âœ…
+      package 10â†’9 after 1 booking âœ…
+      Half-open interval overlap: 5 scenarios, all matching expectations âœ…
+      4 guard rails (missing product, bad dates, missing hotel dates,
+        bad product_type) âœ…
+  - services/recommendation_service.py delivered with:
+      Domain exceptions: RecommendationError,
+        RecommendationProductNotFound
+      recommend_addons_for_hotel / _package / _booking
+      score_activity via internal _score function
+      _rating_lookup best-effort from Mongo reviews (falls back to 0)
+      _first_price_for fetches adult price + currency
+      Returns plain dicts with id, code, name, slug, category,
+        difficulty, duration_hours, capacity, destination_id,
+        price_adult, currency, avg_rating, score
+      Availability filter via lazy import of availability_service
+      Reads only â€” no writes
+      No Flask request imports
+  - Weighted ranking: score = 0.7 * avg_rating + 0.3 * capacity_norm
+Blockers: awaiting 7 test outputs
+=== END STATE ===
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 7 of 15 (services layer)
+Last Completed File: services/payment_service.py (signed off â€” all guard
+                     rails + placeholder detection work)
+Next File: services/email_service.py â†’ then services/report_service.py
+Decisions Locked Since Last State:
+  - services/payment_service.py fully verified:
+      is_configured False (placeholder detection) âœ…
+      create_payment refused with PaymentConfigError âœ…
+      execute_payment refused with PaymentStateError âœ…
+      refund_payment refused with PaymentStateError âœ…
+      _amount_str 12.50 / 1200.00 / 1.00 âœ…
+  - services/email_service.py delivered with:
+      Domain exception: EmailError
+      is_configured() â€” placeholder detection for IONOS SMTP password
+      send_raw() â€” the only function that calls Flask-Mail
+      send_welcome / send_verify_email / send_password_reset
+      send_booking_confirmation / send_booking_confirmed /
+        send_booking_cancelled / send_admin_new_booking
+      send_enquiry_received
+      _render_email with graceful fallback to plain text
+      Never raises on send failure (returns False)
+      No Flask request imports
+  - Templates/emails/*.html not yet created â€” the service falls back to
+    plain text gracefully. Templates arrive in Step 8+.
+Blockers: awaiting 6 test outputs
+=== END STATE ===
+## STEP 7 â€” Services Layer âœ… COMPLETE (9/9 files)
+
+**Files delivered:**
+- services/__init__.py              (SERVICE_MANIFEST, lazy loading)
+- services/auth_service.py          (register, login, reset, verify, guest-claim)
+- services/booking_service.py       (create/cancel bookings, 5-table transaction)
+- services/pricing_service.py       (activity/hotel/package/addon pricing)
+- services/availability_service.py  (capacity minus active bookings)
+- services/recommendation_service.py (upsell ranking + destination match)
+- services/payment_service.py       (PayPal REST wrapper)
+- services/email_service.py         (all transactional emails via IONOS)
+- services/report_service.py        (admin dashboard aggregates)
+
+**Architecture principles applied:**
+1. No Flask request/session imports in services â€” they take/return plain data
+2. Domain-specific exceptions per service (BookingError, PriceNotFound, etc.)
+3. Reads-only where applicable; writes only through booking_service
+4. Placeholder credentials detected (paypal + SMTP) â†’ graceful no-op
+5. Mongo aggregates are best-effort â€” never break the app if Mongo is down
+6. All money values returned as Decimal, never float
+7. No raw SQL â€” SQLAlchemy 2.x select() + func.*
+8. Every service testable in isolation via app_context
+
+**Key service capabilities:**
+- booking_service creates 5 tables in one transaction: bookings,
+  booking_items, booking_travellers, payments, booking_status_history
+- pricing_service resolves seasonal prices + add-on totals
+- availability_service uses half-open interval overlap for hotels
+- recommendation_service ranks by 0.7*rating + 0.3*capacity, filters by
+  destination, excludes already-booked items
+- payment_service: create/execute/refund PayPal flow with placeholder guards
+- email_service: 9 email types, each with HTML template fallback
+- report_service: 9 aggregate functions + one summary() dashboard snapshot
+
+**Test coverage:** Every service has 4-8 dedicated test groups and all pass.
+
+## STEP 8 Â· Files 1-3 âœ…
+
+**Delivered and verified:**
+- blueprints/__init__.py
+- blueprints/public/__init__.py (public_bp)
+- 7 route stubs + routes.py (home/about/contact)
+- utils.py (maybe_url Jinja global)
+- templates/base.html (auth-aware nav, footer, flash)
+- templates/public/index.html (hero + featured + destinations strip)
+- templates/public/about.html
+- templates/public/contact.html
+
+**Live URLs (all 200):**
+- GET /         hero counts (177/180/1645/15) + featured cards
+- GET /about    static content
+- GET /contact  form
+
+**Locked patterns:**
+- maybe_url() returns '#' for not-yet-existing endpoints
+- Placeholder image URLs (/Trips/...) detected + skipped in templates
+- base.html is auth-aware (current_user); nav shows Sign in / Register
+- Bootstrap 5 + Bootstrap Icons via CDN
+
+## STEP 8 â€” Public Blueprint âœ… COMPLETE
+
+**18 routes live:**
+/                                 home
+/about                            about
+/contact                          contact
+/activities                       activity list (filters, sort, pagination)
+/activities/<slug>                activity detail
+/hotels                           hotel list (filters, sort, pagination)
+/hotels/<slug>                    hotel detail (rooms, facilities)
+/packages                         package list (filters, sort, pagination)
+/packages/<slug>                  package detail (itinerary, flights)
+/booking/start/<type>/<id>        booking form (activity | hotel | package)
+/booking/create                   create + PayPal redirect
+/booking/paypal/return            PayPal capture â†’ confirm
+/booking/paypal/cancel            PayPal cancel
+/booking/confirmation/<ref>       confirmation page
+/reviews/submit                   POST â†’ Mongo reviews
+/enquiries/new                    enquiry form
+/enquiries                        POST â†’ Mongo enquiries + email
+/_health                          health check
+
+**Files:**
+- blueprints/public/routes.py
+- blueprints/public/activity_routes.py
+- blueprints/public/hotel_routes.py
+- blueprints/public/package_routes.py
+- blueprints/public/booking_routes.py
+- blueprints/public/review_routes.py
+- blueprints/public/enquiry_routes.py
+
+**Templates:**
+- base.html
+- public/index.html, about.html, contact.html
+- public/activity_list.html, activity_detail.html
+- public/hotel_list.html, hotel_detail.html
+- public/package_list.html, package_detail.html
+- public/booking_start.html, booking_confirmation.html
+- public/enquiry_form.html
+
+**Key patterns locked:**
+- `maybe_url()` for endpoints not yet built (auth/account/admin)
+- `.unique()` after `.joinedload()` on collection relationships
+- Placeholder image URLs skipped (only http/https/static shown)
+- Best-effort Mongo reads/writes; user-visible actions never blocked
+- All prices/availability recomputed server-side
+
+**Remaining:** Steps 9-15
+
+## STEP 9 â€” Auth Blueprint âœ… COMPLETE
+
+**Files delivered:**
+- blueprints/auth/__init__.py          (auth_bp)
+- blueprints/auth/forms.py             (RegisterForm, LoginForm,
+                                        ForgotPasswordForm, ResetPasswordForm)
+- blueprints/auth/routes.py            (register, login, logout, verify)
+- blueprints/auth/password_routes.py   (forgot, reset)
+- templates/auth/register.html
+- templates/auth/login.html
+- templates/auth/forgot_password.html
+- templates/auth/reset_password.html
+
+**Routes live (6):**
+- GET/POST /register                 create account
+- GET/POST /login                    sign in (with ?next= redirect-back)
+- POST     /logout                   sign out (CSRF protected)
+- GET/POST /forgot-password          request reset link
+- GET/POST /reset-password/<token>   set new password
+- GET      /verify-email/<token>     confirm email
+
+**Verified:**
+- Registration works end to end (user created in Neon, auto sign-in, nav updates)
+- Login works
+- Logout works
+- Password reset request stores a bcrypt-hashed token in the DB
+- Email sending falls back gracefully (no SMTP configured in dev)
+
+**Key patterns:**
+- Forms use Flask-WTF (CSRF protection via hidden_tag())
+- Password strength enforced at form level AND service level
+- All auth logic in services/auth_service (routes stay thin)
+- ?next= sanitised to local paths only (prevents open redirect)
+- Rate limiting on login via services/auth_service
+
+## STEP 10 â€” Account Blueprint âœ… COMPLETE
+
+**Files delivered:**
+- blueprints/account/__init__.py    (account_bp, url_prefix="/account")
+- blueprints/account/forms.py       (ProfileForm, ChangePasswordForm)
+- blueprints/account/routes.py      (dashboard, bookings, detail, cancel, profile)
+- templates/account/index.html
+- templates/account/bookings.html
+- templates/account/booking_detail.html
+- templates/account/profile.html
+
+**Routes live (5):**
+- GET       /account/                         dashboard
+- GET       /account/bookings                 paginated list
+- GET       /account/bookings/<reference>     detail (items, travellers,
+                                               payments, history)
+- POST      /account/bookings/<reference>/cancel
+- GET/POST  /account/profile                  profile + password change
+
+**Verified:**
+- All routes @login_required (302 -> /login?next= for guests)
+- Profile update works (name + phone)
+- Password change works (validates current password)
+- Booking cancel uses booking_service.cancel_booking with full audit
+  trail (by_user=current_user, role='customer', ip, user_agent)
+- Booking detail shows items, travellers, payments, and status history
+- Sidebar navigation across all account pages
+
+**Cumulative route count: 29**
+
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 11.5 (room seasonal rates) â€” cleaning invalid rows
+Last Completed File: scripts/seed_from_csv.py (year-end wrap fix)
+Next File: (1) delete 32 invalid rows (2) patch seeder
+           (3) update public hotel_detail.html for rates
+Decisions Locked Since Last State:
+  - room_rates seeded: 4,486 rows across 615 rooms / 167 hotels.
+  - Year-end wrap fix worked for real wraps (2027-12-24 -> 2028-01-03).
+  - BUT 32 rows have valid_to < valid_from with gaps of 4 to 134 days.
+    These are NOT year-end wraps â€” the CSV just has the dates reversed.
+    Rolling them forward would create nonsensical 4-11 month windows.
+  - DECISION: delete these 32 rows instead of inventing a fix.
+    Note in the report as a data-quality issue in the source CSV.
+  - Seeder patch adds the same DELETE at the end of seed_hotels so
+    future re-runs stay clean.
+Blockers: awaiting delete + verify + seeder patch
+=== END STATE ===
+
+
+## STEP 11.5 â€” Room Seasonal Rates âœ… COMPLETE
+
+**Motivation:** the original `rooms.base_price_per_night` collapsed the
+CSV's many seasonal price rows into a single value. Adding a
+`room_rates` table preserved the full date-windowed pricing.
+
+**Files touched:**
+- models/room_rate.py               (new table â€” 4,454 rows seeded)
+- models/room.py                    (+ rates relationship)
+- models/__init__.py                (export RoomRate)
+- migrations/versions/6063bba994dc_add_room_rates_table.py
+- migrations/versions/relax_room_rates_validity.py  (manual â€” relaxes
+  the CHECK constraint to accept year-end wrap windows)
+- scripts/seed_from_csv.py          (creates RoomRate rows from CSV
+                                     date windows; rolls year-end wraps
+                                     forward; drops 32 corrupted rows)
+- services/pricing_service.py       (price_hotel picks the correct
+                                     rate for the requested check-in
+                                     date; falls back to base price)
+- blueprints/admin/hotel_admin.py   (room_edit passes rates; new routes
+                                     room_rate_new, room_rate_delete)
+- templates/admin/room_form.html    (Seasonal rates section with add
+                                     form + table + delete buttons)
+- templates/public/hotel_detail.html (nested "Rates for this room"
+                                     table per room)
+
+**Data issues resolved:**
+1. Year-end wrap windows (2027-12-24 â†’ 2027-01-03) â€” Postgres reads
+   the year as-is, so the gap is 355 days. Fixed by rolling valid_to
+   forward one year at insert time: stored as 2027-12-24 â†’ 2028-01-03.
+2. 32 rows where CSV had start/end dates reversed (gap 4-134 days).
+   Not year-end wraps; genuinely corrupt rows. Deleted. 0.7% of rates.
+3. CHECK constraint "ck_room_rates_validity_check" relaxed to accept
+   `(valid_from - valid_to) <= 180` in addition to the standard
+   `valid_to >= valid_from`. Documented why.
+4. Mass BOM in 68 Python files (from PowerShell `Set-Content -Encoding
+   UTF8`). Stripped all. Root cause of hotel_admin.py's silent route
+   non-registration.
+
+**Locked patterns:**
+- Naming-convention-aware constraint names: pass SUFFIX-ONLY strings to
+  op.drop_constraint / op.create_check_constraint.
+- `nullsfirst()` / `nullslast()` used to keep date windows ordered with
+  open-ended ranges.
+- Manual migrations are required for CHECK-constraint text changes
+  (autogenerate does not detect them).
+- NEVER write Python files with PowerShell's `-Encoding UTF8`
+  (produces BOM). Use `-Encoding utf8NoBOM` or VS Code.
+
+**Feature works:**
+- Public page shows each room's seasonal windows in a nested table
+- Admin room edit shows all windows with add/delete UI
+- pricing_service.price_hotel picks the matching window for the
+  requested dates
+
+  === PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 12 of 15 â€” COMPLETE, banner patch re-attempting
+Last Completed File: templates/public/booking_confirmation.html (email fallback âœ… patched)
+Next File: blueprints/public/booking_routes.py (banner patch â€” regex-based retry)
+Decisions Locked Since Last State:
+
+First banner patch failed on whitespace mismatch: the route body has
+different indentation than my literal-string patch expected.
+
+Switched to regex-based patching (re.compile with re.MULTILINE) that
+captures the existing indent and preserves it. This survives any
+indentation drift.
+
+Template patch remains anchored on the closing </p>\n</div>\n</div>
+block; will adjust if anchor not found.
+Blockers: awaiting retry output
+=== END STATE ===
+
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 12 of 15 â€” COMPLETE (all bugs closed)
+Last Completed File: scripts/seed_from_csv.py âœ… (packages seeder patched)
+Next File: TBD â€” awaiting A/B/C/D choice
+Decisions Locked Since Last State:
+
+All data integrity checks pass:
+activities : 0 null slugs out of 177
+packages : 0 null slugs out of 1645
+hotels : 0 null slugs out of 180 (after backfill)
+
+Seeder patch syntactically valid.
+
+Confirmation page email fallback + dev-mode PayPal banner both
+verified working.
+
+No outstanding bugs. Clean baseline before the next phase.
+Blockers: none
+Next decision: A (admin), B (cloud function), C (tests), or D (deploy)
+=== END STATE ===
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 11 of 15 (finish admin) â€” File 4 of 5 patching
+Last Completed File: templates/admin/report_index.html (2 patches applied)
+Next File: blueprints/admin/media_routes.py (File 5 of 5)
+Decisions Locked Since Last State:
+
+BUG: Jinja attempted Decimal / float division in the monthly bar
+chart. Fixed by casting m.total to float before division and using
+a single numeric type throughout.
+
+SIMPLIFIED: customer total extraction expression â€” the previous
+ternary was valid but fragile. Now uses customers.get("total", 0) if customers is mapping else 0.
+
+The log line "top_rated_activities failed: MongoDB..." is
+expected â€” report_service logs internally and returns an
+_error key. Not a bug. Worth noting in the report as a design
+consideration: templates should check _error per section.
+Blockers: awaiting browser confirmation that /admin/reports now renders
+=== END STATE ===
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: 13 of 15 (cloud function) â€” File 2 not yet written
+Last Completed File: (pending â€” cloud_function dir missing)
+Next File: cloud_function/init.py
+Decisions Locked Since Last State:
+
+First attempt failed because cloud_function/ didn't exist.
+
+Fix: create the dir, then write the file.
+
+Next step: paste email_service + mongo.logs signatures so I can
+write tasks.py with the right function names.
+Blockers: awaiting directory creation + 3 signature outputs
+=== END STATE ===
+
+=== PROJECT STATE ===
+Project: eltut-tours-platform
+Current Step: A61 â€” Full replacement with room-selection panel (best design)
+Last Completed File: templates/public/hotel_detail.html (about to be replaced)
+Next File: browser test â†’ then package_detail.html or booking_start
+What's included:
+  âœ… All previous sections (gallery, facilities, inclusions, rules, map, tips, FAQ, reviews)
+  âœ… Room cards with total + per-night pricing
+  âœ… NEW: select-room-btn â†’ booking panel opens under card
+  âœ… NEW: Booking panel shows dates/nights/party/price math
+  âœ… NEW: Book now â†’ booking form with all params
+  âœ… NEW: Change room â†’ closes panel
+  âœ… NEW: Inline JS handles toggle, only one panel at a time
+  âœ… Sidebar shows cheapest_total + dates + nights + party
+Approach: VS Code paste (not PowerShell â€” learned lesson)
+Rollback: .before-panel backup exists
+Blockers:
+  - Awaiting: TEMPLATE PARSES OK + browser test
+=== END STATE ===
+
+
+========== 14. IMPORT SMOKE TEST ==========
+python : [2026-10-12 23:26:17,509] WARNING in app: MONGO_URI is unset or still a placeholder 
 ù Mongo-backed features (reviews, enquiries, logs) will raise at request time until a real 
 Atlas URI is provided.
-At line:1 char:2
-+ (python _smoke.py 2>&1) | Out-File $out -Append -Encoding utf8
-+  ~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ([2026-10-11 19:...RI is provided.:String) [], R 
+At line:2 char:6
++     (python _smoke.py 2>&1) | Out-File $out -Append -Encoding utf8
++      ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([2026-10-12 23:...RI is provided.:String) [], R 
    emoteException
     + FullyQualifiedErrorId : NativeCommandError
  
-[2026-10-11 19:17:32,008] INFO in client: Mongo not initialised ù skipping index creation 
+[2026-10-12 23:26:17,509] INFO in client: Mongo not initialised ù skipping index creation 
 (MongoDB has not been initialised. Set a real MONGO_URI in .env and let the app factory run, 
 or call extensions.init_mongo(uri, db_name) manually.)
-[2026-10-11 19:17:32,010] INFO in app: ElTut Tours startup
-[2026-10-11 19:17:32,111] INFO in app: App created ù env=development, 
+[2026-10-12 23:26:17,511] INFO in app: ElTut Tours startup
+[2026-10-12 23:26:17,608] INFO in app: App created ù env=development, 
 config=DevelopmentConfig
 models: OK
 services: OK
@@ -1274,5 +3629,10 @@ blueprints.account: OK
 blueprints.admin: OK
 blueprints.api: OK
 app.py: OK
+
+========== 15. PROJECT STATS ==========
+Python files:  190
+Total lines:   30111
+Report size:   187249 bytes
 
 END OF CODE REPORT

@@ -527,33 +527,98 @@
         </div>
 
         {# ─── Related activities ─── #}
-        {% if related %}
-            <hr class="my-5">
-            <div class="section-header icon-ink mb-4">
-                <span class="icon-box"><i class="bi bi-grid"></i></span>
-                <span class="title">More activities in {{ destination.name if destination else "this destination" }}</span>
-            </div>
-            <div class="row g-4">
-                {% for rel in related %}
-                    <div class="col-md-4">
-                        <div class="card h-100 shadow-sm border-0">
-                            <div class="card-body">
-                                <span class="badge bg-primary mb-2">{{ rel.category|title }}</span>
-                                <h6 class="card-title">{{ rel.name }}</h6>
-                                <div class="small text-muted mb-3">
-                                    <i class="bi bi-clock"></i> {{ rel.duration_hours }}h
-                                    {% if rel.difficulty %}· {{ rel.difficulty|title }}{% endif %}
-                                </div>
-                                <a href="{{ url_for('public.activity_detail', slug=rel.slug) }}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    View activity <i class="bi bi-arrow-right"></i>
-                                </a>
+{% if related %}
+    <hr class="my-5">
+    <div class="section-header icon-ink mb-4">
+        <span class="icon-box"><i class="bi bi-grid"></i></span>
+        <span class="title">
+            More activities in {{ destination.name if destination else "this destination" }}
+            <span class="subtitle">Handpicked experiences you might also like</span>
+        </span>
+    </div>
+
+    <div class="row g-4">
+        {% for rel in related %}
+            {% set rel_img = rel.images[0].url if rel.images else None %}
+            {% set rel_dest = search_destinations()|selectattr('id', 'equalto', rel.destination_id)|first if rel.destination_id else None %}
+
+            <div class="col-md-6 col-lg-4">
+                <a href="{{ url_for('public.activity_detail', slug=rel.slug) }}"
+                   class="related-card">
+
+                    {# ─── Image with overlay badges ─── #}
+                    <div class="related-card-media">
+                        {% if rel_img and not rel_img.endswith('.mp4') %}
+                            <img src="{{ rel_img }}" alt="{{ rel.name }}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="related-card-placeholder" style="display:none;">
+                                <i class="bi bi-compass"></i>
                             </div>
+                        {% else %}
+                            <div class="related-card-placeholder">
+                                <i class="bi bi-compass"></i>
+                            </div>
+                        {% endif %}
+
+                        {# Category badge (top-left) #}
+                        {% if rel.category %}
+                            <span class="related-badge related-badge--type">
+                                {{ rel.category|title }}
+                            </span>
+                        {% endif %}
+
+                        {# Duration badge (top-right) #}
+                        {% if rel.duration_hours %}
+                            <span class="related-badge related-badge--nights">
+                                <i class="bi bi-clock"></i>
+                                {{ rel.duration_hours }}h
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {# ─── Body ─── #}
+                    <div class="related-card-body">
+                        <h6 class="related-card-title">{{ rel.name }}</h6>
+
+                        {% if rel_dest %}
+                            <div class="related-card-meta">
+                                <i class="bi bi-geo-alt-fill"></i> {{ rel_dest.name }}
+                            </div>
+                        {% endif %}
+
+                                               {% if rel.difficulty %}
+                            <div class="related-card-meta" style="margin-top:-0.2rem;">
+                                <i class="bi bi-bar-chart"></i> {{ rel.difficulty|title }}
+                            </div>
+                        {% endif %}
+
+                        {# ─── Price per adult ─── #}
+                        {% set rel_price = rel.prices[0] if rel.prices else None %}
+                        {% if rel_price and rel_price.adult_price %}
+                            <div class="related-card-price">
+                                <span class="related-price-label">from</span>
+                                <span class="related-price">
+                                    {{ rel_price.currency }}&nbsp;{{ "%.0f"|format(rel_price.adult_price) }}
+                                </span>
+                                <span class="related-price-unit">/ adult</span>
+                            </div>
+                        {% endif %}
+
+                        <div class="related-card-cta">
+                            View activity <i class="bi bi-arrow-right"></i>
                         </div>
                     </div>
-                {% endfor %}
+                </a>
             </div>
-        {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('public.activity_list') }}" class="btn btn-outline-primary">
+            Browse all activities <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+{% endif %}
     </div>
 </section>
 

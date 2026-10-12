@@ -11,7 +11,7 @@
     <div id="heroCarousel"
          class="carousel slide"
          data-bs-ride="carousel"
-         data-bs-interval="6000"
+         data-bs-interval="10000"
          data-bs-pause="false">
 
         {% set _slides = slideshow_slides() %}
@@ -191,64 +191,182 @@
         </div>
     </div>
 </section>
-
 {# ═══════════════════════════════════════════════════════════════════
-   GREAT VALUE HOTELS (cheapest per destination)
+   GREAT VALUE HOTELS — same style as packages section
    ═══════════════════════════════════════════════════════════════════ #}
 {% if featured_hotels %}
-<section class="py-5 bg-light">
+<section class="pkgs-section py-5">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="section-title">
+
+        {# ─── Section hero ─── #}
+        <div class="pkgs-hero text-center mb-5">
+            <span class="pkgs-eyebrow">
+                <i class="bi bi-building"></i> Stays we love
+            </span>
+            <h2 class="pkgs-title">
                 {{ content('home_hotels_title') or 'Great value hotels' }}
             </h2>
-            <p class="section-sub mx-auto">
+            <p class="pkgs-sub mx-auto">
                 {{ content('home_hotels_subtitle') or "Well-priced stays in Egypt's best destinations." }}
             </p>
+
+            {# Mini stats strip #}
+            <div class="pkgs-stats">
+                <div class="pkgs-stat">
+                    <i class="bi bi-building"></i>
+                    <div>
+                        <strong>{{ featured_hotels|length }}</strong>
+                        <span>highlighted</span>
+                    </div>
+                </div>
+                <div class="pkgs-stat">
+                    <i class="bi bi-coin"></i>
+                    <div>
+                        <strong>from €{{ "%.0f"|format(featured_hotels|map(attribute='price')|select('number')|min) if featured_hotels|map(attribute='price')|select('number')|list else '—' }}</strong>
+                        <span>per night</span>
+                    </div>
+                </div>
+                <div class="pkgs-stat">
+                    <i class="bi bi-geo-alt"></i>
+                    <div>
+                        <strong>
+                            {{ featured_hotels
+                                |map(attribute='obj')
+                                |map(attribute='destination_id')
+                                |select('number')
+                                |unique
+                                |list
+                                |length }}
+                        </strong>
+                        <span>destinations</span>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        {# ─── Card grid ─── #}
+        {% set _min_price = featured_hotels|map(attribute='price')|select('number')|list|min if featured_hotels|map(attribute='price')|select('number')|list else None %}
 
         <div class="row g-4">
             {% for item in featured_hotels %}
                 {% set h = item.obj %}
                 {% set img = h.images[0].url if h.images else None %}
+                {% set dest = search_destinations()|selectattr('id', 'equalto', h.destination_id)|first if h.destination_id else None %}
+                {% set is_best_value = item.price and item.price == _min_price %}
+
                 <div class="col-md-6 col-lg-4">
                     <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}"
-                       class="product-card">
-                        <div class="product-card-media">
+                       class="pkg-card">
+
+                        {# ─── Image block ─── #}
+                        <div class="pkg-card-media">
                             {% if img %}
                                 <img src="{{ img }}" alt="{{ h.name }}"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="product-card-placeholder" style="display:none;">
+                                <div class="pkg-card-placeholder" style="display:none;">
                                     <i class="bi bi-building"></i>
                                 </div>
                             {% else %}
-                                <div class="product-card-placeholder">
+                                <div class="pkg-card-placeholder">
                                     <i class="bi bi-building"></i>
                                 </div>
                             {% endif %}
-                            {% if h.destination_id %}
-                                {% set dest = search_destinations()|selectattr('id', 'equalto', h.destination_id)|first %}
-                                {% if dest %}
-                                    <span class="product-badge product-badge--dest">
-                                        <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
-                                    </span>
-                                {% endif %}
+
+                            <div class="pkg-card-scrim"></div>
+
+                            {# Stars badge (top-left) #}
+                            {% if h.stars %}
+                                <span class="pkg-badge pkg-badge--duration">
+                                    {% for _ in range(h.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                    <span style="margin-left:0.25rem;">{{ h.stars }}-star</span>
+                                </span>
                             {% endif %}
-                        </div>
-                        <div class="product-card-body">
-                            <div class="product-stars">
-                                {% for _ in range(h.stars or 0) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                            </div>
-                            <h5 class="product-name">{{ h.name }}</h5>
-                            {% if h.address %}
-                                <div class="product-address">
-                                    <i class="bi bi-house"></i> {{ h.address|truncate(60, true) }}
+
+                            {# Destination badge (top-right) #}
+                            {% if dest %}
+                                <span class="pkg-badge pkg-badge--dest">
+                                    <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+                                </span>
+                            {% endif %}
+
+                            {# Best value ribbon #}
+                            {% if is_best_value %}
+                                <span class="pkg-ribbon">
+                                    <i class="bi bi-star-fill"></i> Best value
+                                </span>
+                            {% endif %}
+
+                            {# Price block (bottom-left of image) #}
+                            {% if item.price %}
+                                <div class="pkg-card-price">
+                                    <span class="pkg-card-price-label">from</span>
+                                    <span class="pkg-card-price-amount">
+                                        €{{ "%.0f"|format(item.price) }}
+                                    </span>
+                                    <span class="pkg-card-price-unit">/ night</span>
                                 </div>
                             {% endif %}
-                            <div class="product-price-row">
-                                <span class="product-price-label">from</span>
-                                <span class="product-price">EUR&nbsp;{{ "%.2f"|format(item.price) if item.price else '—' }}</span>
-                                <span class="product-price-unit">/ night</span>
+                        </div>
+
+                        {# ─── Body ─── #}
+                        <div class="pkg-card-body">
+
+                            {# Facilities chips row #}
+                            {% if h.facilities %}
+                                <div class="pkg-card-chip-row">
+                                    <span class="pkg-type-chip">
+                                        <i class="bi bi-stars"></i>
+                                        {{ h.facilities|length }} facilities
+                                    </span>
+                                    {% if h.rooms %}
+                                        <span class="pkg-code">
+                                            <i class="bi bi-door-open"></i> {{ h.rooms|length }} room types
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <h5 class="pkg-card-title">{{ h.name }}</h5>
+
+                            {# Meta row #}
+                            <div class="pkg-card-meta">
+                                {% if dest %}
+                                    <span><i class="bi bi-pin-map"></i> {{ dest.name }}</span>
+                                {% endif %}
+                                {% if h.stars %}
+                                    <span><i class="bi bi-star-fill"></i> {{ h.stars }}-star</span>
+                                {% endif %}
+                            </div>
+
+                            {# Address line #}
+                            {% if h.address %}
+                                <div class="pkg-card-address" style="font-size:0.78rem; color:#78716c; margin-bottom:0.75rem;">
+                                    <i class="bi bi-house" style="color:#c9a227;"></i>
+                                    {{ h.address|truncate(70, true) }}
+                                </div>
+                            {% endif %}
+
+                            {# Facilities preview (first 2) #}
+                            {% if h.facilities %}
+                                <ul class="pkg-card-includes">
+                                    {% for f in h.facilities[:2] %}
+                                        <li>
+                                            <i class="bi bi-check-lg"></i>
+                                            {{ f.name }}
+                                        </li>
+                                    {% endfor %}
+                                    {% if h.facilities|length > 2 %}
+                                        <li class="pkg-card-includes-more">
+                                            + {{ h.facilities|length - 2 }} more facilities
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            {% endif %}
+
+                            {# CTA row #}
+                            <div class="pkg-card-cta">
+                                <span>View hotel</span>
+                                <i class="bi bi-arrow-right"></i>
                             </div>
                         </div>
                     </a>
@@ -256,70 +374,197 @@
             {% endfor %}
         </div>
 
-        <div class="text-center mt-4">
-            <a href="{{ url_for('public.hotel_list') }}" class="btn btn-outline-primary">
+        <div class="text-center mt-5">
+            <a href="{{ url_for('public.hotel_list') }}" class="btn btn-outline-primary btn-lg">
                 Browse all hotels <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
 </section>
 {% endif %}
-
 {# ═══════════════════════════════════════════════════════════════════
-   AFFORDABLE PACKAGES (cheapest per destination)
+   AFFORDABLE PACKAGES — hero strip + rich cards
    ═══════════════════════════════════════════════════════════════════ #}
 {% if featured_packages %}
-<section class="py-5">
+<section class="pkgs-section py-5">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="section-title">
+
+        {# ─── Section hero ─── #}
+        <div class="pkgs-hero text-center mb-5">
+            <span class="pkgs-eyebrow">
+                <i class="bi bi-award"></i> Best value this season
+            </span>
+            <h2 class="pkgs-title">
                 {{ content('home_packages_title') or 'Affordable packages' }}
             </h2>
-            <p class="section-sub mx-auto">
-                {{ content('home_packages_subtitle') or 'All-inclusive trips at honest prices.' }}
+            <p class="pkgs-sub mx-auto">
+                {{ content('home_packages_subtitle') or 'All-inclusive trips at honest prices — flights, hotel, and transfers included.' }}
             </p>
+
+            {# Mini stats strip #}
+            <div class="pkgs-stats">
+                <div class="pkgs-stat">
+                    <i class="bi bi-suitcase-lg"></i>
+                    <div>
+                        <strong>{{ featured_packages|length }}</strong>
+                        <span>highlighted</span>
+                    </div>
+                </div>
+                <div class="pkgs-stat">
+                    <i class="bi bi-coin"></i>
+                    <div>
+                        <strong>from €{{ "%.0f"|format(featured_packages|map(attribute='price')|select('number')|min) if featured_packages|map(attribute='price')|select('number')|list else '—' }}</strong>
+                        <span>per person</span>
+                    </div>
+                </div>
+                <div class="pkgs-stat">
+                    <i class="bi bi-geo-alt"></i>
+                    <div>
+                        <strong>
+                            {{ featured_packages
+                                |map(attribute='obj')
+                                |map(attribute='destination_id')
+                                |select('number')
+                                |unique
+                                |list
+                                |length }}
+                        </strong>
+                        <span>destinations</span>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        {# ─── Card grid ─── #}
+        {% set _min_price = featured_packages|map(attribute='price')|select('number')|list|min if featured_packages|map(attribute='price')|select('number')|list else None %}
 
         <div class="row g-4">
             {% for item in featured_packages %}
                 {% set p = item.obj %}
                 {% set img = p.images[0].url if p.images else None %}
+                {% set dest = search_destinations()|selectattr('id', 'equalto', p.destination_id)|first if p.destination_id else None %}
+                {% set is_best_value = item.price and item.price == _min_price %}
+
                 <div class="col-md-6 col-lg-4">
                     <a href="{{ url_for('public.package_detail', slug=p.slug) }}"
-                       class="product-card">
-                        <div class="product-card-media">
+                       class="pkg-card">
+
+                        {# ─── Image block ─── #}
+                        <div class="pkg-card-media">
                             {% if img %}
                                 <img src="{{ img }}" alt="{{ p.name }}"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="product-card-placeholder" style="display:none;">
+                                <div class="pkg-card-placeholder" style="display:none;">
                                     <i class="bi bi-suitcase-lg"></i>
                                 </div>
                             {% else %}
-                                <div class="product-card-placeholder">
+                                <div class="pkg-card-placeholder">
                                     <i class="bi bi-suitcase-lg"></i>
                                 </div>
                             {% endif %}
+
+                            <div class="pkg-card-scrim"></div>
+
+                            {# Duration badge (top-left) #}
                             {% if p.duration_nights %}
-                                <span class="product-badge product-badge--nights">
-                                    <i class="bi bi-moon-stars"></i> {{ p.duration_nights }} night{{ "" if p.duration_nights == 1 else "s" }}
+                                <span class="pkg-badge pkg-badge--duration">
+                                    <i class="bi bi-moon-stars"></i>
+                                    {{ p.duration_nights }} night{{ "" if p.duration_nights == 1 else "s" }}
                                 </span>
                             {% endif %}
-                            {% if p.destination_id %}
-                                {% set dest = search_destinations()|selectattr('id', 'equalto', p.destination_id)|first %}
-                                {% if dest %}
-                                    <span class="product-badge product-badge--dest">
-                                        <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+
+                            {# Destination badge (top-right) #}
+                            {% if dest %}
+                                <span class="pkg-badge pkg-badge--dest">
+                                    <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+                                </span>
+                            {% endif %}
+
+                            {# "Best value" ribbon — only on the cheapest card #}
+                            {% if is_best_value %}
+                                <span class="pkg-ribbon">
+                                    <i class="bi bi-star-fill"></i> Best value
+                                </span>
+                            {% endif %}
+
+                            {# Price block, bottom-left of image #}
+                            {% if item.price %}
+                                <div class="pkg-card-price">
+                                    <span class="pkg-card-price-label">from</span>
+                                    <span class="pkg-card-price-amount">
+                                        €{{ "%.0f"|format(item.price) }}
                                     </span>
-                                {% endif %}
+                                    <span class="pkg-card-price-unit">/ person</span>
+                                </div>
                             {% endif %}
                         </div>
-                        <div class="product-card-body">
-                            <span class="product-tag">{{ p.package_type|title }}</span>
-                            <h5 class="product-name">{{ p.name }}</h5>
-                            <div class="product-price-row">
-                                <span class="product-price-label">from</span>
-                                <span class="product-price">EUR&nbsp;{{ "%.2f"|format(item.price) if item.price else '—' }}</span>
-                                <span class="product-price-unit">/ person</span>
+
+                        {# ─── Body ─── #}
+                        <div class="pkg-card-body">
+
+                            {# Type chip + code #}
+                            <div class="pkg-card-chip-row">
+                                <span class="pkg-type-chip">
+                                    {% set _type_icon = {
+                                        'adventure': 'compass',
+                                        'family':    'people-fill',
+                                        'luxury':    'gem',
+                                        'standard':  'suitcase',
+                                    }.get((p.package_type or '')|lower, 'tag') %}
+                                    <i class="bi bi-{{ _type_icon }}"></i>
+                                    {{ p.package_type|title }}
+                                </span>
+                                {% if p.code %}
+                                    <span class="pkg-code">
+                                        <i class="bi bi-hash"></i>{{ p.code }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <h5 class="pkg-card-title">{{ p.name }}</h5>
+
+                            {# Meta row #}
+                            <div class="pkg-card-meta">
+                                {% if p.duration_nights %}
+                                    <span><i class="bi bi-moon-stars"></i> {{ p.duration_nights }}N</span>
+                                {% endif %}
+                                {% if p.capacity %}
+                                    <span><i class="bi bi-people"></i> up to {{ p.capacity }}</span>
+                                {% endif %}
+                                {% if dest %}
+                                    <span><i class="bi bi-pin-map"></i> {{ dest.name }}</span>
+                                {% endif %}
+                            </div>
+
+                            {# Inclusions preview (first 2 items) #}
+                            {% if p.inclusions %}
+                                <ul class="pkg-card-includes">
+                                    {% for inc in p.inclusions[:2] %}
+                                        <li>
+                                            <i class="bi bi-check-lg"></i>
+                                            {{ inc.item }}
+                                        </li>
+                                    {% endfor %}
+                                    {% if p.inclusions|length > 2 %}
+                                        <li class="pkg-card-includes-more">
+                                            + {{ p.inclusions|length - 2 }} more
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            {% endif %}
+
+                            {# Per-night hint #}
+                            {% if item.price and p.duration_nights and p.duration_nights > 0 %}
+                                <div class="pkg-card-per-night">
+                                    <i class="bi bi-calculator"></i>
+                                    €{{ "%.0f"|format(item.price / p.duration_nights) }} / night
+                                </div>
+                            {% endif %}
+
+                            {# CTA row #}
+                            <div class="pkg-card-cta">
+                                <span>View package</span>
+                                <i class="bi bi-arrow-right"></i>
                             </div>
                         </div>
                     </a>
@@ -327,77 +572,179 @@
             {% endfor %}
         </div>
 
-        <div class="text-center mt-4">
-            <a href="{{ url_for('public.package_list') }}" class="btn btn-outline-primary">
+        <div class="text-center mt-5">
+            <a href="{{ url_for('public.package_list') }}" class="btn btn-outline-primary btn-lg">
                 Browse all packages <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
 </section>
 {% endif %}
-
 {# ═══════════════════════════════════════════════════════════════════
-   TOP EXPERIENCES (cheapest per destination)
+   TOP EXPERIENCES — hero strip + rich activity cards
    ═══════════════════════════════════════════════════════════════════ #}
 {% if featured_activities %}
-<section class="py-5 bg-light">
+<section class="acts-section py-5">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="section-title">
+
+        {# ─── Section hero ─── #}
+        <div class="acts-hero text-center mb-5">
+            <span class="acts-eyebrow">
+                <i class="bi bi-compass"></i> Handpicked adventures
+            </span>
+            <h2 class="acts-title">
                 {{ content('home_activities_title') or 'Top experiences' }}
             </h2>
-            <p class="section-sub mx-auto">
-                {{ content('home_activities_subtitle') or 'Unmissable tours at honest prices.' }}
+            <p class="acts-sub mx-auto">
+                {{ content('home_activities_subtitle') or 'Unmissable tours, guides and moments — at honest prices.' }}
             </p>
+
+            {# Mini stats strip #}
+            <div class="acts-stats">
+                <div class="acts-stat">
+                    <i class="bi bi-compass"></i>
+                    <div>
+                        <strong>{{ featured_activities|length }}</strong>
+                        <span>highlighted</span>
+                    </div>
+                </div>
+                <div class="acts-stat">
+                    <i class="bi bi-coin"></i>
+                    <div>
+                        <strong>from €{{ "%.0f"|format(featured_activities|map(attribute='price')|select('number')|min) if featured_activities|map(attribute='price')|select('number')|list else '—' }}</strong>
+                        <span>per person</span>
+                    </div>
+                </div>
+                <div class="acts-stat">
+                    <i class="bi bi-lightning-charge"></i>
+                    <div>
+                        <strong>
+                            {% set _cats = [] %}
+                            {% for item in featured_activities %}
+                                {% if item.obj.category %}{% set _ = _cats.append(item.obj.category) %}{% endif %}
+                            {% endfor %}
+                            {{ _cats|unique|list|length }}
+                        </strong>
+                        <span>categories</span>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        {# ─── Card grid ─── #}
+        {% set _min_price = featured_activities|map(attribute='price')|select('number')|list|min if featured_activities|map(attribute='price')|select('number')|list else None %}
 
         <div class="row g-4">
             {% for item in featured_activities %}
                 {% set a = item.obj %}
                 {% set img = a.images[0].url if a.images else None %}
+                {% set has_video = img and img.endswith('.mp4') %}
+                {% set dest = search_destinations()|selectattr('id', 'equalto', a.destination_id)|first if a.destination_id else None %}
+                {% set is_best_value = item.price and item.price == _min_price %}
+
                 <div class="col-md-6 col-lg-4">
                     <a href="{{ url_for('public.activity_detail', slug=a.slug) }}"
-                       class="product-card">
-                        <div class="product-card-media">
-                            {% if img and not img.endswith('.mp4') %}
+                       class="act-card">
+
+                        {# ─── Image block ─── #}
+                        <div class="act-card-media">
+                            {% if img and not has_video %}
                                 <img src="{{ img }}" alt="{{ a.name }}"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="product-card-placeholder" style="display:none;">
+                                <div class="act-card-placeholder" style="display:none;">
                                     <i class="bi bi-compass"></i>
                                 </div>
                             {% else %}
-                                <div class="product-card-placeholder">
+                                <div class="act-card-placeholder">
                                     <i class="bi bi-compass"></i>
                                 </div>
                             {% endif %}
+
+                            <div class="act-card-scrim"></div>
+
+                            {# Duration badge (top-left) #}
+                            {% if a.duration_hours %}
+                                <span class="act-badge act-badge--duration">
+                                    <i class="bi bi-clock"></i>
+                                    {{ a.duration_hours }}h
+                                </span>
+                            {% endif %}
+
+                            {# Category badge (top-right) #}
                             {% if a.category %}
-                                <span class="product-badge product-badge--cat">
+                                <span class="act-badge act-badge--category">
                                     {{ a.category|title }}
                                 </span>
                             {% endif %}
-                            {% if a.destination_id %}
-                                {% set dest = search_destinations()|selectattr('id', 'equalto', a.destination_id)|first %}
-                                {% if dest %}
-                                    <span class="product-badge product-badge--dest">
-                                        <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+
+                            {# Difficulty badge (bottom-right, above price) #}
+                            {% if a.difficulty %}
+                                <span class="act-badge act-badge--difficulty act-badge--{{ a.difficulty|lower }}">
+                                    <i class="bi bi-bar-chart"></i>
+                                    {{ a.difficulty|title }}
+                                </span>
+                            {% endif %}
+
+                            {# "Best value" ribbon #}
+                            {% if is_best_value %}
+                                <span class="act-ribbon">
+                                    <i class="bi bi-star-fill"></i> Best value
+                                </span>
+                            {% endif %}
+
+                            {# Price block (bottom-left of image) #}
+                            {% if item.price %}
+                                <div class="act-card-price">
+                                    <span class="act-card-price-label">from</span>
+                                    <span class="act-card-price-amount">
+                                        €{{ "%.0f"|format(item.price) }}
                                     </span>
-                                {% endif %}
+                                    <span class="act-card-price-unit">/ person</span>
+                                </div>
                             {% endif %}
                         </div>
-                        <div class="product-card-body">
-                            <div class="product-meta">
-                                {% if a.duration_hours %}
-                                    <span><i class="bi bi-clock"></i> {{ a.duration_hours }}h</span>
+
+                        {# ─── Body ─── #}
+                        <div class="act-card-body">
+
+                            <h5 class="act-card-title">{{ a.name }}</h5>
+
+                            {# Destination line #}
+                            {% if dest %}
+                                <div class="act-card-dest">
+                                    <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+                                </div>
+                            {% endif %}
+
+                            {# Meta row: min age, languages count if any #}
+                            <div class="act-card-meta">
+                                {% if a.min_age %}
+                                    <span><i class="bi bi-person-badge"></i> {{ a.min_age }}+ years</span>
                                 {% endif %}
-                                {% if a.difficulty %}
-                                    <span><i class="bi bi-bar-chart"></i> {{ a.difficulty|title }}</span>
+                                {% if a.capacity %}
+                                    <span><i class="bi bi-people"></i> up to {{ a.capacity }}</span>
+                                {% endif %}
+                                {% if a.languages %}
+                                    <span><i class="bi bi-translate"></i> {{ a.languages|length }} lang</span>
                                 {% endif %}
                             </div>
-                            <h5 class="product-name">{{ a.name }}</h5>
-                            <div class="product-price-row">
-                                <span class="product-price-label">from</span>
-                                <span class="product-price">EUR&nbsp;{{ "%.2f"|format(item.price) if item.price else '—' }}</span>
-                                <span class="product-price-unit">/ person</span>
+
+                            {# Highlight chips: inclusions preview #}
+                            {% if a.inclusions %}
+                                <div class="act-card-highlights">
+                                    {% for inc in a.inclusions[:2] %}
+                                        <span class="act-highlight-chip">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            {{ inc.item|truncate(28, true) }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {# CTA row #}
+                            <div class="act-card-cta">
+                                <span>Book this experience</span>
+                                <i class="bi bi-arrow-right"></i>
                             </div>
                         </div>
                     </a>
@@ -405,15 +752,14 @@
             {% endfor %}
         </div>
 
-        <div class="text-center mt-4">
-            <a href="{{ url_for('public.activity_list') }}" class="btn btn-outline-primary">
+        <div class="text-center mt-5">
+            <a href="{{ url_for('public.activity_list') }}" class="btn btn-outline-primary btn-lg">
                 Browse all activities <i class="bi bi-arrow-right"></i>
             </a>
         </div>
     </div>
 </section>
 {% endif %}
-
 {# ═══════════════════════════════════════════════════════════════════
    POPULAR DESTINATIONS — now with images (admin-controlled)
    ═══════════════════════════════════════════════════════════════════ #}
@@ -489,7 +835,7 @@
 }
 .product-card-media {
     position: relative;
-    height: 300px;
+    height: 300px!important;
     overflow: hidden;
     background: #f3f4f6;
 }
