@@ -284,11 +284,7 @@
                         </div>
                     {% endif %}
 
-                    {% if item.stars %}
-                        <span class="sr-row-badge sr-row-badge--stars">
-                            {% for _ in range(item.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                        </span>
-                    {% endif %}
+                    {# MOVED: hotel stars overlay removed — now shown under the hotel name below #}
 
                     {% if item.nights and item.nights > 0 %}
                         <span class="sr-row-badge sr-row-badge--nights">
@@ -320,6 +316,19 @@
                     </div>
 
                     <h3 class="sr-row-name">{{ item.name }}</h3>
+
+                    {# MOVED: hotel star rating now sits under the hotel name (was an overlay on the image) #}
+                    {% if item.stars and result['product_type'] == 'hotel' %}
+                        <div class="sr-row-stars-inline"
+                             style="color:#f2c964;display:inline-flex;gap:0.1rem;font-size:0.9rem;margin:-0.15rem 0 0.35rem 0;">
+                            {% for _ in range(item.stars) %}
+                                <i class="bi bi-star-fill" style="color:#f2c964;"></i>
+                            {% endfor %}
+                            <span style="color:#78716c;margin-left:0.35rem;font-size:0.78rem;">
+                                {{ item.stars }}-star
+                            </span>
+                        </div>
+                    {% endif %}
 
                     {% if item.address %}
                         <div class="sr-row-address">

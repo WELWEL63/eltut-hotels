@@ -274,13 +274,7 @@
 
                             <div class="pkg-card-scrim"></div>
 
-                            {# Stars badge (top-left) #}
-                            {% if h.stars %}
-                                <span class="pkg-badge pkg-badge--duration">
-                                    {% for _ in range(h.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                    <span style="margin-left:0.25rem;">{{ h.stars }}-star</span>
-                                </span>
-                            {% endif %}
+                          
 
                             {# Destination badge (top-right) #}
                             {% if dest %}
@@ -311,32 +305,19 @@
                         {# ─── Body ─── #}
                         <div class="pkg-card-body">
 
-                            {# Facilities chips row #}
-                            {% if h.facilities %}
-                                <div class="pkg-card-chip-row">
-                                    <span class="pkg-type-chip">
-                                        <i class="bi bi-stars"></i>
-                                        {{ h.facilities|length }} facilities
-                                    </span>
-                                    {% if h.rooms %}
-                                        <span class="pkg-code">
-                                            <i class="bi bi-door-open"></i> {{ h.rooms|length }} room types
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            {% endif %}
+                           
 
-                            <h5 class="pkg-card-title">{{ h.name }}</h5>
+                           <h5 class="pkg-card-title mb-1">{{ h.name }}</h5>
 
-                            {# Meta row #}
-                            <div class="pkg-card-meta">
-                                {% if dest %}
-                                    <span><i class="bi bi-pin-map"></i> {{ dest.name }}</span>
-                                {% endif %}
-                                {% if h.stars %}
-                                    <span><i class="bi bi-star-fill"></i> {{ h.stars }}-star</span>
-                                {% endif %}
-                            </div>
+{% if h.stars %}
+    <div class="hotel-rating-under-name"
+         aria-label="{{ h.stars }} out of 5 hotel stars">
+        {% for _ in range(h.stars) %}
+            <i class="bi bi-star-fill"></i>
+        {% endfor %}
+        <span>{{ h.stars }}-star hotel</span>
+    </div>
+{% endif %}
 
                             {# Address line #}
                             {% if h.address %}
@@ -362,6 +343,53 @@
                                     {% endif %}
                                 </ul>
                             {% endif %}
+
+{# Facilities icons row #}
+{% if h.facilities %}
+    <div class="pkg-card-chip-row hotel-facilities-icons">
+        {% for facility in h.facilities %}
+            {% set f = facility|lower %}
+            <span class="hotel-facility-icon"
+                  title="{{ facility }}"
+                  aria-label="{{ facility }}">
+                {% if 'wifi' in f or 'wi-fi' in f or 'internet' in f %}
+                    <i class="bi bi-wifi"></i>
+                {% elif 'pool' in f or 'swimming' in f %}
+                    <i class="bi bi-water"></i>
+                {% elif 'beach' in f or 'sea' in f %}
+                    <i class="bi bi-umbrella"></i>
+                {% elif 'restaurant' in f or 'dining' in f or 'food' in f %}
+                    <i class="bi bi-cup-hot"></i>
+                {% elif 'spa' in f or 'massage' in f %}
+                    <i class="bi bi-flower1"></i>
+                {% elif 'gym' in f or 'fitness' in f %}
+                    <i class="bi bi-heart-pulse"></i>
+                {% elif 'bar' in f %}
+                    <i class="bi bi-cup-straw"></i>
+                {% elif 'air condition' in f %}
+                    <i class="bi bi-snow"></i>
+                {% elif 'parking' in f %}
+                    <i class="bi bi-p-circle"></i>
+                {% elif 'kids' in f or 'child' in f or 'playground' in f %}
+                    <i class="bi bi-emoji-smile"></i>
+                {% elif 'garden' in f %}
+                    <i class="bi bi-tree"></i>
+                {% elif 'airport' in f or 'transfer' in f %}
+                    <i class="bi bi-bus-front"></i>
+                {% else %}
+                    <i class="bi bi-check-circle"></i>
+                {% endif %}
+            </span>
+        {% endfor %}
+
+        {% if h.rooms %}
+            <span class="pkg-code">
+                <i class="bi bi-door-open"></i>
+                {{ h.rooms|length }} room types
+            </span>
+        {% endif %}
+    </div>
+{% endif %}
 
                             {# CTA row #}
                             <div class="pkg-card-cta">

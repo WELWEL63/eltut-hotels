@@ -94,11 +94,18 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h6 {
     font-weight: 700;
     letter-spacing: -0.02em;
     line-height: 1.2;
 }
+
+h5{
+    font-size:1.5rem!important;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;}
+    
 
 .display-4, .display-5 {
     font-weight: 800;
@@ -712,6 +719,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Feature tiles — icon + label */
 .feature-tile {
     padding: 2rem 1.5rem;
+    
     border-radius: var(--radius-md);
     background: #fff;
     text-align: center;
@@ -729,7 +737,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: var(--shadow-lg);
 }
 .feature-tile .feature-icon {
-    font-size: 2.5rem;
+    font-size: 5rem;
     color: var(--eltut-terracotta);
     margin-bottom: 1rem;
     display: inline-block;
@@ -3264,3 +3272,45 @@ body.home-page {
 }
 
 /* ═══ END eltut.css ═══ */
+
+.hotel-rating-under-name {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 10px;
+    color: #e5a800;
+    font-size: 0.9rem;
+}
+
+.hotel-rating-under-name span {
+    margin-left: 6px;
+    color: #6b7280;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.hotel-facilities-icons {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hotel-facility-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f3f6f8;
+    color: #374151;
+    font-size: 15px;
+    cursor: help;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hotel-facility-icon:hover {
+    background: #e5a800;
+    color: #ffffff;
+}

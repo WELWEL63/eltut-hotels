@@ -5,8 +5,9 @@
 {% block content %}
 
 {# ═══════════════════════════════════════════════════════════════════
-   HOTEL LIST — Cinzel header, rich cards, BLUE price, per-night
+   HOTEL LIST — Cinzel header, .htl-card grid, BLUE price, per-night
    ═══════════════════════════════════════════════════════════════════ #}
+
 <section class="htl-list-header">
     <div class="container">
         <nav aria-label="breadcrumb" class="mb-2">
@@ -43,14 +44,19 @@
             <aside class="col-lg-3">
                 <form method="GET" class="card shadow-sm">
                     <div class="card-body">
-                        <h6 class="card-title"><i class="bi bi-sliders"></i> Filters</h6>
+                        <h6 class="card-title">
+                            <i class="bi bi-sliders"></i> Filters
+                        </h6>
 
                         <div class="mb-3">
                             <label class="form-label small">Destination</label>
                             <select name="destination" class="form-select form-select-sm">
                                 <option value="">All destinations</option>
                                 {% for d in destinations %}
-                                    <option value="{{ d.slug }}"{% if selected_destination and selected_destination.id == d.id %} selected{% endif %}>{{ d.name }}</option>
+                                    <option value="{{ d.slug }}"
+                                        {% if selected_destination and selected_destination.id == d.id %}selected{% endif %}>
+                                        {{ d.name }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -60,7 +66,10 @@
                             <select name="stars" class="form-select form-select-sm">
                                 <option value="">Any rating</option>
                                 {% for n in [5, 4, 3, 2, 1] %}
-                                    <option value="{{ n }}"{% if selected_stars == n %} selected{% endif %}>{{ n }} star{{ "" if n == 1 else "s" }}</option>
+                                    <option value="{{ n }}"
+                                        {% if selected_stars == n %}selected{% endif %}>
+                                        {{ n }} star{{ "" if n == 1 else "s" }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -70,31 +79,39 @@
                             <select name="meal_plan" class="form-select form-select-sm">
                                 <option value="">Any</option>
                                 {% for m in meal_plans %}
-                                    <option value="{{ m }}"{% if selected_meal_plan == m %} selected{% endif %}>{{ m|replace("_", " ")|title }}</option>
+                                    <option value="{{ m }}"
+                                        {% if selected_meal_plan == m %}selected{% endif %}>
+                                        {{ m|replace("_", " ")|title }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Search</label>
-                            <input type="text" name="q" class="form-control form-control-sm" value="{{ query_text }}" placeholder="Hotel name">
+                            <input type="text" name="q" class="form-control form-control-sm"
+                                   value="{{ query_text }}"
+                                   placeholder="Hotel name">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Sort by</label>
                             <select name="sort" class="form-select form-select-sm">
-                                <option value="newest"{% if sort == "newest" %} selected{% endif %}>Newest</option>
-                                <option value="name"{% if sort == "name" %} selected{% endif %}>Name A-Z</option>
-                                <option value="stars_desc"{% if sort == "stars_desc" %} selected{% endif %}>Stars: high first</option>
-                                <option value="price_asc"{% if sort == "price_asc" %} selected{% endif %}>Price: low to high</option>
-                                <option value="price_desc"{% if sort == "price_desc" %} selected{% endif %}>Price: high to low</option>
+                                <option value="newest"     {% if sort == "newest" %}selected{% endif %}>Newest</option>
+                                <option value="name"       {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
+                                <option value="stars_desc" {% if sort == "stars_desc" %}selected{% endif %}>Stars: high first</option>
+                                <option value="price_asc"  {% if sort == "price_asc" %}selected{% endif %}>Price: low to high</option>
+                                <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
                             </select>
                         </div>
 
                         <button type="submit" class="btn btn-eltut-primary btn-sm w-100">
                             <i class="bi bi-check2-circle"></i> Apply filters
                         </button>
-                        <a href="{{ url_for('public.hotel_list') }}" class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">Clear all</a>
+                        <a href="{{ url_for('public.hotel_list') }}"
+                           class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">
+                            Clear all
+                        </a>
                     </div>
                 </form>
             </aside>
@@ -102,21 +119,26 @@
             {# ─── Results ─── #}
             <div class="col-lg-9">
                 {% if items %}
-                    {% set _min_price = items|map(attribute='price')|select('number')|list|min if items|map(attribute='price')|select('number')|list else None %}
+
+                    {# Find cheapest price for Best value ribbon #}
+                    {% set _prices = items|map(attribute='price')|select('number')|list %}
+                    {% set _min_price = _prices|min if _prices else None %}
 
                     <div class="row g-4">
                         {% for item in items %}
                             {% set h = item.hotel %}
                             {% set img = item.image_url %}
                             {% set is_best_value = item.price and item.price == _min_price %}
-                            {% set dest = search_destinations()|selectattr('id', 'equalto', h.destination_id)|first if h.destination_id else None %}
 
                             <div class="col-md-6 col-xxl-4">
                                 <article class="htl-card">
-                                    <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}" class="htl-card-link" aria-label="{{ h.name }}"></a>
+                                    <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}"
+                                       class="htl-card-link"
+                                       aria-label="{{ h.name }}"></a>
 
                                     {# ── Image + top badges ── #}
                                     <div class="htl-card-media">
+
                                         {% if img and (img.startswith('http') or img.startswith('/static')) %}
                                             <img src="{{ img }}" alt="{{ h.name }}"
                                                  loading="lazy"
@@ -132,18 +154,16 @@
 
                                         <div class="htl-card-scrim"></div>
 
-                                        {% if h.stars %}
-                                            <span class="htl-card-badge htl-card-badge--stars">
-                                                {% for _ in range(h.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                            </span>
-                                        {% endif %}
-
-                                        {% if dest %}
+                                        {# Destination badge (top-left, image overlay) — moved here to
+                                           replace the star overlay we removed below #}
+                                        {% if item.destination_name %}
                                             <span class="htl-card-badge htl-card-badge--dest">
-                                                <i class="bi bi-geo-alt-fill"></i> {{ dest.name }}
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                                {{ item.destination_name }}
                                             </span>
                                         {% endif %}
 
+                                        {# Best value ribbon #}
                                         {% if is_best_value %}
                                             <span class="htl-card-ribbon">
                                                 <i class="bi bi-award-fill"></i> Best value
@@ -156,6 +176,26 @@
 
                                         <h3 class="htl-card-name">{{ h.name }}</h3>
 
+                                        {# Stars — MOVED here from image overlay #}
+                                        {% if h.stars %}
+                                            <div class="htl-card-stars-inline"
+                                                 style="color:var(--eltut-gold-bright,#f2c964);
+                                                        display:inline-flex;
+                                                        gap:0.1rem;
+                                                        font-size:0.9rem;
+                                                        margin:-0.15rem 0 0.4rem 0;">
+                                                {% for _ in range(h.stars) %}
+                                                    <i class="bi bi-star-fill"
+                                                       style="color:var(--eltut-gold-bright,#f2c964);"></i>
+                                                {% endfor %}
+                                                <span style="color:var(--eltut-muted,#78716c);
+                                                             margin-left:0.35rem;
+                                                             font-size:0.78rem;">
+                                                    {{ h.stars }}-star
+                                                </span>
+                                            </div>
+                                        {% endif %}
+
                                         {% if h.address %}
                                             <div class="htl-card-address">
                                                 <i class="bi bi-house"></i>
@@ -166,10 +206,16 @@
                                         {# Meta row: facilities / rooms #}
                                         <div class="htl-card-meta">
                                             {% if h.facilities %}
-                                                <span><i class="bi bi-stars"></i> {{ h.facilities|length }} facilities</span>
+                                                <span>
+                                                    <i class="bi bi-stars"></i>
+                                                    {{ h.facilities|length }} facilities
+                                                </span>
                                             {% endif %}
                                             {% if h.rooms %}
-                                                <span><i class="bi bi-door-open"></i> {{ h.rooms|length }} rooms</span>
+                                                <span>
+                                                    <i class="bi bi-door-open"></i>
+                                                    {{ h.rooms|length }} rooms
+                                                </span>
                                             {% endif %}
                                         </div>
 
@@ -182,17 +228,21 @@
                                                     </span>
                                                 {% endfor %}
                                                 {% if h.facilities|length > 3 %}
-                                                    <span class="htl-chip htl-chip--more">+ {{ h.facilities|length - 3 }}</span>
+                                                    <span class="htl-chip htl-chip--more">
+                                                        + {{ h.facilities|length - 3 }}
+                                                    </span>
                                                 {% endif %}
                                             </div>
                                         {% endif %}
 
-                                        {# ── Price + CTA (BLUE price) ── #}
+                                        {# ── Price + CTA ── #}
                                         <div class="htl-card-footer">
                                             {% if item.price %}
                                                 <div class="htl-card-price">
                                                     <span class="htl-price-label">from</span>
-                                                    <span class="htl-price-amount">€{{ "%.0f"|format(item.price) }}</span>
+                                                    <span class="htl-price-amount">
+                                                        {{ item.currency or "€" }}{{ "%.0f"|format(item.price) }}
+                                                    </span>
                                                     <span class="htl-price-unit">/ night</span>
                                                 </div>
                                             {% else %}
@@ -214,7 +264,7 @@
                         {% endfor %}
                     </div>
 
-                    {# ─── Pagination ─── #}
+                    {# ─── Pagination (preserves filters) ─── #}
                     {% if total_pages > 1 %}
                         {% set qs = {} %}
                         {% if selected_destination %}{% set _ = qs.update({"destination": selected_destination.slug}) %}{% endif %}
@@ -226,7 +276,8 @@
                         <nav class="mt-5" aria-label="Hotel list pagination">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                    <a class="page-link" href="{{ url_for('public.hotel_list', page=page-1, **qs) }}">
+                                    <a class="page-link"
+                                       href="{{ url_for('public.hotel_list', page=page-1, **qs) }}">
                                         <i class="bi bi-chevron-left"></i> Previous
                                     </a>
                                 </li>
@@ -234,7 +285,8 @@
                                     <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
                                 </li>
                                 <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                                    <a class="page-link" href="{{ url_for('public.hotel_list', page=page+1, **qs) }}">
+                                    <a class="page-link"
+                                       href="{{ url_for('public.hotel_list', page=page+1, **qs) }}">
                                         Next <i class="bi bi-chevron-right"></i>
                                     </a>
                                 </li>
@@ -246,13 +298,17 @@
                     <div class="sr-empty">
                         <div class="sr-empty-icon"><i class="bi bi-binoculars"></i></div>
                         <h3 class="sr-empty-title">No hotels found</h3>
-                        <p class="sr-empty-text">Try widening your search or clearing a filter.</p>
+                        <p class="sr-empty-text">
+                            Try widening your search, changing the star rating,
+                            or clearing the destination.
+                        </p>
                         <a href="{{ url_for('public.hotel_list') }}" class="btn btn-eltut-primary">
                             <i class="bi bi-arrow-counterclockwise"></i> Clear filters
                         </a>
                     </div>
                 {% endif %}
             </div>
+
         </div>
     </div>
 </section>

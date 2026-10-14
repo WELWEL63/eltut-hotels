@@ -1,24 +1,53 @@
 ﻿{% extends "base.html" %}
+
 {% block title %}Activities — {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
-<section class="py-4 bg-light border-bottom">
+
+{# ═══════════════════════════════════════════════════════════════════
+   ACTIVITY LIST — Cinzel header, .act-card grid, image-overlay price
+   ═══════════════════════════════════════════════════════════════════ #}
+
+<section class="htl-list-header">
     <div class="container">
-        <h1 class="mb-1">Activities</h1>
-        <p class="text-muted mb-0">
-            {{ total }} activit{{ "y" if total == 1 else "ies" }} found
-            {% if selected_destination %} in {{ selected_destination.name }}{% endif %}
-        </p>
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb small mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Activities</li>
+            </ol>
+        </nav>
+        <div class="htl-list-header-row">
+            <div>
+                <span class="htl-list-eyebrow">
+                    <i class="bi bi-compass"></i> Things to do
+                </span>
+                <h1 class="htl-list-title">
+                    Activities{% if selected_destination %} in {{ selected_destination.name }}{% endif %}
+                </h1>
+                <p class="htl-list-sub">
+                    <strong>{{ total }}</strong> activit{{ "y" if total == 1 else "ies" }} found
+                    {% if selected_category %} · {{ selected_category|title }}{% endif %}
+                    {% if selected_difficulty %} · {{ selected_difficulty|title }}{% endif %}
+                    {% if query_text %} · matching "{{ query_text }}"{% endif %}
+                </p>
+            </div>
+        </div>
     </div>
 </section>
 
+{# ─── Filters + results ─── #}
 <section class="py-4">
     <div class="container">
         <div class="row g-4">
+
+            {# ─── Filter sidebar ─── #}
             <aside class="col-lg-3">
                 <form method="GET" class="card shadow-sm">
                     <div class="card-body">
-                        <h6 class="card-title">Filters</h6>
+                        <h6 class="card-title">
+                            <i class="bi bi-sliders"></i> Filters
+                        </h6>
+
                         <div class="mb-3">
                             <label class="form-label small">Destination</label>
                             <select name="destination" class="form-select form-select-sm">
@@ -31,33 +60,40 @@
                                 {% endfor %}
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label small">Category</label>
                             <select name="category" class="form-select form-select-sm">
                                 <option value="">All categories</option>
                                 {% for c in categories %}
-                                    <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>
+                                    <option value="{{ c }}"
+                                        {% if selected_category == c %}selected{% endif %}>
                                         {{ c|title }}
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label small">Difficulty</label>
                             <select name="difficulty" class="form-select form-select-sm">
                                 <option value="">Any difficulty</option>
                                 {% for d in difficulties %}
-                                    <option value="{{ d }}" {% if selected_difficulty == d %}selected{% endif %}>
+                                    <option value="{{ d }}"
+                                        {% if selected_difficulty == d %}selected{% endif %}>
                                         {{ d|title }}
                                     </option>
                                 {% endfor %}
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label small">Search</label>
                             <input type="text" name="q" class="form-control form-control-sm"
-                                   value="{{ query_text }}" placeholder="Search by name">
+                                   value="{{ query_text }}"
+                                   placeholder="Activity name">
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label small">Sort by</label>
                             <select name="sort" class="form-select form-select-sm">
@@ -67,82 +103,217 @@
                                 <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply filters</button>
-                        <a href="{{ url_for('public.activity_list') }}" class="btn btn-link btn-sm w-100 mt-2">Clear</a>
+
+                        <button type="submit" class="btn btn-eltut-primary btn-sm w-100">
+                            <i class="bi bi-check2-circle"></i> Apply filters
+                        </button>
+                        <a href="{{ url_for('public.activity_list') }}"
+                           class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">
+                            Clear all
+                        </a>
                     </div>
                 </form>
             </aside>
 
+            {# ─── Results ─── #}
             <div class="col-lg-9">
                 {% if items %}
+
+                    {% set _prices = items|map(attribute='price_adult')|select('number')|list %}
+                    {% set _min_price = _prices|min if _prices else None %}
+
                     <div class="row g-4">
                         {% for item in items %}
-                            <div class="col-sm-6 col-xl-4">
-                                <div class="card h-100 shadow-sm">
-                                    {% set img_url = item.image_url %}
-                                    {% if img_url and (img_url.startswith('http') or img_url.startswith('/static')) %}
-                                        <img src="{{ img_url }}" class="card-img-top" alt="{{ item.activity.name }}"
-                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="card-img-top d-none align-items-center justify-content-center bg-secondary bg-opacity-10">
-                                            <i class="bi bi-image text-secondary fs-1"></i>
-                                        </div>
-                                    {% else %}
-                                        <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary bg-opacity-10">
-                                            <i class="bi bi-image text-secondary fs-1"></i>
-                                        </div>
-                                    {% endif %}
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <span class="badge bg-primary-subtle text-primary-emphasis">{{ item.activity.category|title }}</span>
-                                            {% if item.activity.difficulty %}
-                                                <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ item.activity.difficulty|title }}</span>
+                            {% set a = item.activity %}
+                            {% set img = item.image_url %}
+                            {% set is_best_value = item.price_adult and item.price_adult == _min_price %}
+
+                            <div class="col-md-6 col-xxl-4">
+                                <article class="act-card">
+
+                                    {# ── Media: image + badges + price overlay ── #}
+                                    <div class="act-card-media">
+
+                                        {% if img and (img.startswith('http') or img.startswith('/static')) %}
+                                            <img src="{{ img }}" alt="{{ a.name }}"
+                                                 loading="lazy"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="act-card-placeholder" style="display:none;">
+                                                <i class="bi bi-compass"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="act-card-placeholder">
+                                                <i class="bi bi-compass"></i>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="act-card-scrim"></div>
+
+                                        {# Top-left: duration #}
+                                        {% if a.duration_hours %}
+                                            <span class="act-badge act-badge--duration">
+                                                <i class="bi bi-clock-fill"></i>
+                                                {% if a.duration_hours == a.duration_hours|int %}
+                                                    {{ a.duration_hours|int }}h
+                                                {% else %}
+                                                    {{ "%.1f"|format(a.duration_hours) }}h
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+
+                                        {# Top-right: category #}
+                                        {% if a.category %}
+                                            <span class="act-badge act-badge--category">
+                                                <i class="bi bi-tag-fill"></i>
+                                                {{ a.category|title }}
+                                            </span>
+                                        {% endif %}
+
+                                        {# Bottom-right (above price): difficulty colour-coded #}
+                                        {% if a.difficulty %}
+                                            <span class="act-badge act-badge--difficulty act-badge--{{ a.difficulty|lower }}">
+                                                <i class="bi bi-bar-chart-fill"></i>
+                                                {{ a.difficulty|title }}
+                                            </span>
+                                        {% endif %}
+
+                                        {# Best value ribbon #}
+                                        {% if is_best_value %}
+                                            <span class="act-ribbon">
+                                                <i class="bi bi-award-fill"></i> Best value
+                                            </span>
+                                        {% endif %}
+
+                                        {# Price overlay #}
+                                        {% if item.price_adult is not none %}
+                                            <div class="act-card-price">
+                                                <span class="act-card-price-label">from</span>
+                                                <span class="act-card-price-amount">
+                                                    {{ item.currency or "$" }}{{ "%.0f"|format(item.price_adult) }}
+                                                </span>
+                                                <span class="act-card-price-unit">/ adult</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="act-card-price">
+                                                <span class="act-card-price-label">Price</span>
+                                                <span class="act-card-price-amount" style="font-size:1.15rem;">
+                                                    On request
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    {# ── Body ── #}
+                                    <div class="act-card-body">
+
+                                        {# Title #}
+                                        <h3 class="act-card-title">
+                                            <a href="{{ url_for('public.activity_detail', slug=a.slug) }}"
+                                               class="stretched-link text-decoration-none"
+                                               style="color:inherit;">
+                                                {{ a.name }}
+                                            </a>
+                                        </h3>
+
+                                        {# Destination line #}
+                                        {% if item.destination_name or selected_destination %}
+                                            <div class="act-card-dest">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                                {{ item.destination_name or selected_destination.name }}
+                                            </div>
+                                        {% endif %}
+
+                                        {# Meta row: duration, difficulty (text), age #}
+                                        <div class="act-card-meta">
+                                            {% if a.duration_hours %}
+                                                <span>
+                                                    <i class="bi bi-clock"></i>
+                                                    {% if a.duration_hours == a.duration_hours|int %}
+                                                        {{ a.duration_hours|int }} hours
+                                                    {% else %}
+                                                        {{ "%.1f"|format(a.duration_hours) }} hours
+                                                    {% endif %}
+                                                </span>
+                                            {% endif %}
+                                            {% if a.min_age %}
+                                                <span><i class="bi bi-person-badge"></i> {{ a.min_age }}+</span>
+                                            {% endif %}
+                                            {% if a.capacity %}
+                                                <span><i class="bi bi-people"></i> up to {{ a.capacity }}</span>
                                             {% endif %}
                                         </div>
-                                        <h5 class="card-title">{{ item.activity.name }}</h5>
-                                        <p class="card-text text-muted small mb-2">
-                                            {{ item.activity.description|truncate_words(12) if item.activity.description else "" }}
-                                        </p>
-                                        <div class="mt-auto d-flex justify-content-between align-items-center">
-                                            <div>
-                                                {% if item.price_adult is not none %}
-                                                    <span class="fw-bold">{{ item.currency or "$" }} {{ "%.2f"|format(item.price_adult) }}</span>
-                                                    <small class="text-muted">/ adult</small>
-                                                {% else %}
-                                                    <small class="text-muted">Price on request</small>
-                                                {% endif %}
+
+                                        {# Highlights — first 2 inclusions #}
+                                        {% if a.inclusions %}
+                                            <div class="act-card-highlights">
+                                                {% for inc in a.inclusions[:2] %}
+                                                    <span class="act-highlight-chip">
+                                                        <i class="bi bi-check-circle-fill" style="color:#22c55e;"></i>
+                                                        {{ inc.item }}
+                                                    </span>
+                                                {% endfor %}
                                             </div>
-                                            <a href="{{ url_for('public.activity_detail', slug=item.activity.slug) }}"
-                                               class="btn btn-sm btn-primary">View</a>
+                                        {% endif %}
+
+                                        {# CTA #}
+                                        <div class="act-card-cta">
+                                            <span>View activity</span>
+                                            <i class="bi bi-arrow-right"></i>
                                         </div>
+
                                     </div>
-                                </div>
+                                </article>
                             </div>
                         {% endfor %}
                     </div>
 
+                    {# ─── Pagination (preserves filters) ─── #}
                     {% if total_pages > 1 %}
-                        <nav class="mt-4">
+                        {% set qs = {} %}
+                        {% if selected_destination %}{% set _ = qs.update({"destination": selected_destination.slug}) %}{% endif %}
+                        {% if selected_category %}{% set _ = qs.update({"category": selected_category}) %}{% endif %}
+                        {% if selected_difficulty %}{% set _ = qs.update({"difficulty": selected_difficulty}) %}{% endif %}
+                        {% if query_text %}{% set _ = qs.update({"q": query_text}) %}{% endif %}
+                        {% if sort %}{% set _ = qs.update({"sort": sort}) %}{% endif %}
+
+                        <nav class="mt-5" aria-label="Activity list pagination">
                             <ul class="pagination justify-content-center">
                                 <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                    <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+                                    <a class="page-link"
+                                       href="{{ url_for('public.activity_list', page=page-1, **qs) }}">
+                                        <i class="bi bi-chevron-left"></i> Previous
+                                    </a>
                                 </li>
                                 <li class="page-item disabled">
                                     <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
                                 </li>
                                 <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                                    <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+                                    <a class="page-link"
+                                       href="{{ url_for('public.activity_list', page=page+1, **qs) }}">
+                                        Next <i class="bi bi-chevron-right"></i>
+                                    </a>
                                 </li>
                             </ul>
                         </nav>
                     {% endif %}
+
                 {% else %}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No activities match your filters.
-                        <a href="{{ url_for('public.activity_list') }}">Clear filters</a>
+                    <div class="sr-empty">
+                        <div class="sr-empty-icon"><i class="bi bi-binoculars"></i></div>
+                        <h3 class="sr-empty-title">No activities found</h3>
+                        <p class="sr-empty-text">
+                            Try widening your search, changing the difficulty filter,
+                            or clearing the destination.
+                        </p>
+                        <a href="{{ url_for('public.activity_list') }}" class="btn btn-eltut-primary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear filters
+                        </a>
                     </div>
                 {% endif %}
             </div>
+
         </div>
     </div>
 </section>
+
 {% endblock %}
