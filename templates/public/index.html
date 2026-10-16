@@ -222,7 +222,7 @@
                 <div class="pkgs-stat">
                     <i class="bi bi-coin"></i>
                     <div>
-                        <strong>from €{{ "%.0f"|format(featured_hotels|map(attribute='price')|select('number')|min) if featured_hotels|map(attribute='price')|select('number')|list else '—' }}</strong>
+                        <strong>from £{{ "%.0f"|format(featured_hotels|map(attribute='price')|select('number')|min) if featured_hotels|map(attribute='price')|select('number')|list else '—' }}</strong>
                         <span>per night</span>
                     </div>
                 </div>
@@ -295,7 +295,7 @@
                                 <div class="pkg-card-price">
                                     <span class="pkg-card-price-label">from</span>
                                     <span class="pkg-card-price-amount">
-                                        €{{ "%.0f"|format(item.price) }}
+                                        £{{ "%.0f"|format(item.price) }}
                                     </span>
                                     <span class="pkg-card-price-unit">/ night</span>
                                 </div>
@@ -441,7 +441,7 @@
                 <div class="pkgs-stat">
                     <i class="bi bi-coin"></i>
                     <div>
-                        <strong>from €{{ "%.0f"|format(featured_packages|map(attribute='price')|select('number')|min) if featured_packages|map(attribute='price')|select('number')|list else '—' }}</strong>
+                        <strong>from £{{ "%.0f"|format(featured_packages|map(attribute='price')|select('number')|min) if featured_packages|map(attribute='price')|select('number')|list else '—' }}</strong>
                         <span>per person</span>
                     </div>
                 </div>
@@ -520,7 +520,7 @@
                                 <div class="pkg-card-price">
                                     <span class="pkg-card-price-label">from</span>
                                     <span class="pkg-card-price-amount">
-                                        €{{ "%.0f"|format(item.price) }}
+                                        £{{ "%.0f"|format(item.price) }}
                                     </span>
                                     <span class="pkg-card-price-unit">/ person</span>
                                 </div>
@@ -585,7 +585,7 @@
                             {% if item.price and p.duration_nights and p.duration_nights > 0 %}
                                 <div class="pkg-card-per-night">
                                     <i class="bi bi-calculator"></i>
-                                    €{{ "%.0f"|format(item.price / p.duration_nights) }} / night
+                                    £{{ "%.0f"|format(item.price / p.duration_nights) }} / night
                                 </div>
                             {% endif %}
 
@@ -639,7 +639,7 @@
                 <div class="acts-stat">
                     <i class="bi bi-coin"></i>
                     <div>
-                        <strong>from €{{ "%.0f"|format(featured_activities|map(attribute='price')|select('number')|min) if featured_activities|map(attribute='price')|select('number')|list else '—' }}</strong>
+                        <strong>from £{{ "%.0f"|format(featured_activities|map(attribute='price')|select('number')|min) if featured_activities|map(attribute='price')|select('number')|list else '—' }}</strong>
                         <span>per person</span>
                     </div>
                 </div>
@@ -725,7 +725,7 @@
                                 <div class="act-card-price">
                                     <span class="act-card-price-label">from</span>
                                     <span class="act-card-price-amount">
-                                        €{{ "%.0f"|format(item.price) }}
+                                        £{{ "%.0f"|format(item.price) }}
                                     </span>
                                     <span class="act-card-price-unit">/ person</span>
                                 </div>

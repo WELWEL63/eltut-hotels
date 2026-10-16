@@ -1,12 +1,12 @@
 ﻿{#
-   Search widget V2 â€” designed to sit centered on the hero.
+   Search widget V2 â£” designed to sit centered on the hero.
    Include with: {% include "public/_search_widget.html" %}
 
    Three tabs (Hotels | Packages | Activities).
    Auto-advances through tabs until the user interacts with one.
 
    Each tab is a separate <form> so the browser submits only the
-   fields for that product type â€” no JS required for switching.
+   fields for that product type â£” no JS required for switching.
 #}
 
 {% set _dests = search_destinations() %}
@@ -47,7 +47,7 @@
     </ul>
 
     <div class="tab-content">
-        {# â”€â”€â”€ Hotels â”€â”€â”€ #}
+        {# â”£â”£â”£ Hotels â”£â”£â”£ #}
         <div class="tab-pane fade {% if _widget_active_type == 'hotel' %}show active{% endif %}" id="sw-hotel" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
                 <input type="hidden" name="type" value="hotel">
@@ -90,7 +90,7 @@
             </form>
         </div>
 
-        {# â”€â”€â”€ Tour Packages â”€â”€â”€ #}
+        {# â”£â”£â”£ Tour Packages â”£â”£â”£ #}
         <div class="tab-pane fade {% if _widget_active_type == 'package' %}show active{% endif %}" id="sw-package" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
                 <input type="hidden" name="type" value="package">
@@ -133,7 +133,7 @@
             </form>
         </div>
 
-        {# â”€â”€â”€ Activities â”€â”€â”€ #}
+        {# â”£â”£â”£ Activities â”£â”£â”£ #}
         <div class="tab-pane fade {% if _widget_active_type == 'activity' %}show active{% endif %}" id="sw-activity" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
                 <input type="hidden" name="type" value="activity">

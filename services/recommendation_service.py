@@ -93,10 +93,10 @@ def _first_price_for(activity_id: int) -> tuple[float | None, float | None, str]
         .limit(1)
     ).first()
     if row is None:
-        return None, None, "EUR"
+        return None, None, "GBP"
     adult = float(row.adult_price) if row.adult_price is not None else None
     child = float(row.child_price) if row.child_price is not None else None
-    return adult, child, (row.currency or "EUR")
+    return adult, child, (row.currency or "GBP")
 
 
 def _first_image_url(activity_id: int) -> str | None:

@@ -135,7 +135,7 @@ def _product_meta(product_type: str, product) -> dict:
             "image": img_url,
             "adult_price": float(price_row.adult_price) if price_row else None,
             "child_price": float(price_row.child_price) if price_row else None,
-            "currency": price_row.currency if price_row else "EUR",
+            "currency": price_row.currency if price_row else "GBP",
             "location": product.destination_id,
         }
     if product_type == PRODUCT_TYPE_HOTEL:
@@ -150,7 +150,7 @@ def _product_meta(product_type: str, product) -> dict:
             "image": hotel.images[0].url if hotel and hotel.images else None,
             "adult_price": float(product.base_price_per_night),
             "child_price": float(product.base_price_per_night),
-            "currency": "EUR",
+            "currency": "GBP",
             "location": hotel.destination_id if hotel else None,
             "hotel": hotel.name if hotel else None,
             "room": product.type,
@@ -175,7 +175,7 @@ def _product_meta(product_type: str, product) -> dict:
             "image": img_url,
             "adult_price": float(price_row.adult_price) if price_row else None,
             "child_price": float(price_row.child_price) if price_row else None,
-            "currency": price_row.currency if price_row else "EUR",
+            "currency": price_row.currency if price_row else "GBP",
             "location": product.destination_id,
             "hotel": None,
             "room": None,
@@ -193,7 +193,7 @@ def _room_stay_pricing(room: Room, check_in: date | None, check_out: date | None
 
     adult_rate = None
     child_rate = None
-    currency = "EUR"
+    currency = "GBP"
 
     if check_in is not None:
         rate = db.session.scalars(
@@ -207,7 +207,7 @@ def _room_stay_pricing(room: Room, check_in: date | None, check_out: date | None
         if rate is not None:
             adult_rate = float(rate.adult_price or 0)
             child_rate = float(rate.child_price or 0)
-            currency = rate.currency or "EUR"
+            currency = rate.currency or "GBP"
 
     if adult_rate is None:
         adult_rate = float(room.base_price_per_night or 0)
@@ -234,7 +234,7 @@ def _package_pricing(package: Package, adults: int, children: int) -> dict:
     if row is None:
         return {
             "adult_rate": None, "child_rate": None, "nights": package.duration_nights,
-            "per_night": None, "total": None, "currency": "EUR",
+            "per_night": None, "total": None, "currency": "GBP",
         }
     adult_rate = float(row.adult_price or 0)
     child_rate = float(row.child_price or 0)
@@ -246,7 +246,7 @@ def _package_pricing(package: Package, adults: int, children: int) -> dict:
         "per_night": None,
         "per_person": per_person,
         "total": per_person,
-        "currency": row.currency or "EUR",
+        "currency": row.currency or "GBP",
     }
 
 
@@ -259,7 +259,7 @@ def _activity_pricing(activity: Activity, adults: int, children: int) -> dict:
     if row is None:
         return {
             "adult_rate": None, "child_rate": None, "nights": None,
-            "per_night": None, "total": None, "currency": "EUR",
+            "per_night": None, "total": None, "currency": "GBP",
         }
     adult_rate = float(row.adult_price or 0)
     child_rate = float(row.child_price or 0)
@@ -271,7 +271,7 @@ def _activity_pricing(activity: Activity, adults: int, children: int) -> dict:
         "per_night": None,
         "per_person": per_person,
         "total": per_person,
-        "currency": row.currency or "EUR",
+        "currency": row.currency or "GBP",
     }
 
 
@@ -355,7 +355,7 @@ def booking_start(product_type: str, product_id: int):
                     "per_night": None,
                     "per_person": _adult,
                     "total": (_adult * adults) + (_child * children),
-                    "currency": option.price.currency or "EUR",
+                    "currency": option.price.currency or "GBP",
                 }
             else:
                 pricing = _package_pricing(product, adults, children)
@@ -571,7 +571,7 @@ def booking_create():
         })
 
     # Currency
-    currency = "EUR"  # all products priced in EUR
+    currency = "GBP"  # all products priced in EUR
 
     # Create the booking
     try:

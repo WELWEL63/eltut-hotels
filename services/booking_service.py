@@ -1,7 +1,7 @@
 ﻿"""
 services/booking_service.py
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-Create, cancel, complete, and refund bookings â€” the transactional core
+â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+Create, cancel, complete, and refund bookings â£” the transactional core
 of the platform.
 
 A single call to create_booking() touches five tables in one
@@ -29,7 +29,7 @@ PUBLIC API
 
 DESIGN NOTES
     - Amounts and IDs come from the CALLER. This service never reads
-      from Flask's request object â€” it is fully testable.
+      from Flask's request object â£” it is fully testable.
     - Availability is verified via services.availability_service (imported
       lazily to avoid a circular import at package load).
     - Totals are computed via services.pricing_service.
@@ -73,7 +73,7 @@ from models import (
 )
 
 
-# â”€â”€â”€ Domain exceptions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Domain exceptions â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 class BookingError(Exception):
     """Base class for booking-domain errors."""
 
@@ -94,7 +94,7 @@ class InvalidStatusTransition(BookingError):
     """Attempt to move to a status that is not allowed from the current one."""
 
 
-# â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Constants â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 REFERENCE_PREFIX = "ELT"
 REFERENCE_RETRY_LIMIT = 10
 
@@ -102,7 +102,7 @@ ROLE_GUEST = "guest"
 ROLE_SYSTEM = "system"
 
 
-# â”€â”€â”€ Reference generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Reference generation â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 def generate_reference(year: int | None = None) -> str:
     """
     Return a unique booking reference of the form ELT-YYYY-NNNNN.
@@ -123,7 +123,7 @@ def generate_reference(year: int | None = None) -> str:
     raise BookingError("could not generate a unique booking reference")
 
 
-# â”€â”€â”€ Validation helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Validation helpers â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 def _validate_product_type(product_type: str) -> None:
     if product_type not in VALID_PRODUCT_TYPES:
         raise InvalidBookingInput(
@@ -157,7 +157,7 @@ def _caller_role(user, explicit_role: str | None) -> str:
     return ROLE_GUEST
 
 
-# â”€â”€â”€ Status history helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Status history helper â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 def add_status_history(
     booking: Booking,
     *,
@@ -188,7 +188,7 @@ def add_status_history(
     return row
 
 
-# â”€â”€â”€ Create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Create â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 def create_booking(
     *,
     product_type: str,
@@ -221,9 +221,9 @@ def create_booking(
     product_type : "activity" | "hotel" | "package"
     product_id   : int
     travellers_adults, travellers_children : int >= 0
-    total_amount : Decimal â€” caller is expected to have computed this via
+    total_amount : Decimal â£” caller is expected to have computed this via
                    pricing_service, but any non-negative value is accepted.
-    user         : User | None â€” pass None for a guest checkout.
+    user         : User | None â£” pass None for a guest checkout.
     addon_items  : iterable of dicts, each:
                     {product_id, quantity, unit_price, name}
     travellers   : iterable of dicts, each:
@@ -233,7 +233,7 @@ def create_booking(
 
     Returns
     -------
-    Booking â€” flushed and with all children attached.
+    Booking â£” flushed and with all children attached.
     """
     _validate_product_type(product_type)
     if not isinstance(product_id, int) or product_id <= 0:
@@ -278,7 +278,7 @@ def create_booking(
     db.session.add(booking)
     db.session.flush()
 
-    # â”€â”€â”€ Primary booking item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Primary booking item â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     primary = BookingItem(
         booking_id=booking.id,
         item_type="primary",
@@ -292,7 +292,7 @@ def create_booking(
     )
     db.session.add(primary)
 
-    # â”€â”€â”€ Add-on items (upsell) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Add-on items (upsell) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     if addon_items:
         for raw in addon_items:
             try:
@@ -320,7 +320,7 @@ def create_booking(
             )
             db.session.add(item)
 
-    # â”€â”€â”€ Travellers (optional) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Travellers (optional) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     if travellers:
         first = True
         for idx, raw in enumerate(travellers):
@@ -349,7 +349,7 @@ def create_booking(
             db.session.add(traveller)
             first = False
 
-    # â”€â”€â”€ Initial payment placeholder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Initial payment placeholder â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     payment = Payment(
         booking_id=booking.id,
         provider="paypal",
@@ -360,7 +360,7 @@ def create_booking(
     )
     db.session.add(payment)
 
-    # â”€â”€â”€ Status history â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Status history â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     add_status_history(
         booking,
         from_status=None,
@@ -376,7 +376,7 @@ def create_booking(
     return booking
 
 
-# â”€â”€â”€ State transitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ State transitions â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 def cancel_booking(
     booking: Booking,
     *,
@@ -494,7 +494,7 @@ def mark_refunded(
     return booking
 
 
-# â”€â”€â”€ Lookups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ Lookups â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 def get_booking_by_reference(reference: str) -> Optional[Booking]:
     """Return a Booking by its human-friendly reference, or None."""
     if not reference:

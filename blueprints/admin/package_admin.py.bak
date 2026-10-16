@@ -21,6 +21,7 @@ from sqlalchemy import func, select
 from blueprints.admin import admin_bp, admin_required
 from extensions import db
 from models import (
+    Airline,
     BookingItem,
     Destination,
     Flight,
@@ -285,10 +286,16 @@ def package_edit(package_id: int):
         .order_by(PackageOption.sort_order.asc(), PackageOption.id.asc())
     ))
 
+    # Airlines list for the flight form dropdown
+    airlines = list(db.session.scalars(
+        select(Airline).where(Airline.is_active.is_(True)).order_by(Airline.name)
+    ))
+
     return render_template(
         "admin/package_form.html",
         package=package,
         options=options,
+        airlines=airlines,
         destinations=destinations,
         hotels=hotels,
         rooms=rooms,
@@ -643,12 +650,28 @@ def package_flight_new(package_id: int):
         except ValueError:
             supplier_id = None
 
+    # Airline: prefer FK, fall back to free-text airline_name
+    airline_id = None
+    raw_airline_id = (request.form.get("airline_id") or "").strip()
+    if raw_airline_id:
+        try:
+            airline_id = int(raw_airline_id) or None
+        except ValueError:
+            airline_id = None
+
+    airline_name = (request.form.get("airline_name") or "").strip() or None
+    if airline_id:
+        airline_obj = db.session.get(Airline, airline_id)
+        if airline_obj:
+            airline_name = airline_obj.name
+
     flight = Flight(
         package_id=package.id,
         supplier_id=supplier_id,
+        airline_id=airline_id,
         flight_from=flight_from,
         flight_to=flight_to,
-        airline_name=(request.form.get("airline_name") or "").strip() or None,
+        airline_name=airline_name,
         luggage_allowance=(request.form.get("luggage_allowance") or "").strip() or None,
         included=bool(request.form.get("included")),
         notes=(request.form.get("notes") or "").strip() or None,

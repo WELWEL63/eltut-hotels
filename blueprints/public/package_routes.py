@@ -1,6 +1,6 @@
 """
 blueprints/public/package_routes.py
-───────────────────────────────────
+â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 Package listing and detail pages.
 
 ROUTES
@@ -14,6 +14,10 @@ FILTERS (query parameters, all optional)
     q             free-text search on package name
     sort          newest (default) | name | price_asc | price_desc | duration
     page          1-based page number
+    check_in      ISO date
+    check_out     ISO date
+    adults        int
+    children      int
 """
 
 from __future__ import annotations
@@ -78,7 +82,10 @@ def _avg_rating(package_id: int):
         return (None, 0)
 
 
-# ─── Per-flight surcharge tables ───────────────────────────────────
+# â”£â”£â”£ Per-flight surcharge tables â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# Legacy â£” used only for synthetic options when no real flight_prices
+# data exists for a package's destination. Real flight prices override
+# these when available.
 _AIRLINE_SURCHARGE = {
     "wizz air":  (-30.0, -20.0),
     "wizzair":   (-30.0, -20.0),
@@ -295,7 +302,7 @@ def package_detail(slug: str):
         .limit(3)
     ))
 
-    # ─── Read stay params from URL ────────────────────────────────
+    # â”£â”£â”£ Read stay params from URL â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     def _parse_date_arg(name: str):
         raw = (request.args.get(name) or "").strip()
         if not raw:
@@ -323,7 +330,7 @@ def package_detail(slug: str):
     adults = _int_arg("adults", 2, 1, 8)
     children = _int_arg("children", 0, 0, 8)
 
-    # ─── Departure options ────────────────────────────────────────
+    # â”£â”£â”£ Departure options (synthetic fallback) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     options_rows = list(db.session.scalars(
         select(PackageOption)
         .where(PackageOption.package_id == package.id)
@@ -372,14 +379,14 @@ def package_detail(slug: str):
                     departure_date=check_in,
                     return_date=check_out,
                     display_label=(
-                        f"{f.airline_name or 'Flight'} · "
-                        f"{f.flight_from or '?'} → {f.flight_to or '?'}"
+                        f"{f.airline_name or 'Flight'} Â· "
+                        f"{f.flight_from or '?'} â†’ {f.flight_to or '?'}"
                     ),
                 )
                 for f in flights
             ]
 
-    # ─── Cap number of options + dedupe by airline ───────────────
+    # â”£â”£â”£ Cap number of options + dedupe by airline â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     try:
         from services import content_service  # noqa: PLC0415
         _raw_max = content_service.get("package_flights_max")
@@ -401,7 +408,7 @@ def package_detail(slug: str):
             break
     options_rows = _capped
 
-    # ─── Airline lookups ─────────────────────────────────────────
+    # â”£â”£â”£ Airline lookups â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     airlines_by_id: dict[int, dict] = {}
     airlines_by_name: dict[str, dict] = {}
     try:
@@ -434,7 +441,7 @@ def package_detail(slug: str):
                 }
         return {"name": flight.airline_name, "logo_url": None}
 
-    # ─── Dynamic price resolution for the customer's dates ───────
+    # â”£â”£â”£ Dynamic price resolution for the customer's dates â”£â”£â”£â”£â”£â”£â”£
     _all_prices = list(db.session.scalars(
         select(PackagePrice)
         .where(PackagePrice.package_id == package.id)
@@ -466,31 +473,52 @@ def package_detail(slug: str):
                 return _pr
         return _all_prices[0] if _all_prices else None
 
-    # Serialise options
+    def _nightly_rate_for(check_in_date):
+        """Return (adult_nightly, child_nightly) for the given check-in date.
+
+        Picks the tightest PackagePrice window that covers check_in,
+        then divides its total price by its duration to get a nightly
+        rate. Falls back to _pick_dynamic_price() if no window covers
+        the date.
+        """
+        candidates = [
+            _pr for _pr in _all_prices
+            if (_pr.valid_from is not None and _pr.valid_to is not None
+                and _pr.valid_from <= check_in_date <= _pr.valid_to)
+        ]
+        if candidates:
+            chosen = min(
+                candidates,
+                key=lambda pr: (pr.valid_to - pr.valid_from).days,
+            )
+        else:
+            chosen = _pick_dynamic_price()
+
+        if not chosen or not chosen.valid_from or not chosen.valid_to:
+            return (0.0, 0.0)
+
+        w_nights = max(1, (chosen.valid_to - chosen.valid_from).days)
+        return (
+            float(chosen.adult_price) / w_nights,
+            float(chosen.child_price or 0) / w_nights,
+        )
+
+    # â”£â”£â”£ Build synthetic options list â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+    # _min_notice_date, _max_horizon_date, _max_checkout_date are set
+    # inside the loop below and reused by the template.
+    _today = _date.today()
+    _min_notice_date = _today + _td(days=7)
+    _max_horizon_date = _today + _td(days=365)
+    _max_checkout_date = _max_horizon_date + _td(days=int(package.duration_nights or 7))
+
+    validation = {"ok": True, "code": "", "message": ""}
+
     options: list[dict] = []
     for opt in options_rows:
         flight = opt.flight
-        # ─── Validation: duration + notice + horizon + rate coverage ───
-        _today = _date.today()
-        _min_notice_date = _today + _td(days=7)
-        _max_horizon_date = _today + _td(days=365)
-        _max_checkout_date = _max_horizon_date + _td(days=int(package.duration_nights or 7))
-        
-        validation = {"ok": True, "code": "", "message": ""}
-        
+
         if url_check_in and url_check_out:
-            expected_nights = int(package.duration_nights or 0)
-            if expected_nights and nights != expected_nights:
-                validation = {
-                    "ok": False,
-                    "code": "duration",
-                    "message": (
-                        f"This package is a {expected_nights}-night trip. "
-                        f"Your selected dates are {nights} nights. "
-                        f"Please adjust check-out."
-                    ),
-                }
-            elif check_in < _min_notice_date:
+            if check_in < _min_notice_date:
                 validation = {
                     "ok": False,
                     "code": "too_soon",
@@ -517,7 +545,7 @@ def package_detail(slug: str):
                         "Try dates within our booking calendar."
                     ),
                 }
-        
+
         dynamic_price = _pick_dynamic_price()
         price = dynamic_price or opt.price
         airline = _resolve_airline(flight)
@@ -550,7 +578,7 @@ def package_detail(slug: str):
             "currency": price.currency if price else None,
         })
 
-    # ─── Reviews (MongoDB, best-effort) ──────────────────────────
+    # â”£â”£â”£ Reviews (MongoDB, best-effort) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     reviews: list[dict] = []
     user_has_reviewed = False
     try:
@@ -573,19 +601,40 @@ def package_detail(slug: str):
     except Exception as exc:  # noqa: BLE001
         current_app.logger.debug("package reviews unavailable: %s", exc)
 
-    # ─── Sidebar pricing ─────────────────────────────────────────
+    # ─── Sidebar pricing (land = nightly × nights × party) ───
+    _adult_nightly, _child_nightly = _nightly_rate_for(check_in)
+
+    _land_adult = _adult_nightly * nights * adults
+    _land_child = _child_nightly * nights * children
+    _land_total = _land_adult + _land_child
+
     sidebar_pricing = {
-        "adult_rate": price_adult,
-        "child_rate": price_child,
+        "adult_rate": _adult_nightly,
+        "child_rate": _child_nightly,
         "nights": nights,
-        "total": None,
-        "currency": currency or "EUR",
+        "total": _land_total if _land_total else None,
+        "per_person": _adult_nightly * nights,
+        "currency": currency or "GBP",
     }
-    if price_adult is not None:
-        child_rate = price_child or 0
-        total = (float(price_adult) * adults) + (float(child_rate) * children)
-        sidebar_pricing["total"] = total
-        sidebar_pricing["per_person"] = price_adult
+    # â”£â”£â”£ Override with real flight_prices options if available â”£â”£â”£â”£
+    # When the destination has an airport_code AND flight_prices rows
+    # exist for it, replace the synthetic per-flight options above with
+    # real per-airline cards whose grand_total includes land + flights
+    # + markup + transfer. If there is no data (e.g. Sharm has no
+    # EasyJet scraper yet), the synthetic options remain in place.
+    from services import flight_service  # noqa: PLC0415
+
+    _real_options = flight_service.flight_options_for_package(
+        package=package,
+        check_in=check_in,
+        check_out=check_out,
+        passengers=adults + children,
+        land_total=sidebar_pricing.get("total") or 0.0,
+        currency=currency or "GBP",
+        tolerance_days=3,
+    )
+    if _real_options:
+        options = _real_options
 
     return render_template(
         "public/package_detail.html",

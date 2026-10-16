@@ -180,7 +180,7 @@
                                min="0.01"
                                required>
                         <select name="currency" class="form-select" style="max-width:100px;">
-                            {% for cur in ["GBP", "USD", "EUR", "EGP"] %}
+                            {% for cur in ["GBP", "USD", "GBP", "EGP"] %}
                                 <option value="{{ cur }}" {% if quote.currency == cur %}selected{% endif %}>
                                     {{ cur }}
                                 </option>

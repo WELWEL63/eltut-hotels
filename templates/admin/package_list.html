@@ -56,11 +56,20 @@
                 </tr>
             </thead>
             <tbody>
-                {% for p in items %}
+                {% for row in items %}
+                    {% set p = row.pkg %}
                     <tr>
                         <td>{{ p.id }}</td>
                         <td><code>{{ p.code }}</code></td>
-                        <td>{{ p.name }}</td>
+                        <td>
+                            {{ p.name }}
+                            {% if p.check_in and p.check_out %}
+                                <div class="small text-muted">
+                                    {{ p.check_in.strftime("%d %b %Y") }} - {{ p.check_out.strftime("%d %b %Y") }}
+                                    ({{ (p.check_out - p.check_in).days }}n)
+                                </div>
+                            {% endif %}
+                        </td>
                         <td><span class="badge bg-warning text-dark">{{ p.package_type|title }}</span></td>
                         <td>{{ p.duration_nights }}</td>
                         <td>
@@ -71,21 +80,106 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
+                            <button class="btn btn-sm btn-outline-info" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#pkg-{{ p.id }}-breakdown">
+                                <i class="bi bi-list-ul"></i> {{ row.count }} flights
+                            </button>
                             <a href="{{ url_for('admin.package_edit', package_id=p.id) }}"
                                class="btn btn-sm btn-outline-primary">Edit</a>
                             <form method="POST" class="d-inline"
-                                  action="{{ url_for('admin.package_toggle', package_id=p.id) }}">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                  action="{{ url_for('admin.package_toggle', package_id=p.id)}}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token()}}">
                                 <button class="btn btn-sm btn-outline-secondary">
                                     {{ "Deactivate" if p.is_active else "Activate" }}
                                 </button>
                             </form>
                             <form method="POST" class="d-inline"
-                                  action="{{ url_for('admin.package_delete', package_id=p.id) }}"
+                                  action="{{ url_for('admin.package_delete', package_id=p.id)}}"
                                   onsubmit="return confirm('Delete this package?');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token()}}">
                                 <button class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>
+                        </td>
+                    </tr>
+                    <tr class="collapse" id="pkg-{{ p.id }}-breakdown">
+                        <td colspan="7" class="bg-light">
+                            {% if row.cards %}
+                                <div class="small">
+                                    <strong class="d-block mb-2">
+                                        <i class="bi bi-cash-coin"></i> Price breakdown per flight card (per person)
+                                    </strong>
+                                    <table class="table table-sm table-bordered mb-0 bg-white">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Outbound</th>
+                                                <th>Inbound</th>
+                                                <th>Nights</th>
+                                                <th>Room/night</th>
+                                                <th>Hotel</th>
+                                                <th>Flights</th>
+                                                <th>Transfer</th>
+                                                <th>Markup</th>
+                                                <th>Tax</th>
+                                                <th class="text-end">Per person</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for rc in row.cards %}
+                                                {% set c = rc.card %}
+                                                {% set calc = rc.calc %}
+                                                <tr>
+                                                    <td>{{ loop.index }}</td>
+                                                    <td>
+                                                        {% if c.outbound_flight %}
+                                                            {{ c.outbound_flight.airline }}<br>
+                                                            <span class="text-muted">{{ c.outbound_flight.departure_date }}</span>
+                                                        {% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if c.inbound_flight %}
+                                                            {{ c.inbound_flight.airline }}<br>
+                                                            <span class="text-muted">{{ c.inbound_flight.departure_date }}</span>
+                                                        {% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}{{ calc.nights }}
+                                                        {% else %}<span class="text-danger">{{ calc.error }}</span>{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}
+                                                            {{ calc.currency }} {{ "%.2f"|format(calc.room_nightly) }}
+                                                        {% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}{{ calc.currency }} {{ "%.2f"|format(calc.hotel_total) }}{% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}GBP {{ "%.2f"|format(calc.flight_total) }}{% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}{{ calc.currency }} {{ "%.2f"|format(calc.transfer_fee) }}{% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}{{ calc.currency }} {{ "%.2f"|format(calc.markup) }}{% else %}-{% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if calc.ok %}{{ calc.currency }} {{ "%.2f"|format(calc.tax) }}{% else %}-{% endif %}
+                                                    </td>
+                                                    <td class="text-end fw-bold">
+                                                        {% if calc.ok %}
+                                                            {{ calc.currency }} {{ "%.2f"|format(calc.per_person) }}
+                                                        {% else %}-{% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <span class="text-muted small">No flight cards yet for this package.</span>
+                            {% endif %}
                         </td>
                     </tr>
                 {% else %}

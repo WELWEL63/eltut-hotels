@@ -21,6 +21,10 @@ DESIGN NOTES
       precision (no float drift when computing distances).
     - `hero_image_url` is a single string; galleries belong on products,
       not destinations.
+    - `airport_code` is the IATA code of the nearest commercial airport
+      (e.g. HRG for Hurghada). Used by the flight pricing service to look
+      up flight_prices rows. Nullable — some destinations (e.g. Nile
+      Cruise) have no single airport.
 """
 
 from __future__ import annotations
@@ -51,6 +55,7 @@ class Destination(Base, SlugMixin, TimestampMixin):
     hero_image_url : single banner image for destination pages
     latitude       : decimal degrees (-90..90), NUMERIC(9,6)
     longitude      : decimal degrees (-180..180), NUMERIC(9,6)
+    airport_code   : IATA code of nearest commercial airport (nullable)
     created_at / updated_at : from TimestampMixin
     """
 
@@ -58,14 +63,14 @@ class Destination(Base, SlugMixin, TimestampMixin):
 
     __slug_source__ = "name"  # SlugMixin reads this to know what to slugify
 
-    # ─── Identity ──────────────────────────────────────────────────
+    # ─── Identity ────────────────────────────────────────────────────
     id: Mapped[int] = mapped_column(primary_key=True)
 
     name: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False, index=True
     )
 
-    # ─── Classification ────────────────────────────────────────────
+    # ─── Classification ─────────────────────────────────────────────
     country: Mapped[str] = mapped_column(
         String(80),
         nullable=False,
@@ -75,12 +80,12 @@ class Destination(Base, SlugMixin, TimestampMixin):
 
     region: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
-    # ─── Content ───────────────────────────────────────────────────
+    # ─── Content ────────────────────────────────────────────────────
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     hero_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    # ─── Geography ─────────────────────────────────────────────────
+    # ─── Geography ──────────────────────────────────────────────────
     latitude: Mapped[Decimal | None] = mapped_column(
         Numeric(9, 6), nullable=True
     )
@@ -88,29 +93,9 @@ class Destination(Base, SlugMixin, TimestampMixin):
         Numeric(9, 6), nullable=True
     )
 
-    # ═══════════════════════════════════════════════════════════════
-    #  Constructor — normalise text + apply instance defaults
-    # ═══════════════════════════════════════════════════════════════
-    def __init__(self, **kwargs: object) -> None:
-        """
-        Apply defaults before SQLAlchemy sets attributes.
-
-        Same pattern as models/user.py:
-          - name, country, region are stripped of surrounding whitespace
-          - country is set to DEFAULT_COUNTRY if not provided
-            (applied AFTER stripping so an explicit "  " becomes the default)
-        """
-        for key in ("name", "country", "region"):
-            value = kwargs.get(key)
-            if isinstance(value, str):
-                kwargs[key] = value.strip()
-
-        # After stripping, treat empty country as missing so the default applies.
-        if not kwargs.get("country"):
-            kwargs["country"] = DEFAULT_COUNTRY
-
-        super().__init__(**kwargs)
-
-    # ─── Cosmetic ──────────────────────────────────────────────────
-    def __repr__(self) -> str:  # pragma: no cover
-        return f"<Destination id={self.id} name={self.name!r}>"
+    # ─── Flight pricing link ────────────────────────────────────────
+    # IATA code of the nearest commercial airport (e.g. HRG for Hurghada).
+    # Nullable because not every destination has one (e.g. Nile Cruise).
+    airport_code: Mapped[str | None] = mapped_column(
+        String(3), nullable=True, index=True
+    )

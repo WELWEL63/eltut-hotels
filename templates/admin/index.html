@@ -28,7 +28,7 @@
                     <div>
                         <div class="small opacity-75">Total revenue</div>
                         <div class="fs-3 fw-bold">
-                            €{{ "%.0f"|format(
+                            £{{ "%.0f"|format(
                                 (revenue.by_product_type.activity or 0)
                                 | float
                                 + (revenue.by_product_type.hotel or 0) | float
@@ -164,7 +164,7 @@
                     {% for pt, amount in (revenue.by_product_type or {}).items() %}
                         <li class="list-group-item d-flex justify-content-between">
                             <span>{{ pt|title }}</span>
-                            <strong>€{{ "%.2f"|format(amount|float) }}</strong>
+                            <strong>£{{ "%.2f"|format(amount|float) }}</strong>
                         </li>
                     {% else %}
                         <li class="list-group-item text-muted">No revenue yet.</li>

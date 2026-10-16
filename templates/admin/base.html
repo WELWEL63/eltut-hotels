@@ -65,6 +65,10 @@
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.airline') %}active{% endif %}">
                         <i class="bi bi-airplane"></i> Airlines
                     </a>
+                    <a href="{{ url_for('admin.flight_admin_index') }}"
+                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.flight_admin') %}active{% endif %}">
+                        <i class="bi bi-cash-coin"></i> Flight prices
+                    </a>
                     <a href="{{ maybe_url('admin.destination_images') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.destination_') %}active{% endif %}">
                         <i class="bi bi-geo-alt"></i> Destination images

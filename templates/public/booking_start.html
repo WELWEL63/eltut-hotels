@@ -31,7 +31,7 @@
             <script>
                 window.BOOKING_CONTEXT = {
                     roomTotal: {{ pricing.total or 0 }},
-                    roomCurrency: "{{ pricing.currency or 'EUR' }}",
+                    roomCurrency: "{{ pricing.currency or 'GBP' }}",
                     nights: {{ pricing.nights or 0 }},
                     adults: {{ form_defaults.adults or 2 }},
                     children: {{ form_defaults.children or 0 }}
@@ -161,7 +161,7 @@
                                                        data-addon-id="{{ a.id }}"
                                                        data-adult-price="{{ a.price_adult or 0 }}"
                                                        data-child-price="{{ a.price_child or 0 }}"
-                                                       data-currency="{{ a.currency or 'EUR' }}"
+                                                       data-currency="{{ a.currency or 'GBP' }}"
                                                        data-name="{{ a.name }}">
 
                                                 <label class="addon-card-label" for="addon_{{ a.id }}">
@@ -232,7 +232,7 @@
                                                         data-max-age="{{ a.max_age or '' }}"
                                                         data-price-adult="{{ a.price_adult or 0 }}"
                                                         data-price-child="{{ a.price_child or 0 }}"
-                                                        data-currency="{{ a.currency or 'EUR' }}"
+                                                        data-currency="{{ a.currency or 'GBP' }}"
                                                         data-image="{{ a.image_url or '' }}">
                                                     <i class="bi bi-info-circle"></i> View details
                                                 </button>
@@ -788,7 +788,7 @@
 
     const ctx = window.BOOKING_CONTEXT || {};
     const ROOM_TOTAL = Number(ctx.roomTotal) || 0;
-    const ROOM_CURRENCY = ctx.roomCurrency || 'EUR';
+    const ROOM_CURRENCY = ctx.roomCurrency || 'GBP';
     const ADULTS = Number(ctx.adults) || 2;
     const CHILDREN = Number(ctx.children) || 0;
 
@@ -840,7 +840,7 @@
             if (cb.checked) {
                 const aP = parseFloat(cb.dataset.adultPrice) || 0;
                 const cP = parseFloat(cb.dataset.childPrice) || 0;
-                const cur = cb.dataset.currency || 'EUR';
+                const cur = cb.dataset.currency || 'GBP';
                 const name = cb.dataset.name || 'Add-on';
                 const subtotal = aP * ADULTS + cP * CHILDREN;
 
@@ -872,7 +872,7 @@
         if (selectedCount > 0) {
             if (breakdownSection) breakdownSection.style.display = '';
             if (listEl) listEl.innerHTML = listItems.join('');
-            if (subtotalEl) subtotalEl.textContent = fmt(addonTotal, addonCurrency || 'EUR');
+            if (subtotalEl) subtotalEl.textContent = fmt(addonTotal, addonCurrency || 'GBP');
         } else {
             if (breakdownSection) breakdownSection.style.display = 'none';
         }
@@ -931,7 +931,7 @@
             const maxAge = btn.dataset.maxAge;
             const priceAdult = parseFloat(btn.dataset.priceAdult) || 0;
             const priceChild = parseFloat(btn.dataset.priceChild) || 0;
-            const currency = btn.dataset.currency || 'EUR';
+            const currency = btn.dataset.currency || 'GBP';
             const image = btn.dataset.image || '';
 
             document.getElementById('addonModalName').textContent = name;

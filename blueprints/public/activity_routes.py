@@ -294,7 +294,7 @@ def activity_detail(slug: str):
         "child_rate": price_child,
         "nights": None,
         "total": None,
-        "currency": currency or "EUR",
+        "currency": currency or "GBP",
     }
     if price_adult is not None:
         child_rate = price_child or 0

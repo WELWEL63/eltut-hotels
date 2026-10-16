@@ -1,0 +1,25 @@
+iata_code,name,city,country
+LGW,London Gatwick,London,United Kingdom
+LHR,London Heathrow,London,United Kingdom
+STN,London Stansted,London,United Kingdom
+LTN,London Luton,London,United Kingdom
+LCY,London City,London,United Kingdom
+MAN,Manchester,Manchester,United Kingdom
+BHX,Birmingham,Birmingham,United Kingdom
+LPL,Liverpool,Liverpool,United Kingdom
+BRS,Bristol,Bristol,United Kingdom
+NCL,Newcastle,Newcastle,United Kingdom
+EDI,Edinburgh,Edinburgh,United Kingdom
+GLA,Glasgow,Glasgow,United Kingdom
+EMA,East Midlands,Nottingham,United Kingdom
+LBA,Leeds Bradford,Leeds,United Kingdom
+CWL,Cardiff,Cardiff,United Kingdom
+BFS,Belfast International,Belfast,United Kingdom
+HRG,Hurghada International,Hurghada,Egypt
+SSH,Sharm El Sheikh International,Sharm El Sheikh,Egypt
+LXR,Luxor International,Luxor,Egypt
+CAI,Cairo International,Cairo,Egypt
+ASW,Aswan International,Aswan,Egypt
+RMF,Marsa Alam International,Marsa Alam,Egypt
+TCP,Taba International,Taba,Egypt
+HBE,Borg El Arab,Alexandria,Egypt

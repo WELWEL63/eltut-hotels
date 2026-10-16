@@ -84,7 +84,7 @@ def _cheapest_room_price(hotel_id: int) -> tuple[float | None, str | None]:
     if row is None:
         return (None, None)
     try:
-        return (float(row), "EUR")
+        return (float(row), "GBP")
     except Exception:  # noqa: BLE001
         return (None, None)
 
@@ -274,11 +274,11 @@ def hotel_detail(slug: str):
         if rate is not None:
             adult_rate = float(rate.adult_price or 0)
             child_rate = float(rate.child_price or 0)
-            currency = (rate.currency or "EUR")
+            currency = (rate.currency or "GBP")
         else:
             adult_rate = float(room.base_price_per_night or 0)
             child_rate = 0.0
-            currency = "EUR"
+            currency = "GBP"
         per_night = adult_rate * adults + child_rate * children
         total = per_night * max(nights, 0)
         return {
@@ -359,7 +359,7 @@ def hotel_detail(slug: str):
     # ─── Cheapest total for the sidebar (respects dates + party) ───
     cheapest_total = None
     cheapest_per_night = None
-    sidebar_currency = "EUR"
+    sidebar_currency = "GBP"
     try:
         priced = [r for r in rooms_with_availability if r.get("pricing")]
         if priced:

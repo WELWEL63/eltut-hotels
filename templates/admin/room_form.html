@@ -46,7 +46,7 @@
                        value="{{ room.capacity }}">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Base € / night (fallback)</label>
+                <label class="form-label">Base £ / night (fallback)</label>
                 <input type="number" name="base_price_per_night" class="form-control" step="0.01" min="0"
                        value="{{ room.base_price_per_night }}">
             </div>
@@ -89,19 +89,19 @@
                     <input type="date" name="valid_to" class="form-control form-control-sm">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small">Adult €</label>
+                    <label class="form-label small">Adult £</label>
                     <input type="number" name="adult_price" step="0.01" min="0"
                            class="form-control form-control-sm" required>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small">Child €</label>
+                    <label class="form-label small">Child £</label>
                     <input type="number" name="child_price" step="0.01" min="0"
                            class="form-control form-control-sm" value="0">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small">Currency</label>
                     <select name="currency" class="form-select form-select-sm">
-                        <option value="EUR" selected>EUR</option>
+                        <option value="GBP" selected>EUR</option>
                         <option value="USD">USD</option>
                         <option value="GBP">GBP</option>
                     </select>

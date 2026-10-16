@@ -481,7 +481,7 @@ def room_rate_new(room_id: int):
         room_id=room.id,
         adult_price=_float(request.form.get("adult_price")),
         child_price=_float(request.form.get("child_price")),
-        currency=(request.form.get("currency") or "EUR").upper(),
+        currency=(request.form.get("currency") or "GBP").upper(),
         valid_from=_date(request.form.get("valid_from")),
         valid_to=_date(request.form.get("valid_to")),
     )

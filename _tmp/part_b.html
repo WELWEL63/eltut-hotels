@@ -1,0 +1,103 @@
+</form>
+
+{# ─── Flight cards (outbound + inbound) ─── #}
+{% if package %}
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <strong>
+                <i class="bi bi-airplane-engines"></i>
+                Flight cards
+                <span class="badge bg-secondary ms-2">{{ package_flights|length }} / 6</span>
+            </strong>
+            <span class="text-muted small">
+                Destination airport: <strong>{{ dest_airport or 'none set' }}</strong>
+            </span>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if not dest_airport %}
+            <div class="alert alert-warning small mb-3">
+                This package's destination has no airport code set.
+            </div>
+        {% endif %}
+
+        {% if package_flights %}
+            <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr><th>#</th><th>Outbound</th><th>Inbound</th><th>Label</th><th>Active</th><th class="text-end">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for c in package_flights %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td class="small">
+                                    {% if c.outbound_flight %}
+                                        {{ c.outbound_flight.airline }}<br>
+                                        {{ c.outbound_flight.origin }} - {{ c.outbound_flight.destination }}<br>
+                                        <span class="text-muted">{{ c.outbound_flight.departure_date }} - GBP {{ "%.2f"|format(c.outbound_flight.price_gbp) }}</span>
+                                    {% else %}<span class="text-muted">-</span>{% endif %}
+                                </td>
+                                <td class="small">
+                                    {% if c.inbound_flight %}
+                                        {{ c.inbound_flight.airline }}<br>
+                                        {{ c.inbound_flight.origin }} - {{ c.inbound_flight.destination }}<br>
+                                        <span class="text-muted">{{ c.inbound_flight.departure_date }} - GBP {{ "%.2f"|format(c.inbound_flight.price_gbp) }}</span>
+                                    {% else %}<span class="text-muted">-</span>{% endif %}
+                                </td>
+                                <td class="small">{{ c.label or c.display_label }}</td>
+                                <td>
+                                    {% if c.is_active %}<span class="badge bg-success">Yes</span>
+                                    {% else %}<span class="badge bg-secondary">No</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('admin.package_flight_card_toggle', card_id=c.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-toggle-on"></i></button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('admin.package_flight_card_delete', card_id=c.id) }}" class="d-inline" onsubmit="return confirm('Delete?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info small mb-3">No flight cards yet.</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('admin.package_flight_card_new', package_id=package.id) }}" class="row g-2 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="col-md-4">
+                <label class="form-label small">Outbound flight</label>
+                <select name="outbound_flight_id" class="form-select form-select-sm">
+                    <option value="">- pick -</option>
+                    {% for f in outbound_flights %}
+                        <option value="{{ f.id }}">{{ f.airline }} - {{ f.departure_date }} - GBP {{ "%.2f"|format(f.price_gbp) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">Inbound flight</label>
+                <select name="inbound_flight_id" class="form-select form-select-sm">
+                    <option value="">- pick -</option>
+                    {% for f in inbound_flights %}
+                        <option value="{{ f.id }}">{{ f.airline }} - {{ f.departure_date }} - GBP {{ "%.2f"|format(f.price_gbp) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Label</label>
+                <input type="text" name="label" class="form-control form-control-sm" maxlength="200">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary btn-sm w-100"><i class="bi bi-plus-lg"></i> Add</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}

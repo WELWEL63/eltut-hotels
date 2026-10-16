@@ -1,6 +1,6 @@
 ﻿"""
 blueprints/public/search_routes.py
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 Public search widget handler + results page.
 
 ROUTES
@@ -70,7 +70,7 @@ def _int_arg(name: str, default: int, minimum: int = 0, maximum: int | None = No
         return default
 
 
-# â”€â”€â”€ /search â†’ redirect to results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ /search â†’ redirect to results â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 @public_bp.route("/search")
 def search_shortcut():
     """Widget action URL. Redirects to /search/results preserving query."""
@@ -78,12 +78,12 @@ def search_shortcut():
     return redirect(url_for("public.search_results", **qs))
 
 
-# â”€â”€â”€ /search/results â†’ actual render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# â”£â”£â”£ /search/results â†’ actual render â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 @public_bp.route("/search/results")
 def search_results():
     """Render search results for the currently selected product type."""
 
-    # â”€â”€â”€ Parse filters from the query string â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Parse filters from the query string â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     product_type = (request.args.get("type") or "hotel").strip().lower()
     destination = (request.args.get("destination") or "").strip() or None
     q = (request.args.get("q") or "").strip() or None
@@ -100,7 +100,7 @@ def search_results():
     per_page = int(current_app.config.get("ITEMS_PER_PAGE", 12) or 12)
     per_page = max(6, min(per_page, 48))
 
-    # â”€â”€â”€ Run the search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    # â”£â”£â”£ Run the search â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     result = search_service.search(
         product_type=product_type,
         destination=destination,
@@ -115,7 +115,7 @@ def search_results():
         q=q,
     )
 
-    # â”€â”€â”€ Dropdown data for the persistent widget on the results page â”€
+    # â”£â”£â”£ Dropdown data for the persistent widget on the results page â”£
     destinations = search_service.destinations_for_widget()
 
     return render_template(

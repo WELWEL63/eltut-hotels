@@ -730,7 +730,7 @@
     const BOOK_URL = "{{ url_for('public.booking_start', product_type='activity', product_id=activity.id) }}";
     const RATE_ADULT = {{ sidebar_pricing.adult_rate or 0 }};
     const RATE_CHILD = {{ sidebar_pricing.child_rate or 0 }};
-    const CURRENCY = "{{ sidebar_pricing.currency or 'EUR' }}";
+    const CURRENCY = "{{ sidebar_pricing.currency or 'GBP' }}";
 
     function fmt(v) {
         return CURRENCY + ' ' + Number(v || 0).toFixed(2);

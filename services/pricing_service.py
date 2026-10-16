@@ -293,7 +293,7 @@ def compute_booking_total(
 
 
 # ─── Display helper ────────────────────────────────────────────────
-_SYMBOLS = {"USD": "$", "EUR": "€", "GBP": "£"}
+_SYMBOLS = {"USD": "$", "GBP": "£", "GBP": "£"}
 
 
 def format_currency(amount: Any, currency: str = "USD") -> str:
