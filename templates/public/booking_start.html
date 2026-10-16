@@ -112,38 +112,7 @@
                         </div>
                     </div>
 
-                    {# ═══════════════ STEP 2 — Traveller names ═══════════════ #}
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3 d-flex align-items-center gap-2">
-                                <span class="step-badge">2</span>
-                                Traveller names
-                            </h5>
-                            <p class="text-muted small mb-3">
-                                Please provide each traveller's name as it appears on their passport.
-                            </p>
-
-                            {% if not current_user.is_authenticated %}
-                                <div class="alert alert-info py-2 small mb-3">
-                                    <i class="bi bi-info-circle"></i>
-                                    Booking as a guest. You can
-                                    <a href="{{ maybe_url('auth.register') }}">register</a>
-                                    after booking to save your details.
-                                </div>
-                            {% endif %}
-
-                            <div id="traveller-names">
-                                {# Populated by JS based on party size #}
-                            </div>
-                        </div>
-                    </div>
-
-                    {# ═══════════════ STEP 3 — Add-ons (optional) ═══════════════ #}
-                    {% if addons %}
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <h5 class="card-title mb-3 d-flex align-items-center gap-2">
-                                    <span class="step-badge">3</span>
+                                    <span class="step-badge">2</span>
                                     Enhance your trip
                                     <small class="text-muted fw-normal ms-auto">Optional</small>
                                 </h5>
@@ -247,6 +216,37 @@
                         </div>
                     {% endif %}
 
+                    {# ═══════════════ STEP 3 — Traveller names ═══════════════ #}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3 d-flex align-items-center gap-2">
+                                <span class="step-badge">3</span>
+                                Traveller names
+                            </h5>
+                            <p class="text-muted small mb-3">
+                                Please provide each traveller's name as it appears on their passport.
+                            </p>
+
+                            {% if not current_user.is_authenticated %}
+                                <div class="alert alert-info py-2 small mb-3">
+                                    <i class="bi bi-info-circle"></i>
+                                    Booking as a guest. You can
+                                    <a href="{{ maybe_url('auth.register') }}">register</a>
+                                    after booking to save your details.
+                                </div>
+                            {% endif %}
+
+                            <div id="traveller-names">
+                                {# Populated by JS based on party size #}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ═══════════════ STEP 3 — Add-ons (optional) ═══════════════ #}
+                    {% if addons %}
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3 d-flex align-items-center gap-2">
                     {# ═══════════════ STEP 4 — Payment method ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
