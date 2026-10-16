@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}{{ package.name }} â£” {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
@@ -17,9 +17,9 @@
             </ol>
         </nav>
 
-        <div class="row g-4">
+        <div class="pkg-layout">
             {# â”£â”£â”£ MAIN COLUMN â”£â”£â”£ #}
-            <div class="col-lg-8">
+            <div class="pkg-main">
 
                 {# â”£â”£â”£ Hero card â”£â”£â”£ #}
                 <div class="card shadow-sm mb-4 border-0">
@@ -111,6 +111,7 @@
                             </a>
                         </div>
                     </div>
+                </div>
                 </div>
 
                 {# â”£â”£â”£ Gallery â”£â”£â”£ #}
@@ -804,7 +805,7 @@
           
 
             {# â”£â”£â”£ SIDEBAR â”£â”£â”£ #}
-            <aside class="col-lg-4">
+            <aside class="pkg-aside">
                 <div class="card shadow-sm sticky-top border-0 overflow-hidden" style="top: 1rem;">
 
                     {# â”£â”£â”£ Hero image â”£â”£â”£ #}
@@ -1228,6 +1229,34 @@
 {% endif %}
 
 <style>
+/* ═════════════════════════════════════════════════════════════════
+   PACKAGE DETAIL — LAYOUT GRID (explicit, not Bootstrap)
+   ═════════════════════════════════════════════════════════════════ */
+.pkg-layout {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+    align-items: start !important;
+    width: 100% !important;
+}
+.pkg-main  { min-width: 0; width: 100%; }
+.pkg-aside { min-width: 0; width: 100%; }
+
+@media (min-width: 992px) {
+    .pkg-layout {
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr) !important;
+    }
+    .pkg-aside > .card {
+        position: sticky !important;
+        top: 1rem !important;
+    }
+}
+@media (max-width: 991.98px) {
+    .pkg-aside > .card {
+        position: static !important;
+    }
+}
+
 /* Sidebar hero image */
 .sidebar-hero {
     width: 100%;
