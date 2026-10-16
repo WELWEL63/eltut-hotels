@@ -11,6 +11,21 @@ def _dec(v):
     return Decimal(str(v))
 
 
+def _airport_display(iata):
+    """IATA -> 'City (CODE)' via airports table, fallback to raw code."""
+    if not iata:
+        return ""
+    try:
+        from models import Airport
+        from extensions import db
+        ap = db.session.get(Airport, iata.upper())
+        if ap is not None:
+            return getattr(ap, "display", None) or iata
+    except Exception:
+        pass
+    return iata
+
+
 def _rate_for_room(room_id, check_in, check_out):
     """Return (nightly, currency) for a room over a date range.
     Uses room_rates windows; falls back to rooms.base_price_per_night."""
@@ -41,6 +56,29 @@ def _rate_for_room(room_id, check_in, check_out):
     return (None, None)
 
 
+def _resolve_airline(flight):
+    """Return {'name': str|None, 'logo_url': str|None} for a FlightPrice."""
+    if flight is None:
+        return {"name": None, "logo_url": None}
+    name = getattr(flight, "airline", None)
+    logo = None
+    try:
+        from models import Airline
+        from extensions import db
+        from sqlalchemy import select
+        if name:
+            norm = name.strip().lower().replace(" ", "")
+            rows = list(db.session.scalars(select(Airline)))
+            for al in rows:
+                if al.name and al.name.strip().lower().replace(" ", "") == norm:
+                    logo = al.logo_url
+                    name = al.name
+                    break
+    except Exception:
+        pass
+    return {"name": name, "logo_url": logo}
+
+
 def compute_package_flight_card(package, card):
     """Return dict with full breakdown for ONE PackageFlight card.
 
@@ -48,17 +86,34 @@ def compute_package_flight_card(package, card):
     outbound and inbound are set (flight-included package). If only
     outbound exists (land-only), nights fall back to package base dates.
 
-    Keys: check_in, check_out, nights, room_nightly, currency,
-          hotel_total, outbound_price, inbound_price, flight_total,
-          subtotal, markup, tax, per_person, ok, error, land_only
+    Keys (existing):
+        ok, error, land_only,
+        check_in, check_out, nights, room_nightly, currency,
+        hotel_total, outbound_price, inbound_price, flight_total,
+        subtotal, transfer_fee, markup, tax, per_person
+
+    Keys (added for template binding — match package_detail.html):
+        card_id, label,
+        airline_name, airline_logo,
+        flight_from, flight_to, luggage_allowance,
+        departure_date, return_date,
+        return_estimated
     """
     result = {
         "ok": False, "error": None, "land_only": False,
         "check_in": None, "check_out": None, "nights": 0,
         "room_nightly": None, "currency": "GBP",
         "hotel_total": 0.0, "outbound_price": 0.0, "inbound_price": 0.0,
-        "flight_total": 0.0, "subtotal": 0.0,
+        "flight_total": 0.0, "subtotal": 0.0, "transfer_fee": 0.0,
         "markup": 0.0, "tax": 0.0, "per_person": 0.0,
+        # template-facing keys (populated below)
+        "card_id": getattr(card, "id", None),
+        "label": getattr(card, "label", None),
+        "airline_name": None, "airline_logo": None,
+        "flight_from": None, "flight_to": None,
+        "luggage_allowance": None,
+        "departure_date": None, "return_date": None,
+        "return_estimated": True,
     }
 
     ob = card.outbound_flight
@@ -66,13 +121,12 @@ def compute_package_flight_card(package, card):
 
     # Determine nights + effective dates
     if ob and ib and ob.departure_date and ib.departure_date:
-        # Flight-included: nights from flight dates
         check_in = ob.departure_date
         check_out = ib.departure_date
         nights = (check_out - check_in).days
         result["land_only"] = False
+        result["return_estimated"] = False
     elif ob and not ib and package.check_in and package.check_out:
-        # Land-only: no return, use package base dates
         check_in = package.check_in
         check_out = package.check_out
         nights = (check_out - check_in).days
@@ -88,6 +142,18 @@ def compute_package_flight_card(package, card):
     result["check_in"] = check_in
     result["check_out"] = check_out
     result["nights"] = nights
+    result["departure_date"] = check_in
+    result["return_date"] = check_out
+
+    # Flight display fields (from outbound; inbound for route end)
+    if ob:
+        al = _resolve_airline(ob)
+        result["airline_name"] = al["name"]
+        result["airline_logo"] = al["logo_url"]
+        result["flight_from"] = _airport_display(ob.origin) or ob.origin
+        dest_code = ob.destination
+        result["flight_to"] = _airport_display(dest_code) or dest_code
+        result["luggage_allowance"] = getattr(ob, "luggage_kg", None)
 
     # Room rate for those dates
     nightly, cur = _rate_for_room(package.room_id, check_in, check_out)
@@ -156,5 +222,5 @@ def build_package_rows(packages):
             .order_by(PackageFlight.sort_order, PackageFlight.id)
         ))
         enriched = [{"card": c, "calc": compute_package_flight_card(pkg, c)} for c in cards]
-        out.append({"pkg": pkg, "cards": enriched, "count": len(cards)})
+        out.append({"pkg": pkg, "card": enriched, "count": len(cards)})
     return out

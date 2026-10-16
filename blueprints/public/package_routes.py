@@ -1,6 +1,6 @@
 """
 blueprints/public/package_routes.py
-â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+─────────────────────────────────────
 Package listing and detail pages.
 
 ROUTES
@@ -22,7 +22,6 @@ FILTERS (query parameters, all optional)
 
 from __future__ import annotations
 
-from collections import namedtuple
 from datetime import date as _date, timedelta as _td
 
 from flask import abort, current_app, render_template, request
@@ -45,8 +44,6 @@ from models import (
     PackageTip,
     Room,
     VALID_PACKAGE_TYPES,
-    PackageOption,
-    Airline,
 )
 
 
@@ -82,49 +79,6 @@ def _avg_rating(package_id: int):
         return (None, 0)
 
 
-# â”£â”£â”£ Per-flight surcharge tables â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
-# Legacy â£” used only for synthetic options when no real flight_prices
-# data exists for a package's destination. Real flight prices override
-# these when available.
-_AIRLINE_SURCHARGE = {
-    "wizz air":  (-30.0, -20.0),
-    "wizzair":   (-30.0, -20.0),
-    "wizz":      (-30.0, -20.0),
-    "easy jet":  (0.0, 0.0),
-    "easyjet":   (0.0, 0.0),
-    "tui":       (80.0, 50.0),
-    "egypt air": (150.0, 100.0),
-    "egyptair":  (150.0, 100.0),
-}
-_ORIGIN_PREMIUM = {
-    "london gatwick":  0.0,
-    "london luton":    0.0,
-    "manchester":      0.0,
-    "glasgow":        -20.0,
-    "birmingham":      10.0,
-    "bristol":         15.0,
-    "leeds bradford":  20.0,
-    "london heathrow": 80.0,
-}
-
-
-def _surcharge_for(airline_name, origin):
-    """Return (adult_surcharge, child_surcharge) for a flight."""
-    a = (airline_name or "").strip().lower()
-    s_adult, s_child = 0.0, 0.0
-    for key, (sa, sc) in _AIRLINE_SURCHARGE.items():
-        if key in a:
-            s_adult, s_child = sa, sc
-            break
-    o = (origin or "").strip().lower()
-    origin_prem = 0.0
-    for key, val in _ORIGIN_PREMIUM.items():
-        if key in o:
-            origin_prem = val
-            break
-    return (s_adult + origin_prem, s_child + origin_prem * 0.7)
-
-
 @public_bp.route("/packages")
 def package_list():
     page = _int_arg("page", 1, 1, 10_000)
@@ -148,6 +102,8 @@ def package_list():
         select(Package)
         .options(joinedload(Package.images))
         .where(Package.is_active.is_(True))
+        .join(Destination, Destination.id == Package.destination_id)
+        .where(Destination.is_bookable.is_(True))
     )
 
     selected_destination = None
@@ -242,6 +198,8 @@ def package_detail(slug: str):
         abort(404)
 
     destination = db.session.get(Destination, package.destination_id)
+    if destination is not None and not destination.is_bookable:
+        abort(404)
     hotel = db.session.get(Hotel, package.hotel_id)
     room = db.session.get(Room, package.room_id)
 
@@ -283,7 +241,6 @@ def package_detail(slug: str):
     price_adult, price_child, currency = _first_package_price(package.id)
     avg_rating, review_count = _avg_rating(package.id)
 
-    # Availability (best-effort)
     remaining = None
     try:
         from services.availability_service import package_availability
@@ -302,7 +259,6 @@ def package_detail(slug: str):
         .limit(3)
     ))
 
-    # â”£â”£â”£ Read stay params from URL â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     def _parse_date_arg(name: str):
         raw = (request.args.get(name) or "").strip()
         if not raw:
@@ -330,260 +286,78 @@ def package_detail(slug: str):
     adults = _int_arg("adults", 2, 1, 8)
     children = _int_arg("children", 0, 0, 8)
 
-    # â”£â”£â”£ Departure options (synthetic fallback) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
-    options_rows = list(db.session.scalars(
-        select(PackageOption)
-        .where(PackageOption.package_id == package.id)
-        .where(PackageOption.is_active.is_(True))
-        .order_by(PackageOption.sort_order.asc(), PackageOption.id.asc())
-    ))
-
-    _SyntheticOption = namedtuple(
-        "SyntheticOption",
-        "id flight price departure_date return_date display_label",
-    )
-
-    if not options_rows:
-        # Fallback: build from flights if no options
-        _prices = list(db.session.scalars(
-            select(PackagePrice)
-            .where(PackagePrice.package_id == package.id)
-            .order_by(PackagePrice.adult_price.asc(), PackagePrice.id.asc())
-        ))
-        _chosen_price = None
-        for _pr in _prices:
-            if (_pr.valid_from is not None and _pr.valid_to is not None
-                    and _pr.valid_from <= check_in and _pr.valid_to >= check_out):
-                _chosen_price = _pr
-                break
-        if _chosen_price is None:
-            for _pr in _prices:
-                if (_pr.valid_from is not None and _pr.valid_to is not None
-                        and _pr.valid_from <= check_out and _pr.valid_to >= check_in):
-                    _chosen_price = _pr
-                    break
-        if _chosen_price is None:
-            for _pr in _prices:
-                if _pr.valid_from is None and _pr.valid_to is None:
-                    _chosen_price = _pr
-                    break
-        if _chosen_price is None and _prices:
-            _chosen_price = _prices[0]
-
-        if flights and _chosen_price is not None:
-            options_rows = [
-                _SyntheticOption(
-                    id=f.id,
-                    flight=f,
-                    price=_chosen_price,
-                    departure_date=check_in,
-                    return_date=check_out,
-                    display_label=(
-                        f"{f.airline_name or 'Flight'} Â· "
-                        f"{f.flight_from or '?'} â†’ {f.flight_to or '?'}"
-                    ),
-                )
-                for f in flights
-            ]
-
-    # â”£â”£â”£ Cap number of options + dedupe by airline â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
-    try:
-        from services import content_service  # noqa: PLC0415
-        _raw_max = content_service.get("package_flights_max")
-        _max_options = max(1, min(int(_raw_max), 10)) if _raw_max else 4
-    except Exception:
-        _max_options = 4
-
-    _seen_airlines: set[str] = set()
-    _capped = []
-    for _opt in options_rows:
-        _f = getattr(_opt, "flight", None)
-        _airline = ((_f.airline_name if _f else "") or "").strip().lower()
-        if _airline and _airline in _seen_airlines:
-            continue
-        if _airline:
-            _seen_airlines.add(_airline)
-        _capped.append(_opt)
-        if len(_capped) >= _max_options:
-            break
-    options_rows = _capped
-
-    # â”£â”£â”£ Airline lookups â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
-    airlines_by_id: dict[int, dict] = {}
-    airlines_by_name: dict[str, dict] = {}
-    try:
-        for al in db.session.scalars(select(Airline)):
-            entry = {"name": al.name, "logo_url": al.logo_url}
-            airlines_by_id[al.id] = entry
-            if al.name:
-                normalized = al.name.strip().lower().replace(" ", "")
-                airlines_by_name[normalized] = entry
-    except Exception as exc:  # noqa: BLE001
-        current_app.logger.debug("airline lookup failed: %s", exc)
-
-    def _resolve_airline(flight) -> dict:
-        if flight is None:
-            return {"name": None, "logo_url": None}
-        if getattr(flight, "airline_id", None):
-            entry = airlines_by_id.get(flight.airline_id)
-            if entry:
-                return {
-                    "name": entry["name"] or flight.airline_name,
-                    "logo_url": entry["logo_url"],
-                }
-        if flight.airline_name:
-            normalized = flight.airline_name.strip().lower().replace(" ", "")
-            entry = airlines_by_name.get(normalized)
-            if entry:
-                return {
-                    "name": flight.airline_name,
-                    "logo_url": entry["logo_url"],
-                }
-        return {"name": flight.airline_name, "logo_url": None}
-
-    # â”£â”£â”£ Dynamic price resolution for the customer's dates â”£â”£â”£â”£â”£â”£â”£
-    _all_prices = list(db.session.scalars(
-        select(PackagePrice)
-        .where(PackagePrice.package_id == package.id)
-        .order_by(PackagePrice.adult_price.asc(), PackagePrice.id.asc())
-    ))
-
-    _customer_nights = (check_out - check_in).days if (check_in and check_out) else None
-
-    def _pick_dynamic_price():
-        """Find the best matching PackagePrice for the customer's dates."""
-        if _customer_nights is not None:
-            for _pr in _all_prices:
-                if (_pr.valid_from is not None and _pr.valid_to is not None
-                        and _pr.valid_from <= check_in
-                        and _pr.valid_to >= check_out
-                        and (_pr.valid_to - _pr.valid_from).days == _customer_nights):
-                    return _pr
-            for _pr in _all_prices:
-                if (_pr.valid_from is not None and _pr.valid_to is not None
-                        and _pr.valid_from <= check_in
-                        and _pr.valid_to >= check_out):
-                    return _pr
-            for _pr in _all_prices:
-                if (_pr.valid_from is not None and _pr.valid_to is not None
-                        and _pr.valid_from <= check_in <= _pr.valid_to):
-                    return _pr
-        for _pr in _all_prices:
-            if _pr.valid_from is None and _pr.valid_to is None:
-                return _pr
-        return _all_prices[0] if _all_prices else None
-
-    def _nightly_rate_for(check_in_date):
-        """Return (adult_nightly, child_nightly) for the given check-in date.
-
-        Picks the tightest PackagePrice window that covers check_in,
-        then divides its total price by its duration to get a nightly
-        rate. Falls back to _pick_dynamic_price() if no window covers
-        the date.
-        """
-        candidates = [
-            _pr for _pr in _all_prices
-            if (_pr.valid_from is not None and _pr.valid_to is not None
-                and _pr.valid_from <= check_in_date <= _pr.valid_to)
-        ]
-        if candidates:
-            chosen = min(
-                candidates,
-                key=lambda pr: (pr.valid_to - pr.valid_from).days,
-            )
-        else:
-            chosen = _pick_dynamic_price()
-
-        if not chosen or not chosen.valid_from or not chosen.valid_to:
-            return (0.0, 0.0)
-
-        w_nights = max(1, (chosen.valid_to - chosen.valid_from).days)
-        return (
-            float(chosen.adult_price) / w_nights,
-            float(chosen.child_price or 0) / w_nights,
-        )
-
-    # â”£â”£â”£ Build synthetic options list â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
-    # _min_notice_date, _max_horizon_date, _max_checkout_date are set
-    # inside the loop below and reused by the template.
     _today = _date.today()
     _min_notice_date = _today + _td(days=7)
     _max_horizon_date = _today + _td(days=365)
     _max_checkout_date = _max_horizon_date + _td(days=int(package.duration_nights or 7))
 
     validation = {"ok": True, "code": "", "message": ""}
+    if url_check_in and url_check_out:
+        if check_in < _min_notice_date:
+            validation = {
+                "ok": False,
+                "code": "too_soon",
+                "message": (
+                    "We need at least 7 days' notice to prepare this trip. "
+                    "Please choose a departure a week or more from today."
+                ),
+            }
+        elif check_in > _max_horizon_date:
+            validation = {
+                "ok": False,
+                "code": "too_far",
+                "message": (
+                    "Bookings are open up to 1 year in advance. "
+                    "Please choose a nearer date."
+                ),
+            }
 
-    options: list[dict] = []
-    for opt in options_rows:
-        flight = opt.flight
+    from services.package_options_service import options_for_package
 
-        if url_check_in and url_check_out:
-            if check_in < _min_notice_date:
-                validation = {
-                    "ok": False,
-                    "code": "too_soon",
-                    "message": (
-                        "We need at least 7 days' notice to prepare this trip. "
-                        "Please choose a departure a week or more from today."
-                    ),
-                }
-            elif check_in > _max_horizon_date:
-                validation = {
-                    "ok": False,
-                    "code": "too_far",
-                    "message": (
-                        "Bookings are open up to 1 year in advance. "
-                        "Please choose a nearer date."
-                    ),
-                }
-            elif _pick_dynamic_price() is None:
-                validation = {
-                    "ok": False,
-                    "code": "no_rate",
-                    "message": (
-                        "No pricing available for those dates. "
-                        "Try dates within our booking calendar."
-                    ),
-                }
-
-        dynamic_price = _pick_dynamic_price()
-        price = dynamic_price or opt.price
-        airline = _resolve_airline(flight)
-
-        base_adult = float(price.adult_price) if price else None
-        base_child = float(price.child_price) if price else None
-
-        s_adult, s_child = _surcharge_for(
-            flight.airline_name if flight else None,
-            flight.flight_from if flight else None,
+    options = []
+    if validation["ok"]:
+        options = options_for_package(
+            package=package,
+            check_in=check_in,
+            check_out=check_out,
+            adults=adults,
+            children=children,
+            tolerance_days=3,
         )
-        final_adult = (base_adult + s_adult) if base_adult is not None else None
-        final_child = (base_child + s_child) if base_child is not None else None
+        if url_check_in and url_check_out and not options:
+            validation = {
+                "ok": False,
+                "code": "no_flights",
+                "message": (
+                    "No departures available within 3 days of those dates. "
+                    "Try shifting your travel dates by a few days."
+                ),
+            }
 
-        opt_departure = check_in if url_check_in else opt.departure_date
-        opt_return = check_out if url_check_out else opt.return_date
+    sidebar_pricing = {
+        "adult_rate": None,
+        "child_rate": None,
+        "nights": nights,
+        "total": None,
+        "per_person": None,
+        "currency": currency or "GBP",
+    }
+    if options:
+        best = options[0]
+        sidebar_pricing = {
+            "adult_rate": best["price_adult"],
+            "child_rate": best["price_child"],
+            "nights": best["nights"],
+            "total": best["grand_total"],
+            "per_person": best["price_adult"],
+            "currency": best["currency"],
+        }
 
-        options.append({
-            "id": opt.id,
-            "label": opt.display_label,
-            "departure_date": opt_departure,
-            "return_date": opt_return,
-            "flight_from": flight.flight_from if flight else None,
-            "flight_to": flight.flight_to if flight else None,
-            "airline_name": airline["name"],
-            "airline_logo": airline["logo_url"],
-            "luggage_allowance": flight.luggage_allowance if flight else None,
-            "price_adult": final_adult,
-            "price_child": final_child,
-            "currency": price.currency if price else None,
-        })
-
-    # â”£â”£â”£ Reviews (MongoDB, best-effort) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
     reviews: list[dict] = []
     user_has_reviewed = False
     try:
-        from flask_login import current_user  # noqa: PLC0415
-        from mongo.reviews import (  # noqa: PLC0415
+        from flask_login import current_user
+        from mongo.reviews import (
             list_reviews_for_product,
             has_reviewed,
         )
@@ -598,43 +372,22 @@ def package_detail(slug: str):
                 product_type="package",
                 product_id=package.id,
             )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         current_app.logger.debug("package reviews unavailable: %s", exc)
 
-    # ─── Sidebar pricing (land = nightly × nights × party) ───
-    _adult_nightly, _child_nightly = _nightly_rate_for(check_in)
-
-    _land_adult = _adult_nightly * nights * adults
-    _land_child = _child_nightly * nights * children
-    _land_total = _land_adult + _land_child
-
-    sidebar_pricing = {
-        "adult_rate": _adult_nightly,
-        "child_rate": _child_nightly,
-        "nights": nights,
-        "total": _land_total if _land_total else None,
-        "per_person": _adult_nightly * nights,
-        "currency": currency or "GBP",
-    }
-    # â”£â”£â”£ Override with real flight_prices options if available â”£â”£â”£â”£
-    # When the destination has an airport_code AND flight_prices rows
-    # exist for it, replace the synthetic per-flight options above with
-    # real per-airline cards whose grand_total includes land + flights
-    # + markup + transfer. If there is no data (e.g. Sharm has no
-    # EasyJet scraper yet), the synthetic options remain in place.
-    from services import flight_service  # noqa: PLC0415
-
-    _real_options = flight_service.flight_options_for_package(
-        package=package,
-        check_in=check_in,
-        check_out=check_out,
-        passengers=adults + children,
-        land_total=sidebar_pricing.get("total") or 0.0,
-        currency=currency or "GBP",
-        tolerance_days=3,
-    )
-    if _real_options:
-        options = _real_options
+    # Airline lookup for JS-side logo resolution (template reads it).
+    airlines_by_name: dict[str, dict] = {}
+    try:
+        from models import Airline
+        for al in db.session.scalars(select(Airline)):
+            if al.name:
+                normalized = al.name.strip().lower().replace(" ", "")
+                airlines_by_name[normalized] = {
+                    "name": al.name,
+                    "logo_url": al.logo_url,
+                }
+    except Exception as exc:
+        current_app.logger.debug("airline lookup failed: %s", exc)
 
     return render_template(
         "public/package_detail.html",

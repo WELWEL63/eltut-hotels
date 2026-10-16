@@ -180,17 +180,55 @@ def price_hotel(
 
 
 # ─── Packages ──────────────────────────────────────────────────────
-def price_package(package_id: int, adults: int, children: int = 0) -> Decimal:
+def price_package(
+    package_id: int,
+    adults: int,
+    children: int = 0,
+    package_flight_id: int | None = None,
+) -> Decimal:
     """
     Return the total price for a package given party composition.
 
-    Uses the first row in package_prices for the package.
+    If package_flight_id is provided, price that PackageFlight card via
+    services.package_pricing_service.compute_package_flight_card — the
+    same function the admin preview uses, so customer and admin always
+    agree to the penny.
+
+    If package_flight_id is None, we still fall back to the FIRST
+    PackagePrice row for backwards compatibility with old bookmarks or
+    API clients, but callers should always prefer the card path.
     """
     _positive_int(adults, "adults")
     _positive_int(children, "children")
     if adults == 0 and children == 0:
         raise InvalidPricingInput("at least one adult or child is required")
 
+    if package_flight_id:
+        from models import Package, PackageFlight
+        from services.package_pricing_service import compute_package_flight_card
+
+        pkg = db.session.get(Package, package_id)
+        if pkg is None:
+            raise PriceNotFound(f"package {package_id} not found")
+
+        card = db.session.get(PackageFlight, package_flight_id)
+        if card is None or card.package_id != package_id or not card.is_active:
+            raise PriceNotFound(
+                f"package_flight {package_flight_id} not found for package {package_id}"
+            )
+
+        calc = compute_package_flight_card(pkg, card)
+        if not calc.get("ok"):
+            raise PriceNotFound(
+                f"package_flight {package_flight_id} has no price "
+                f"({calc.get('error') or 'unknown error'})"
+            )
+
+        per_person = _dec(calc.get("per_person") or 0)
+        pax = max(1, int(adults) + int(children))
+        return _round(per_person * pax)
+
+    # Legacy fallback: first PackagePrice row
     row = db.session.scalar(
         select(PackagePrice)
         .where(PackagePrice.package_id == package_id)
@@ -254,6 +292,7 @@ def compute_booking_total(
     check_in: Optional[date] = None,
     check_out: Optional[date] = None,
     addons: Optional[Iterable[dict[str, Any]]] = None,
+    package_flight_id: Optional[int] = None,
 ) -> Decimal:
     """
     Compute the total for a booking, product + add-ons combined.
@@ -271,7 +310,10 @@ def compute_booking_total(
     if product_type == PRODUCT_TYPE_ACTIVITY:
         base = price_activity(product_id, adults, children)
     elif product_type == PRODUCT_TYPE_PACKAGE:
-        base = price_package(product_id, adults, children)
+        base = price_package(
+            product_id, adults, children,
+            package_flight_id=package_flight_id,
+        )
     elif product_type == PRODUCT_TYPE_HOTEL:
         if check_in is None or check_out is None:
             raise InvalidPricingInput(

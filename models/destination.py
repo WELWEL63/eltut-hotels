@@ -1,6 +1,6 @@
 """
 models/destination.py
-─────────────────────
+──────────────────────
 The destinations table — shared geographic reference used by activities,
 hotels, and packages.
 
@@ -25,13 +25,18 @@ DESIGN NOTES
       (e.g. HRG for Hurghada). Used by the flight pricing service to look
       up flight_prices rows. Nullable — some destinations (e.g. Nile
       Cruise) have no single airport.
+    - `is_bookable` gates the destination from customer-facing search
+      and detail pages. Defaults to True. Admins set it False for
+      destinations that have packages but no flight_prices data yet
+      (Sharm, Luxor, Nile Cruise). Flip back to True once flight CSVs
+      are imported — no other code change needed.
 """
 
 from __future__ import annotations
 
 from decimal import Decimal
 
-from sqlalchemy import Numeric, String, Text
+from sqlalchemy import Boolean, Numeric, String, Text, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from models import Base, SlugMixin, TimestampMixin
@@ -56,6 +61,7 @@ class Destination(Base, SlugMixin, TimestampMixin):
     latitude       : decimal degrees (-90..90), NUMERIC(9,6)
     longitude      : decimal degrees (-180..180), NUMERIC(9,6)
     airport_code   : IATA code of nearest commercial airport (nullable)
+    is_bookable    : customer-facing gate; default True
     created_at / updated_at : from TimestampMixin
     """
 
@@ -63,14 +69,14 @@ class Destination(Base, SlugMixin, TimestampMixin):
 
     __slug_source__ = "name"  # SlugMixin reads this to know what to slugify
 
-    # ─── Identity ────────────────────────────────────────────────────
+    # ─── Identity ─────────────────────────────────────────────────────
     id: Mapped[int] = mapped_column(primary_key=True)
 
     name: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False, index=True
     )
 
-    # ─── Classification ─────────────────────────────────────────────
+    # ─── Classification ───────────────────────────────────────────────
     country: Mapped[str] = mapped_column(
         String(80),
         nullable=False,
@@ -80,12 +86,12 @@ class Destination(Base, SlugMixin, TimestampMixin):
 
     region: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
-    # ─── Content ────────────────────────────────────────────────────
+    # ─── Content ──────────────────────────────────────────────────────
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     hero_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    # ─── Geography ──────────────────────────────────────────────────
+    # ─── Geography ────────────────────────────────────────────────────
     latitude: Mapped[Decimal | None] = mapped_column(
         Numeric(9, 6), nullable=True
     )
@@ -93,9 +99,20 @@ class Destination(Base, SlugMixin, TimestampMixin):
         Numeric(9, 6), nullable=True
     )
 
-    # ─── Flight pricing link ────────────────────────────────────────
+    # ─── Flight pricing link ──────────────────────────────────────────
     # IATA code of the nearest commercial airport (e.g. HRG for Hurghada).
     # Nullable because not every destination has one (e.g. Nile Cruise).
     airport_code: Mapped[str | None] = mapped_column(
         String(3), nullable=True, index=True
+    )
+
+    # ─── Customer-facing gate ─────────────────────────────────────────
+    # False = hidden from search results and detail pages. Used while
+    # a destination has no flight_prices rows yet.
+    is_bookable: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default=true(),
+        index=True,
     )

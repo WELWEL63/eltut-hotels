@@ -1411,7 +1411,7 @@
         const bookBtn = document.getElementById('book-departure-btn');
         if (bookBtn) {
             const params = new URLSearchParams();
-            params.set('option_id', optionId);
+            params.set('package_flight_id', optionId);
             if (CHECK_IN) params.set('check_in', CHECK_IN);
             if (CHECK_OUT) params.set('check_out', CHECK_OUT);
             params.set('adults', ADULTS);

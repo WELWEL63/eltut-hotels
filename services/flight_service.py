@@ -25,10 +25,6 @@ Public API
                                passengers=1, tolerance_days=3)
         -> dict | None  (convenience wrapper for the package detail page)
 
-    flight_options_for_package(package, check_in, check_out,
-                               passengers=1, land_total=None, ...)
-        -> list[dict]  (option cards for the package detail page, one per airline,
-                        with land + flight + markup + transfer baked into grand_total)
 
 Design notes
 ────────────
@@ -43,9 +39,6 @@ Design notes
   we look ±tolerance_days and use the closest. The response flags this
   via 'flexible_date_used' and 'offset_days' so the UI can say
   "no flight on X — showing Y instead".
-* flight_options_for_package picks the CLOSEST date first, then
-  cheapest as a tiebreaker — so a user asking for 1 Nov gets 1 Nov
-  if it exists, even if a cheaper flight is available on 4 Nov.
 """
 
 from __future__ import annotations
@@ -351,175 +344,6 @@ def flight_summary_for_package(
     )
 
 
-# ── Options builder for the package detail page ─────────────────────
-# Default markup applied to the flight legs (percentage).
-# Land cost already includes the hotel's own margin — markup here is
-# only on the flights to mirror the tour-operator fee model.
-DEFAULT_FLIGHT_MARKUP_PCT = Decimal("12.5")
-
-# Transfer cost added per booking (covers airport ↔ hotel transfer).
-DEFAULT_TRANSFER_GBP = Decimal("40.00")
-
-
-def _transfer_cost(passengers: int) -> Decimal:
-    """One-off transfer fee per booking. Scales mildly with party size."""
-    pax = max(int(passengers), 1)
-    return DEFAULT_TRANSFER_GBP + Decimal(pax - 1) * Decimal("10.00")
-
-
-def flight_options_for_package(
-    package: Any,
-    check_in: date,
-    check_out: date,
-    passengers: int = 1,
-    land_total: float | Decimal | None = None,
-    *,
-    currency: str = "GBP",
-    tolerance_days: int = 3,
-    markup_pct: Decimal | float | None = None,
-    transfer_gbp: Decimal | None = None,
-) -> list[dict]:
-    """
-    Build the option-card list for the package detail page.
-
-    One card per airline: that airline's CLOSEST-date flight (cheapest
-    as tiebreaker) within [check_in - tolerance_days,
-    check_in + tolerance_days], combined with the land cost + a flight
-    markup + a transfer fee, so the card shows the FULL total the
-    customer will pay.
-
-    Returns an empty list if:
-      * the package has no destination_id
-      * the destination has no airport_code
-      * no flights exist within the tolerance window
-
-    Each returned dict matches the existing option shape PLUS extra
-    fields for the card display:
-
-        id, label, departure_date, return_date,
-        flight_from, flight_to,
-        airline_name, airline_logo, luggage_allowance,
-        price_adult, price_child, currency,
-        grand_total, land_total, flight_total, markup_total,
-        transfer_total, flexible_date_used, offset_days
-    """
-    if not package or not getattr(package, "destination_id", None):
-        return []
-
-    dest = db.session.get(Destination, package.destination_id)
-    if not dest or not dest.airport_code:
-        return []
-
-    pax = max(int(passengers), 1)
-    dest_airport = dest.airport_code.upper()
-    window_start = check_in - timedelta(days=tolerance_days)
-    window_end = check_in + timedelta(days=tolerance_days)
-
-    # All outbound flights in the window
-    candidates = db.session.scalars(
-        select(FlightPrice)
-        .where(
-            FlightPrice.destination == dest_airport,
-            FlightPrice.direction == "out",
-            FlightPrice.departure_date >= window_start,
-            FlightPrice.departure_date <= window_end,
-        )
-    ).all()
-
-    if not candidates:
-        return []
-
-    # Group by airline
-    by_airline: dict[str, list[FlightPrice]] = {}
-    for row in candidates:
-        key = (row.airline or "Unknown").strip()
-        by_airline.setdefault(key, []).append(row)
-
-    # Land total comes from the caller (sidebar_pricing.total).
-    land = Decimal(str(land_total or 0)).quantize(Decimal("0.01"))
-
-    markup_factor = Decimal(str(markup_pct)) if markup_pct is not None \
-        else DEFAULT_FLIGHT_MARKUP_PCT
-
-    transfer = transfer_gbp if transfer_gbp is not None else _transfer_cost(pax)
-
-    options: list[dict] = []
-
-    for airline, rows in by_airline.items():
-        # CLOSEST date first, cheapest as tiebreaker — so a user asking
-        # for 1 Nov gets 1 Nov if it exists, even if 4 Nov is cheaper.
-        def sort_key(r: FlightPrice):
-            offset = abs((r.departure_date - check_in).days)
-            return (offset, r.price_gbp)
-
-        chosen = sorted(rows, key=sort_key)[0]
-        offset_days = (chosen.departure_date - check_in).days
-
-        outbound_price = Decimal(chosen.price_gbp)
-
-        # Try to find a matching inbound flight (same airline, closest return)
-        # This is auto-pick mode — no pinned inbound, so we estimate.
-        return_price = outbound_price
-        return_estimated = True
-
-        # Nights from the customer's chosen check_in/check_out
-        # (this function is called for auto-pick packages that use
-        #  package.check_in / package.check_out, not card-level dates)
-        _nights = 0
-        if check_in and check_out:
-            _nights = (check_out - check_in).days
-
-        flight_total_one_pax = outbound_price + return_price
-        flight_total = flight_total_one_pax * pax
-
-        # Markup on flights only
-        markup_total = (
-            flight_total * markup_factor / Decimal("100")
-        ).quantize(Decimal("0.01"))
-
-        # Card grand total = land + flights + markup + transfer
-        grand = (
-            land + flight_total + markup_total + transfer
-        ).quantize(Decimal("0.01"))
-
-        # price_adult is a per-passenger equivalent so the existing
-        # JS recompute doesn't break. grand_total carries the truth.
-        per_adult_equiv = (grand / Decimal(pax)).quantize(Decimal("0.01"))
-        per_child_equiv = per_adult_equiv
-
-        options.append({
-            "id": chosen.id,
-            "label": (
-                f"{chosen.airline or 'Flight'} · "
-                f"{_airport_display(chosen.origin)} → "
-                f"{_airport_display(chosen.destination)}"
-            ),
-            "departure_date": chosen.departure_date,
-            "return_date": check_out,
-            "flight_from": _airport_display(chosen.origin),
-            "flight_to": _airport_display(chosen.destination),
-            "airline_name": chosen.airline,
-            "airline_logo": None,
-            "luggage_allowance": None,
-            "price_adult": float(per_adult_equiv),
-            "price_child": float(per_child_equiv),
-            "currency": currency,
-            # Extra fields used by the updated card + JS
-            "grand_total": float(grand),
-            "land_total": float(land),
-            "flight_total": float(flight_total),
-            "markup_total": float(markup_total),
-            "transfer_total": float(transfer),
-            "flexible_date_used": offset_days != 0,
-            "offset_days": offset_days,
-            "return_estimated": return_estimated,
-        })
-
-    # Cheapest first
-    options.sort(key=lambda o: o["grand_total"])
-    return options
-
-
 __all__ = [
     "available_origins",
     "cheapest_flight",
@@ -527,5 +351,4 @@ __all__ = [
     "flight_with_fallback",
     "round_trip_cost",
     "flight_summary_for_package",
-    "flight_options_for_package",
 ]

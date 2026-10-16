@@ -225,29 +225,69 @@ def _room_stay_pricing(room: Room, check_in: date | None, check_out: date | None
     }
 
 
-def _package_pricing(package: Package, adults: int, children: int) -> dict:
-    row = db.session.scalars(
-        select(PackagePrice)
-        .where(PackagePrice.package_id == package.id)
-        .order_by(PackagePrice.id.asc()).limit(1)
-    ).first()
-    if row is None:
-        return {
-            "adult_rate": None, "child_rate": None, "nights": package.duration_nights,
-            "per_night": None, "total": None, "currency": "GBP",
-        }
-    adult_rate = float(row.adult_price or 0)
-    child_rate = float(row.child_price or 0)
-    per_person = adult_rate * adults + child_rate * children
-    return {
-        "adult_rate": adult_rate,
-        "child_rate": child_rate,
-        "nights": package.duration_nights,
-        "per_night": None,
-        "per_person": per_person,
-        "total": per_person,
-        "currency": row.currency or "GBP",
+def _package_pricing(
+    package: Package,
+    adults: int,
+    children: int,
+    package_flight_id: int | None = None,
+) -> dict:
+    """Price a package booking from a selected PackageFlight card.
+
+    Prices the card via services.package_pricing_service, the same
+    function the admin preview uses. No card -> zeroed dict so the
+    caller shows "select a departure" instead of a wrong number.
+    """
+    from services.package_pricing_service import compute_package_flight_card
+
+    empty = {
+        "adult_rate": None, "child_rate": None, "nights": package.duration_nights,
+        "per_night": None, "per_person": None, "total": None, "currency": "GBP",
+        "package_flight_id": None,
+        "hotel_total": None, "flight_total": None, "markup": None, "tax": None,
+        "transfer_fee": None,
+        "departure_date": None, "return_date": None,
+        "airline_name": None, "airline_logo": None,
+        "flight_from": None, "flight_to": None,
     }
+    if not package_flight_id:
+        return empty
+
+    from models import PackageFlight
+    card = db.session.get(PackageFlight, package_flight_id)
+    if card is None or card.package_id != package.id or not card.is_active:
+        return empty
+
+    calc = compute_package_flight_card(package, card)
+    if not calc.get("ok"):
+        return empty
+
+    pax = max(1, int(adults) + int(children))
+    per_person = float(calc.get("per_person") or 0.0)
+    grand_total = per_person * pax
+
+    return {
+        "adult_rate": round(per_person, 2),
+        "child_rate": round(per_person, 2),
+        "nights": int(calc.get("nights") or package.duration_nights),
+        "per_night": None,
+        "per_person": round(per_person, 2),
+        "total": round(grand_total, 2),
+        "currency": calc.get("currency") or "GBP",
+        "package_flight_id": card.id,
+        "hotel_total": round(float(calc.get("hotel_total") or 0.0), 2),
+        "flight_total": round(float(calc.get("flight_total") or 0.0), 2),
+        "markup": round(float(calc.get("markup") or 0.0), 2),
+        "tax": round(float(calc.get("tax") or 0.0), 2),
+        "transfer_fee": round(float(calc.get("transfer_fee") or 0.0), 2),
+        "departure_date": calc.get("check_in"),
+        "return_date": calc.get("check_out"),
+        "airline_name": calc.get("airline_name"),
+        "airline_logo": calc.get("airline_logo"),
+        "flight_from": calc.get("flight_from"),
+        "flight_to": calc.get("flight_to"),
+    }
+
+
 
 
 def _activity_pricing(activity: Activity, adults: int, children: int) -> dict:
@@ -308,57 +348,56 @@ def booking_start(product_type: str, product_id: int):
     elif product_type == PRODUCT_TYPE_ACTIVITY and not activity_date:
         activity_date = date.today() + timedelta(days=7)
 
-    # ─── Optional departure option (packages only) ─────────────────
-    option = None
-    raw_option_id = (request.args.get("option_id") or "").strip()
-    if product_type == "package" and raw_option_id:
+    # ─── Optional departure card (packages only) ───────────────────
+    # The detail page sends ?package_flight_id=<PackageFlight.id>.
+    # Legacy ?option_id=<PackageOption.id> is still accepted as a
+    # fallback so old bookmarked URLs don't 404.
+    package_flight_id: int | None = None
+    raw_pfid = (request.args.get("package_flight_id") or "").strip()
+    if product_type == "package" and raw_pfid:
         try:
-            option_id = int(raw_option_id)
+            package_flight_id = int(raw_pfid)
         except ValueError:
-            option_id = None
-        if option_id:
-            candidate = db.session.get(PackageOption, option_id)
-            if candidate and candidate.package_id == product.id and candidate.is_active:
-                option = candidate
+            package_flight_id = None
+
+    option = None  # kept for template backward-compat
+    if product_type == "package":
+        from models import PackageFlight
+        if package_flight_id:
+            card = db.session.get(PackageFlight, package_flight_id)
+            if card and card.package_id == product.id and card.is_active:
+                option = card
+        if option is None:
+            raw_option_id = (request.args.get("option_id") or "").strip()
+            if raw_option_id:
+                try:
+                    legacy_opt_id = int(raw_option_id)
+                except ValueError:
+                    legacy_opt_id = None
+                if legacy_opt_id:
+                    candidate = db.session.get(PackageOption, legacy_opt_id)
+                    if candidate and candidate.package_id == product.id and candidate.is_active:
+                        option = candidate
 
     meta = _product_meta(product_type, product)
 
-    # If a valid option was selected, override meta's price fields
-    if option is not None and option.price is not None:
-        try:
-            meta["price_adult"] = float(option.price.adult_price)
-        except Exception:
-            pass
-        try:
-            meta["price_child"] = float(option.price.child_price)
-        except Exception:
-            pass
-        if option.price.currency:
-            meta["currency"] = option.price.currency
-        if option.departure_date:
-            meta["default_start"] = option.departure_date.isoformat()
+    # If a departure card was selected, seed meta's display fields.
+    # The authoritative price comes from _package_pricing() below.
+    if package_flight_id and option is not None:
+        dep = getattr(option, "outbound_flight", None)
+        if dep is not None and getattr(dep, "departure_date", None):
+            meta["default_start"] = dep.departure_date.isoformat()
+
 
     # ─── Compute the price for the stay (server-side) ──────────────
     try:
         if product_type == PRODUCT_TYPE_HOTEL:
             pricing = _room_stay_pricing(product, check_in, check_out, adults, children)
         elif product_type == PRODUCT_TYPE_PACKAGE:
-            # Use the selected departure option price if we have one.
-            # Otherwise fall back to the package's first price row.
-            if option is not None and option.price is not None:
-                _adult = float(option.price.adult_price or 0)
-                _child = float(option.price.child_price or 0)
-                pricing = {
-                    "adult_rate": _adult,
-                    "child_rate": _child,
-                    "nights": product.duration_nights,
-                    "per_night": None,
-                    "per_person": _adult,
-                    "total": (_adult * adults) + (_child * children),
-                    "currency": option.price.currency or "GBP",
-                }
-            else:
-                pricing = _package_pricing(product, adults, children)
+            pricing = _package_pricing(
+                product, adults, children,
+                package_flight_id=package_flight_id,
+            )
         elif product_type == PRODUCT_TYPE_ACTIVITY:
             pricing = _activity_pricing(product, adults, children)
         else:
@@ -389,39 +428,81 @@ def booking_start(product_type: str, product_id: int):
     # ─── Serialise the option for the template ─────────────────────
     option_summary = None
     if option is not None:
-        flight = option.flight
-        price = option.price
-        # Resolve airline logo (best-effort via Airline FK, then name match)
-        airline_logo = None
-        if flight is not None:
-            try:
-                if getattr(flight, "airline_id", None):
-                    al = db.session.get(Airline, flight.airline_id)
-                    if al and al.logo_url:
-                        airline_logo = al.logo_url
-                if airline_logo is None and flight.airline_name:
-                    normalized = flight.airline_name.strip().lower().replace(" ", "")
+        from models import PackageFlight as _PF
+        if isinstance(option, _PF):
+            # PackageFlight card — pull display fields from outbound leg
+            ob = option.outbound_flight
+            airline_logo = None
+            airline_name = None
+            flight_from = None
+            flight_to = None
+            luggage = None
+            if ob is not None:
+                airline_name = getattr(ob, "airline", None)
+                flight_from = getattr(ob, "origin", None)
+                flight_to = getattr(ob, "destination", None)
+                luggage = getattr(ob, "luggage_kg", None)
+                if airline_name:
+                    normalized = airline_name.strip().lower().replace(" ", "")
                     for a in db.session.scalars(select(Airline)):
                         if a.name and a.name.strip().lower().replace(" ", "") == normalized:
-                            airline_logo = a.logo_url
+                            if a.logo_url:
+                                airline_logo = a.logo_url
+                            airline_name = a.name
                             break
-            except Exception:
-                airline_logo = None
-
-        option_summary = {
-            "id": option.id,
-            "label": option.display_label,
-            "departure_date": option.departure_date,
-            "return_date": option.return_date,
-            "flight_from": flight.flight_from if flight else None,
-            "flight_to": flight.flight_to if flight else None,
-            "airline_name": flight.airline_name if flight else None,
-            "airline_logo": airline_logo,
-            "luggage_allowance": flight.luggage_allowance if flight else None,
-            "price_adult": float(price.adult_price) if price else None,
-            "price_child": float(price.child_price) if price else None,
-            "currency": price.currency if price else None,
-        }
+            option_summary = {
+                "id": option.id,
+                "label": (
+                    f"{airline_name or 'Flight'} "
+                    f"{getattr(ob, 'departure_date', '') or ''}"
+                ).strip(),
+                "departure_date": getattr(ob, "departure_date", None) if ob else None,
+                "return_date": (
+                    getattr(option.inbound_flight, "departure_date", None)
+                    if option.inbound_flight else None
+                ),
+                "flight_from": flight_from,
+                "flight_to": flight_to,
+                "airline_name": airline_name,
+                "airline_logo": airline_logo,
+                "luggage_allowance": luggage,
+                "price_adult": pricing.get("adult_rate"),
+                "price_child": pricing.get("child_rate"),
+                "currency": pricing.get("currency"),
+            }
+        else:
+            # Legacy PackageOption
+            flight = getattr(option, "flight", None)
+            price = getattr(option, "price", None)
+            airline_logo = None
+            if flight is not None:
+                try:
+                    if getattr(flight, "airline_id", None):
+                        al = db.session.get(Airline, flight.airline_id)
+                        if al and al.logo_url:
+                            airline_logo = al.logo_url
+                    if airline_logo is None and flight.airline_name:
+                        normalized = flight.airline_name.strip().lower().replace(" ", "")
+                        for a in db.session.scalars(select(Airline)):
+                            if a.name and a.name.strip().lower().replace(" ", "") == normalized:
+                                airline_logo = a.logo_url
+                                break
+                except Exception:
+                    airline_logo = None
+            option_summary = {
+                "id": option.id,
+                "label": getattr(option, "display_label", None),
+                "departure_date": getattr(option, "departure_date", None),
+                "return_date": getattr(option, "return_date", None),
+                "flight_from": getattr(flight, "flight_from", None) if flight else None,
+                "flight_to": getattr(flight, "flight_to", None) if flight else None,
+                "airline_name": getattr(flight, "airline_name", None) if flight else None,
+                "airline_logo": airline_logo,
+                "luggage_allowance": getattr(flight, "luggage_allowance", None) if flight else None,
+                "price_adult": float(price.adult_price) if price else None,
+                "price_child": float(price.child_price) if price else None,
+                "currency": price.currency if price else None,
+            }
 
     return render_template(
         "public/booking_start.html",
@@ -497,8 +578,24 @@ def booking_create():
             continue
         qty = _to_int(request.form.get(f"addon_qty_{aid}"), 1, 1, 20)
         addon_specs.append({"activity_id": aid, "quantity": qty})
+    # Package flight card (packages only) — the single source of
+    # truth for package pricing. Missing for hotels/activities.
+    package_flight_id: int | None = None
+    if product_type == PRODUCT_TYPE_PACKAGE:
+        raw_pfid = (request.form.get("package_flight_id") or "").strip()
+        if raw_pfid:
+            try:
+                package_flight_id = int(raw_pfid)
+            except ValueError:
+                package_flight_id = None
+        if package_flight_id is None:
+            flash(
+                "Please select a departure on the package page before booking.",
+                "warning",
+            )
+            return redirect(request.referrer or url_for("public.index"))
 
-    # Compute the total server-side
+    # Compute the total server-side from the same source the form shows.
     try:
         total = pricing_service.compute_booking_total(
             product_type=product_type,
@@ -508,6 +605,7 @@ def booking_create():
             check_in=check_in,
             check_out=check_out,
             addons=addon_specs,
+            package_flight_id=package_flight_id,
         )
     except pricing_service.PricingError as exc:
         flash(f"Pricing error: {exc}", "danger")
@@ -690,9 +788,227 @@ def booking_confirmation(reference: str):
     )
     if booking is None:
         abort(404)
+
+    # ─── Enrich context for the rich confirmation page ─────────────
+    from models import (
+        BookingItem, Package, PackageFlight, Hotel, Room, Destination,
+        PackageImage, PackageInclusion, PackageExclusion, PackageItinerary,
+        PackageTip, FlightPrice,
+    )
+    from services.package_pricing_service import compute_package_flight_card
+
+    items = list(db.session.scalars(
+        select(BookingItem)
+        .where(BookingItem.booking_id == booking.id)
+        .order_by(BookingItem.id)
+    ))
+
+    primary_item = next(
+        (it for it in items if it.item_type == "primary"),
+        items[0] if items else None,
+    )
+    addon_items = [it for it in items if it.item_type != "primary"]
+
+    package = None
+    package_flight = None
+    hotel = None
+    room = None
+    destination = None
+    images = []
+    inclusions = []
+    exclusions = []
+    itineraries = []
+    tips = []
+    pricing_breakdown = None
+    flight_out = None
+    flight_back = None
+
+    if booking.product_type == "package" and primary_item is not None:
+        package = db.session.get(Package, primary_item.product_id)
+        if package is not None:
+            hotel = db.session.get(Hotel, package.hotel_id) if package.hotel_id else None
+            room = db.session.get(Room, package.room_id) if package.room_id else None
+            destination = (
+                db.session.get(Destination, package.destination_id)
+                if package.destination_id else None
+            )
+            images = list(db.session.scalars(
+                select(PackageImage)
+                .where(PackageImage.package_id == package.id)
+                .order_by(PackageImage.sort_order)
+            ))
+            inclusions = list(db.session.scalars(
+                select(PackageInclusion)
+                .where(PackageInclusion.package_id == package.id)
+                .order_by(PackageInclusion.sort_order)
+            ))
+            exclusions = list(db.session.scalars(
+                select(PackageExclusion)
+                .where(PackageExclusion.package_id == package.id)
+                .order_by(PackageExclusion.sort_order)
+            ))
+            itineraries = list(db.session.scalars(
+                select(PackageItinerary)
+                .where(PackageItinerary.package_id == package.id)
+                .order_by(PackageItinerary.day_number)
+            ))
+            tips = list(db.session.scalars(
+                select(PackageTip)
+                .where(PackageTip.package_id == package.id)
+                .order_by(PackageTip.sort_order, PackageTip.id)
+            ))
+
+            # The card the customer picked — infer the cheapest matching one
+            # for the booking dates if we can't know for sure.
+            cards = list(db.session.scalars(
+                select(PackageFlight)
+                .where(PackageFlight.package_id == package.id)
+                .where(PackageFlight.is_active.is_(True))
+                .order_by(PackageFlight.sort_order, PackageFlight.id)
+            ))
+            for card in cards:
+                calc = compute_package_flight_card(package, card)
+                if not calc.get("ok"):
+                    continue
+                if (booking.check_in_date and calc.get("check_in") == booking.check_in_date):
+                    package_flight = card
+                    break
+            if package_flight is None and cards:
+                package_flight = cards[0]
+
+            if package_flight is not None:
+                flight_out = package_flight.outbound_flight
+                flight_back = package_flight.inbound_flight
+                calc = compute_package_flight_card(package, package_flight)
+                if calc.get("ok"):
+                    per_person = float(calc.get("per_person") or 0)
+                    pax = max(1, (booking.travellers_adults or 1) + (booking.travellers_children or 0))
+                    pricing_breakdown = {
+                        "per_person": round(per_person, 2),
+                        "pax": pax,
+                        "land_total": round(float(calc.get("hotel_total") or 0), 2),
+                        "flight_total": round(float(calc.get("flight_total") or 0), 2),
+                        "markup": round(float(calc.get("markup") or 0), 2),
+                        "tax": round(float(calc.get("tax") or 0), 2),
+                        "transfer": round(float(calc.get("transfer_fee") or 0), 2),
+                        "subtotal": round(per_person * pax, 2),
+                        "currency": calc.get("currency") or booking.currency or "GBP",
+                        "nights": int(calc.get("nights") or 0),
+                    }
+
+    # Addon subtotal — Decimal to avoid float/Decimal mixing in templates
+    from decimal import Decimal as _Dec
+    addon_total = sum(
+        (_Dec(str(it.line_total or 0)) for it in addon_items),
+        _Dec("0.00"),
+    )
+
+    hotel_obj = None
+    hotel_rooms = []
+    hotel_images = []
+    hotel_facilities = []
+
+    activity_obj = None
+    activity_images = []
+    activity_inclusions = []
+    activity_tips = []
+    activity_languages = []
+    activity_price_row = None
+
+    hotel_room_obj = None
+    if booking.product_type == "hotel" and primary_item is not None:
+        # Hotel bookings store primary_item.product_id = Room.id.
+        # Resolve Room -> Hotel.
+        from models import Room as _RoomLookup
+        hotel_room_obj = db.session.get(_RoomLookup, primary_item.product_id)
+        hotel_obj = (
+            db.session.get(Hotel, hotel_room_obj.hotel_id)
+            if hotel_room_obj is not None else None
+        )
+        if hotel_obj is not None:
+            from models import HotelImage, HotelFacility, Room as _Room
+            hotel_images = list(db.session.scalars(
+                select(HotelImage)
+                .where(HotelImage.hotel_id == hotel_obj.id)
+                .order_by(HotelImage.sort_order)
+            ))
+            hotel_facilities = list(db.session.scalars(
+                select(HotelFacility)
+                .where(HotelFacility.hotel_id == hotel_obj.id)
+                .order_by(HotelFacility.id)
+                .limit(8)
+            ))
+            # Only show the booked room, not the whole list
+            hotel_rooms = [hotel_room_obj] if hotel_room_obj is not None else []
+            if destination is None and hotel_obj.destination_id:
+                destination = db.session.get(Destination, hotel_obj.destination_id)
+            if not images and hotel_images:
+                images = hotel_images
+
+    if booking.product_type == "activity" and primary_item is not None:
+        activity_obj = db.session.get(Activity, primary_item.product_id)
+        if activity_obj is not None:
+            from models import ActivityImage, ActivityInclusion, ActivityTip, ActivityLanguage, ActivityPrice
+            activity_images = list(db.session.scalars(
+                select(ActivityImage)
+                .where(ActivityImage.activity_id == activity_obj.id)
+                .order_by(ActivityImage.sort_order)
+            ))
+            activity_inclusions = list(db.session.scalars(
+                select(ActivityInclusion)
+                .where(ActivityInclusion.activity_id == activity_obj.id)
+                .order_by(ActivityInclusion.sort_order)
+            ))
+            activity_tips = list(db.session.scalars(
+                select(ActivityTip)
+                .where(ActivityTip.activity_id == activity_obj.id)
+                .order_by(ActivityTip.sort_order)
+            ))
+            activity_languages = list(db.session.scalars(
+                select(ActivityLanguage)
+                .where(ActivityLanguage.activity_id == activity_obj.id)
+            ))
+            activity_price_row = db.session.scalar(
+                select(ActivityPrice)
+                .where(ActivityPrice.activity_id == activity_obj.id)
+                .order_by(ActivityPrice.id)
+                .limit(1)
+            )
+            if destination is None and activity_obj.destination_id:
+                destination = db.session.get(Destination, activity_obj.destination_id)
+            if not images and activity_images:
+                images = activity_images
+
     return render_template(
         "public/booking_confirmation.html",
         booking=booking,
         payment_service_configured=payment_service.is_configured(),
+        primary_item=primary_item,
+        hotel_obj=hotel_obj,
+        hotel_room_obj=hotel_room_obj,
+        hotel_rooms=hotel_rooms,
+        hotel_images=hotel_images,
+        hotel_facilities=hotel_facilities,
+        activity_obj=activity_obj,
+        activity_images=activity_images,
+        activity_inclusions=activity_inclusions,
+        activity_tips=activity_tips,
+        activity_languages=activity_languages,
+        activity_price_row=activity_price_row,
+        addon_items=addon_items,
+        addon_total=round(addon_total, 2),
+        package=package,
+        package_flight=package_flight,
+        flight_out=flight_out,
+        flight_back=flight_back,
+        hotel=hotel,
+        room=room,
+        destination=destination,
+        images=images,
+        inclusions=inclusions,
+        exclusions=exclusions,
+        itineraries=itineraries,
+        tips=tips,
+        pricing_breakdown=pricing_breakdown,
     )
 
