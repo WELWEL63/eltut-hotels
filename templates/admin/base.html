@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {#
     Admin layout — reuses the public base.html shell (top navbar, footer)
@@ -68,6 +68,10 @@
                     <a href="{{ url_for('admin.flight_admin_index') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.flight_admin') %}active{% endif %}">
                         <i class="bi bi-cash-coin"></i> Flight prices
+                    </a>
+                    <a href="{{ maybe_url('admin.hotel_csv_index') }}"
+                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.hotel_csv') %}active{% endif %}">
+                        <i class="bi bi-filetype-csv"></i> Hotels CSV
                     </a>
                     <a href="{{ maybe_url('admin.destination_images') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.destination_') %}active{% endif %}">

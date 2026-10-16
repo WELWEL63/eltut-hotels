@@ -1,4 +1,4 @@
-﻿"""
+"""
 blueprints/admin/__init__.py
 ────────────────────────────
 The admin blueprint — CRUD, bookings, reports, media, users.
@@ -99,5 +99,8 @@ from blueprints.admin import destination_admin  # noqa: E402,F401
 from blueprints.admin import offer_admin        # noqa: E402,F401
 from blueprints.admin import flight_admin       # noqa: E402,F401
 
-
 __all__: list[str] = ["admin_bp", "admin_required"]
+
+# Imported last — after admin_bp is fully constructed — to avoid
+# a circular-import stub where @admin_bp.route() silently no-ops.
+from blueprints.admin import hotel_csv_admin    # noqa: E402,F401

@@ -104,7 +104,6 @@ def _get_or_create_destination(session, name, iata):
     slug = _slug(name)
     dest = session.scalar(select(Destination).where(Destination.slug == slug))
     if dest:
-        # Backfill airport_code if missing
         if iata and not dest.airport_code:
             dest.airport_code = iata
         return dest
@@ -148,13 +147,14 @@ def import_csv(file_obj, *, replace: bool = False):
     errors = []
 
     if replace:
-        # Only wipe rates — keep hotels/rooms, they're referenced by packages
+        # Only wipe rates — hotels/rooms are referenced by packages.
         db.session.query(RoomRate).delete()
         db.session.flush()
 
-    # Cache hotels by CSV HotelId
-    hotel_cache = {}
-    room_cache = {}
+    # Caches keyed by CSV-level identifiers so we don't re-query the DB
+    # for every row.
+    hotel_cache = {}   # {csv_hotel_id: Hotel}
+    room_cache = {}    # {(hotel.id, room_type_name, meal_plan): Room}
 
     for line_no, row in enumerate(reader, start=2):
         hotel_id_csv = _clean(row.get("HotelId"))
@@ -169,14 +169,12 @@ def import_csv(file_obj, *, replace: bool = False):
         iata = _clean(row.get("IataCode"))
         stars = _int(row.get("HotelStarRating"), 3)
 
-        # Hotel lookup by name + destination
         dest = _get_or_create_destination(db.session, region, iata)
 
-        cache_key = f"{hotel_id_csv}"
-        if cache_key in hotel_cache:
-            hotel = hotel_cache[cache_key]
+        # ── Hotel ────────────────────────────────────────────────
+        if hotel_id_csv in hotel_cache:
+            hotel = hotel_cache[hotel_id_csv]
         else:
-            # Find by name; create if not found
             hotel = db.session.scalar(
                 select(Hotel).where(Hotel.name == hotel_name)
             )
@@ -189,10 +187,16 @@ def import_csv(file_obj, *, replace: bool = False):
                 db.session.add(hotel)
                 db.session.flush()
                 new_hotels += 1
-            hotel_cache[cache_key] = hotel
+            hotel_cache[hotel_id_csv] = hotel
 
-        # Room
-        room_key = f"{hotel.id}:{room_type_csv}"
+        # ── Room ─────────────────────────────────────────────────
+        # KEY FIX: room identity is (hotel, type, meal_plan), not just
+        # (hotel, type). The CSV has multiple rows per room type — one
+        # per meal plan / date window — so without meal_plan in the key
+        # we'd create a fresh Room for every row.
+        meal_plan = _meal_label(row.get("MealTypeName"))
+        room_key = (hotel.id, room_type_name, meal_plan)
+
         if room_key in room_cache:
             room = room_cache[room_key]
         else:
@@ -200,13 +204,14 @@ def import_csv(file_obj, *, replace: bool = False):
                 select(Room).where(
                     Room.hotel_id == hotel.id,
                     Room.type == room_type_name,
+                    Room.meal_plan == meal_plan,
                 )
             )
             if room is None:
                 room = Room(
                     hotel_id=hotel.id,
                     type=room_type_name,
-                    meal_plan=_meal_label(row.get("MealTypeName")),
+                    meal_plan=meal_plan,
                     max_occupancy=_int(row.get("MaxOccupancy"), 2),
                     capacity=_int(row.get("MaxOccupancy"), 2),
                     base_price_per_night=_dec(row.get("AdultPrice")) or Decimal("0"),
@@ -216,7 +221,7 @@ def import_csv(file_obj, *, replace: bool = False):
                 new_rooms += 1
             room_cache[room_key] = room
 
-        # Rate window
+        # ── Rate window ──────────────────────────────────────────
         vfrom = _date(row.get("StartDate"))
         vto = _date(row.get("EndDate"))
         adult = _dec(row.get("AdultPrice"))

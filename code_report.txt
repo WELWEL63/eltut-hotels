@@ -1,6 +1,6 @@
 ﻿======================================================
 ELTUT TOURS — FULL CODE REPORT
-Generated: 2026-10-16 02:08:23
+Generated: 2026-10-16 03:47:40
 Root:      C:\Users\washo\Desktop\eltut-tours-platform
 ======================================================
 
@@ -117,10 +117,10 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      2,104  testing\_backup_261.py
      2,107  testing\_patch_routes.py
      2,121  testing\_patch_booking_pricing.py
-     2,122  blueprints\admin\hotel_csv_admin.py
      2,129  testing\_patch_home_template.py
      2,133  testing\_apply_patch.py
      2,146  models\airport.py
+     2,151  blueprints\admin\hotel_csv_admin.py
      2,195  scripts\backfill_hotel_slugs.py
      2,205  templates\public\contact.html
      2,293  testing\_patch_seed.py
@@ -163,8 +163,8 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      3,879  testing\_patch_meta_images.py
      3,975  _fix_nights.py
      3,994  config.py
-     3,999  blueprints\admin\__init__.py
      4,073  models\booking.py
+     4,197  blueprints\admin\__init__.py
      4,198  render.yaml
      4,294  data\jet2_london-gatwick_hurghada_.csv
      4,321  blueprints\admin\flight_admin.py
@@ -190,7 +190,6 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      5,402  testing\_patch_home_route.py
      5,623  _add_rate_edit_btn2.py
      5,687  scripts\reset_db.py
-     5,799  templates\admin\base.html
      5,830  templates\admin\flight_admin.html
      5,839  templates\admin\airline_list.html
      5,902  models\booking_status_history.py
@@ -200,6 +199,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      5,977  testing\_patch_fast_home.py
      5,978  models\flight.py
      6,070  blueprints\public\search_routes.py
+     6,131  templates\admin\base.html
      6,210  templates\admin\destination_images.html
      6,258  blueprints\admin\report_routes.py
      6,403  static\images\airlines\c0f259fd12d0ae4c926548437f965b9441da8767.png
@@ -240,7 +240,6 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      8,302  static\images\airlines\1deedf9b230ac1620304736d514b6ac1294db24c.png
      8,553  templates\base.html.pre_home_theme.bak
      8,709  templates\admin\index.html
-     8,776  services\hotel_csv_service.py
      8,882  blueprints\public\quote_routes.py
      8,980  templates\base.html.pre_logo.bak
      8,980  templates\base.html.pre_polish.bak
@@ -253,6 +252,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      9,118  models\room.py
      9,282  blueprints\admin\review_admin.py
      9,500  templates\admin\media_index.html
+     9,556  services\hotel_csv_service.py
      9,702  blueprints\api\hotels_api.py
      9,732  blueprints\api\activities_api.py
     10,102  blueprints\api\packages_api.py
@@ -2958,16 +2958,12 @@ MAX_CONTENT_LENGTH=16777216
 
 ========== 10. GIT ==========
 --- git status -s ---
- M blueprints/admin/hotel_admin.py
+ M blueprints/admin/__init__.py
+ M blueprints/admin/hotel_csv_admin.py
  M code_report.txt
- M templates/admin/room_form.html
-?? _add_rate_edit.py
-?? _add_rate_edit_btn.py
-?? _add_rate_edit_btn2.py
-?? blueprints/admin/hotel_csv_admin.py
-?? services/hotel_csv_service.py
-?? templates/admin/hotel_csv.html
-?? templates/admin/hotel_csv_import.html
+ M data/Egypt.csv
+ M services/hotel_csv_service.py
+ M templates/admin/base.html
 
 --- git branch -a ---
 * main
@@ -2975,6 +2971,7 @@ MAX_CONTENT_LENGTH=16777216
   remotes/origin/main
 
 --- git log --oneline -30 ---
+7dd18fb Add hotel CSV import/export functionality and inline editing for room rates
 f91ede1 feat: add flight service and package pricing service
 f287f4f Add initial Alembic configuration and migration script templates
 8ac429f Refactor hotel and package templates for improved layout and readability
@@ -3004,7 +3001,6 @@ a00ad77 Add search results template with filtering options and pagination
 5eee31e Add initial structure report and flash text files
 75ec2d6 feat: remove obsolete testing scripts and update CSS styles for improved UI
 22e1b8f feat: add itinerary timeline styles and enhance package options management
-e9cbc86 Add airline management templates and logo upload functionality
 
 ========== 11. MIGRATIONS ==========
 FILE: 3656e6880fd2_add_party_pricing_to_quotes.py
@@ -3039,7 +3035,7 @@ FILE: relax_room_rates_validity.py
      5,125  templates\admin\activity_list.html
      6,838  templates\admin\airline_form.html
      5,839  templates\admin\airline_list.html
-     5,799  templates\admin\base.html
+     6,131  templates\admin\base.html
     13,103  templates\admin\booking_detail.html
      6,991  templates\admin\booking_list.html
      7,074  templates\admin\content_edit.html
@@ -3835,22 +3831,19 @@ Blockers:
 
 
 ========== 14. IMPORT SMOKE TEST ==========
-python : [2026-10-16 02:08:29,733] WARNING in app: MONGO_URI is unset or still a placeholder 
-ù Mongo-backed features (reviews, enquiries, logs) will raise at request time until a real 
-Atlas URI is provided.
-At line:244 char:6
+python : [2026-10-16 03:47:49,101] WARNING in app: MONGO_URI is unset or still a placeholder ù Mongo-backed features 
+(reviews, enquiries, logs) will raise at request time until a real Atlas URI is provided.
+At line:2 char:6
 +     (python _smoke.py 2>&1) | Out-File $out -Append -Encoding utf8
 +      ~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ([2026-10-16 02:...RI is provided.:String) [], R 
-   emoteException
+    + CategoryInfo          : NotSpecified: ([2026-10-16 03:...RI is provided.:String) [], RemoteException
     + FullyQualifiedErrorId : NativeCommandError
  
-[2026-10-16 02:08:29,733] INFO in client: Mongo not initialised ù skipping index creation 
-(MongoDB has not been initialised. Set a real MONGO_URI in .env and let the app factory run, 
-or call extensions.init_mongo(uri, db_name) manually.)
-[2026-10-16 02:08:29,733] INFO in app: ElTut Tours startup
-[2026-10-16 02:08:29,808] INFO in app: App created ù env=development, 
-config=DevelopmentConfig
+[2026-10-16 03:47:49,101] INFO in client: Mongo not initialised ù skipping index creation (MongoDB has not been 
+initialised. Set a real MONGO_URI in .env and let the app factory run, or call extensions.init_mongo(uri, db_name) 
+manually.)
+[2026-10-16 03:47:49,101] INFO in app: ElTut Tours startup
+[2026-10-16 03:47:49,197] INFO in app: App created ù env=development, config=DevelopmentConfig
 models: OK
 services: OK
 mongo: OK
@@ -3863,7 +3856,7 @@ app.py: OK
 
 ========== 15. PROJECT STATS ==========
 Python files:  234
-Total lines:   33926
-Report size:   196401 bytes
+Total lines:   33934
+Report size:   196261 bytes
 
 END OF CODE REPORT
