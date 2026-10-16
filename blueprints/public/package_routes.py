@@ -167,9 +167,8 @@ def package_list():
             "image_url": first_image,
         })
 
-    destinations = list(db.session.scalars(
-        select(Destination).order_by(Destination.name)
-    ))
+    from services.search_service import destinations_for_package_widget
+    destinations = destinations_for_package_widget()
 
     return render_template(
         "public/package_list.html",

@@ -154,7 +154,13 @@ def _product_meta(product_type: str, product) -> dict:
             "location": hotel.destination_id if hotel else None,
             "hotel": hotel.name if hotel else None,
             "room": product.type,
+            "meal_plan": (product.meal_plan or "") if hasattr(product, "meal_plan") else "",
+            "max_occupancy": getattr(product, "max_occupancy", None),
+            "stars": hotel.stars if hotel else None,
+            "address": hotel.address if hotel else None,
             "destination": dest.name if dest else None,
+            "hotel_slug": hotel.slug if hotel else None,
+            "room_id": product.id,
         }
     if product_type == PRODUCT_TYPE_PACKAGE:
         price_row = db.session.scalar(

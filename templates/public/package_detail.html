@@ -76,6 +76,18 @@
     </div>
 {% endif %}
 
+                        {% if options and options[0].is_land_only %}
+                        <div class="alert alert-info d-flex align-items-center gap-2 mt-4 mb-0" role="alert">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <div class="small">
+                                <strong>Land-only package.</strong>
+                                Flights are not included — you'll arrange your own travel.
+                                Your hotel, transfers, and <strong>day-by-day itinerary</strong>
+                                are all included below.
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <div class="d-flex flex-wrap gap-2 mt-4">
                             {% if options %}
                                 <a href="#departures" class="btn btn-eltut-primary">
@@ -295,7 +307,7 @@
                                             </div>
                                         </div>
 
-                                        {% if opt.airline_name or opt.airline_logo %}
+                                        {% if (opt.airline_name or opt.airline_logo) and not opt.is_land_only %}
                                             <div class="d-flex align-items-center gap-2 mb-2">
                                                 {% if opt.airline_logo %}
                                                     <img src="{{ opt.airline_logo }}" alt=""
@@ -311,14 +323,15 @@
                                             </div>
                                         {% endif %}
 
-                                        {% if opt.flight_from and opt.flight_to %}
+                                        {% if opt.is_land_only %}
+                                            <div class="small text-muted mb-3">
+                                                <i class="bi bi-house-fill" style="color:#c85a3e;"></i>
+                                                <strong>Land only</strong> — no flights included
+                                            </div>
+                                        {% elif opt.flight_from and opt.flight_to %}
                                             <div class="small text-muted mb-3">
                                                 <i class="bi bi-airplane"></i>
                                                 {{ opt.flight_from }} â†’ {{ opt.flight_to }}
-                                            </div>
-                                        {% else %}
-                                            <div class="small text-muted mb-3">
-                                                <i class="bi bi-house"></i> Land only
                                             </div>
                                         {% endif %}
 
@@ -867,7 +880,7 @@
                     </div>
                     {% endif %}
                     {# â”£â”£â”£ Selected flight summary (JS-updated) â”£â”£â”£ #}
-                    {% if options %}
+                    {% if options and not options[0].is_land_only %}
                         <div class="card-body border-bottom" id="selected-flight-summary">
                             <div class="small fw-semibold text-uppercase text-muted mb-2"
                                  style="letter-spacing:.05em; font-size:.7rem;">
@@ -932,6 +945,7 @@
             <span id="breakdown-land-total">{{ _cur }} {{ "%.2f"|format(_opt.land_total) }}</span>
         </div>
 
+        {% if not _opt.is_land_only %}
         <div class="d-flex justify-content-between small mb-1">
             <span class="text-muted">
                 <i class="bi bi-airplane-fill" style="color:#c85a3e;"></i>
@@ -939,6 +953,7 @@
             </span>
             <span id="breakdown-flight-total">GBP {{ "%.2f"|format(_opt.flight_total) }}</span>
         </div>
+        {% endif %}
 
         <div class="d-flex justify-content-between small mb-1">
             <span class="text-muted">

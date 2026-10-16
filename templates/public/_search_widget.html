@@ -10,6 +10,7 @@
 #}
 
 {% set _dests = search_destinations() %}
+{% set _pkg_dests = search_package_destinations() %}
 
 {% set _widget_active_type = (request.args.get('type') or 'hotel')|lower %}
 <div class="search-widget search-widget-hero" id="eltutSearchWidget">
@@ -99,7 +100,7 @@
                         <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
                         <select name="destination" class="form-select form-select-lg">
                             <option value="">Where would you like to go?</option>
-                            {% for d in _dests %}
+                            {% for d in _pkg_dests %}
                                 <option value="{{ d.slug }}">{{ d.name }}</option>
                             {% endfor %}
                         </select>

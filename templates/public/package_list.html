@@ -40,76 +40,20 @@
     <div class="container">
         <div class="row g-4">
 
-            {# ─── Filter sidebar ─── #}
-            <aside class="col-lg-3">
-                <form method="GET" class="card shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title">
-                            <i class="bi bi-sliders"></i> Filters
-                        </h6>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Destination</label>
-                            <select name="destination" class="form-select form-select-sm">
-                                <option value="">All destinations</option>
-                                {% for d in destinations %}
-                                    <option value="{{ d.slug }}"
-                                        {% if selected_destination and selected_destination.id == d.id %}selected{% endif %}>
-                                        {{ d.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Package type</label>
-                            <select name="package_type" class="form-select form-select-sm">
-                                <option value="">Any type</option>
-                                {% for t in package_types %}
-                                    <option value="{{ t }}"
-                                        {% if selected_package_type == t %}selected{% endif %}>
-                                        {{ t|title }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Min nights</label>
-                            <input type="number" name="min_nights"
-                                   class="form-control form-control-sm"
-                                   min="1" max="60"
-                                   value="{{ min_nights or '' }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Search</label>
-                            <input type="text" name="q" class="form-control form-control-sm"
-                                   value="{{ query_text }}"
-                                   placeholder="Package name or code">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Sort by</label>
-                            <select name="sort" class="form-select form-select-sm">
-                                <option value="newest"     {% if sort == "newest" %}selected{% endif %}>Newest</option>
-                                <option value="name"       {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
-                                <option value="duration"   {% if sort == "duration" %}selected{% endif %}>Longest first</option>
-                                <option value="price_asc"  {% if sort == "price_asc" %}selected{% endif %}>Price: low to high</option>
-                                <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-eltut-primary btn-sm w-100">
-                            <i class="bi bi-check2-circle"></i> Apply filters
-                        </button>
-                        <a href="{{ url_for('public.package_list') }}"
-                           class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">
-                            Clear all
-                        </a>
-                    </div>
-                </form>
-            </aside>
+            {# ─── Shared filter sidebar ─── #}
+            {% set qs = {
+                "destination": selected_destination.slug if selected_destination else "",
+                "check_in": request.args.get("check_in") or "",
+                "check_out": request.args.get("check_out") or "",
+                "adults": request.args.get("adults") or 2,
+                "children": request.args.get("children") or 0,
+                "q": query_text or "",
+            } %}
+            {% set product_type = "package" %}
+            {% set url_for_endpoint = "public.package_list" %}
+            {% set clear_url = url_for("public.package_list") %}
+            {% set package_destinations = search_package_destinations() %}
+            {% include "public/_filters_sidebar.html" %}
 
             {# ─── Results ─── #}
             <div class="col-lg-9">

@@ -62,9 +62,35 @@ FACILITY_ICONS = {
 
 
 def destinations_for_widget() -> list[dict[str, Any]]:
+    """Return the list of destinations used by the search widget dropdown."""
     rows = db.session.scalars(
         select(Destination)
         .where(Destination.is_bookable.is_(True))
+        .order_by(Destination.name.asc())
+    ).all()
+    return [
+        {"id": d.id, "name": d.name, "slug": d.slug, "country": d.country}
+        for d in rows
+    ]
+
+
+def destinations_for_package_widget() -> list[dict[str, Any]]:
+    """
+    Return only destinations that have at least one active package.
+    Used by the package tab of the search widget so customers only
+    see destinations they can actually book a package for.
+    """
+    has_pkg = (
+        select(Package.id)
+        .where(Package.destination_id == Destination.id)
+        .where(Package.is_active.is_(True))
+        .correlate(Destination)
+        .exists()
+    )
+    rows = db.session.scalars(
+        select(Destination)
+        .where(Destination.is_bookable.is_(True))
+        .where(has_pkg)
         .order_by(Destination.name.asc())
     ).all()
     return [
@@ -719,4 +745,5 @@ def _first_image_url(images: list | None) -> str | None:
 __all__ = [
     "search",
     "destinations_for_widget",
+    "destinations_for_package_widget",
 ]

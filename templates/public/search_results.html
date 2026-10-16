@@ -108,116 +108,30 @@
     <div class="container">
         <div class="sr-results-grid">
 
-            {# ──────────────── Sidebar filters ──────────────── #}
-            <aside class="sr-sidebar">
-                <form method="GET" action="{{ url_for('public.search_results') }}"
-                      class="sr-filter-card">
-                    <input type="hidden" name="type" value="{{ result['product_type'] }}">
-                    <input type="hidden" name="destination" value="{{ qs.destination }}">
-                    <input type="hidden" name="check_in" value="{{ qs.check_in }}">
-                    <input type="hidden" name="check_out" value="{{ qs.check_out }}">
-                    <input type="hidden" name="date" value="{{ qs.date }}">
-                    <input type="hidden" name="adults" value="{{ qs.adults }}">
-                    <input type="hidden" name="children" value="{{ qs.children }}">
-
-                    <h5 class="sr-filter-title">
-                        <i class="bi bi-sliders"></i> Refine search
-                    </h5>
-
-                    <div class="sr-filter-group">
-                        <label class="sr-filter-label">Sort by</label>
-                        <select name="sort" class="form-select form-select-sm">
-                            {% for v, label in [
-                                ('newest',       'Newest first'),
-                                ('name',         'Name (A to Z)'),
-                                ('price_asc',    'Price — low to high'),
-                                ('price_desc',   'Price — high to low'),
-                                ('stars_desc',   'Star rating'),
-                                ('duration_asc', 'Shortest duration'),
-                            ] %}
-                                {% if result['product_type'] == 'hotel' or v in ['newest', 'name', 'price_asc', 'price_desc'] or (result['product_type'] == 'package' and v == 'duration_asc') %}
-                                    <option value="{{ v }}" {% if qs.sort == v %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endif %}
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="sr-filter-group">
-                        <label class="sr-filter-label">
-                            <i class="bi bi-geo-alt"></i> Destination
-                        </label>
-                        <select name="destination" class="form-select form-select-sm">
-                            <option value="">Any</option>
-                            {% for d in destinations %}
-                                <option value="{{ d.slug }}"
-                                        {% if qs.destination == d.slug %}selected{% endif %}>
-                                    {{ d.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="sr-filter-group">
-                        <label class="sr-filter-label">
-                            <i class="bi bi-people"></i> Travellers
-                        </label>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">A</span>
-                                    <input type="number" name="adults" class="form-control" value="{{ qs.adults }}" min="1" max="8">
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text">C</span>
-                                    <input type="number" name="children" class="form-control" value="{{ qs.children }}" min="0" max="8">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if result['product_type'] in ['hotel', 'package'] %}
-                        <div class="sr-filter-group">
-                            <label class="sr-filter-label">
-                                <i class="bi bi-calendar-range"></i> Dates
-                            </label>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <input type="date" name="check_in" class="form-control form-control-sm"
-                                           value="{{ qs.check_in }}">
-                                </div>
-                                <div class="col-6">
-                                    <input type="date" name="check_out" class="form-control form-control-sm"
-                                           value="{{ qs.check_out }}">
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="sr-filter-group">
-                            <label class="sr-filter-label">
-                                <i class="bi bi-calendar-event"></i> Date
-                            </label>
-                            <input type="date" name="date" class="form-control form-control-sm"
-                                   value="{{ qs.date }}">
-                        </div>
-                    {% endif %}
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-eltut-primary btn-sm">
-                            <i class="bi bi-check2-circle"></i> Apply filters
-                        </button>
-                        {% if qs.destination or qs.q or qs.check_in or qs.date %}
-                            <a href="{{ url_for('public.search_results', type=result['product_type']) }}"
-                               class="btn btn-link btn-sm text-decoration-none">
-                                Clear all
-                            </a>
-                        {% endif %}
-                    </div>
-                </form>
-            </aside>
+            {# ──────────────── Shared filter sidebar ──────────────── #}
+            {% if result['product_type'] == 'package' %}
+                {% set _dest_list = package_destinations %}
+            {% else %}
+                {% set _dest_list = destinations %}
+            {% endif %}
+            {% set qs = {
+                "destination": result['filters']['destination'] or "",
+                "check_in": result['filters']['check_in'] or "",
+                "check_out": result['filters']['check_out'] or "",
+                "date": result['filters']['activity_date'] or "",
+                "adults": result['filters']['adults'],
+                "children": result['filters']['children'],
+                "q": result['filters']['q'] or "",
+            } %}
+            {% set destinations = _dest_list %}
+            {% set product_type = result['product_type'] %}
+            {% set url_for_endpoint = "public.search_results" %}
+            {% set sort = result['filters']['sort'] %}
+            {% set query_text = result['filters']['q'] or "" %}
+            {% set clear_url = url_for("public.search_results", type=result['product_type']) %}
+            {% set wrapper_class = "sr-sidebar" %}
+            {% set compact = True %}
+            {% include "public/_filters_sidebar.html" %}
 
             {# ──────────────── Results column ──────────────── #}
             <div>

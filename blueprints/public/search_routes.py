@@ -117,11 +117,13 @@ def search_results():
 
     # â”£â”£â”£ Dropdown data for the persistent widget on the results page â”£
     destinations = search_service.destinations_for_widget()
+    package_destinations = search_service.destinations_for_package_widget()
 
     return render_template(
         "public/search_results.html",
         result=result,
         destinations=destinations,
+        package_destinations=package_destinations,
         # Query-string we can append to pagination links, minus page
         qs={
             "type": result["product_type"],

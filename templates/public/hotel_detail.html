@@ -285,6 +285,7 @@
                              id="room-card-{{ room.id }}"
                              data-room-id="{{ room.id }}"
                              data-room-name="{{ room.type }}"
+                             data-meal-plan="{{ (room.meal_plan or '')|replace('_', ' ')|title }}"
                              data-total="{{ '%.2f'|format(item.pricing.total) if (_has_dates and item.pricing) else '0.00' }}"
                              data-per-night="{{ '%.2f'|format(item.pricing.per_night) if (_has_dates and item.pricing) else '0.00' }}"
                              {% if _has_dates %}data-booking-url="{{ maybe_url('public.booking_start', product_type='hotel', product_id=room.id, check_in=check_in.isoformat(), check_out=check_out.isoformat(), adults=adults, children=children) }}"{% endif %}>
@@ -658,6 +659,13 @@
                                     + {{ children }} child{{ "" if children == 1 else "ren" }}
                                 {% endif %}
                             </div>
+                            <div class="text-muted small mb-2" id="sidebar-room-summary">
+                                <i class="bi bi-door-open"></i>
+                                <span id="sidebar-room-name">—</span>
+                                <span class="mx-1">&middot;</span>
+                                <i class="bi bi-egg-fried"></i>
+                                <span id="sidebar-meal-plan">—</span>
+                            </div>
                             <div class="text-muted small" id="sidebar-price-label">From</div>
                             <div class="fs-3 fw-bold text-eltut-terracotta">
                                 &euro;<span id="sidebar-total-value">{{ "%.2f"|format(cheapest_total) }}</span>
@@ -948,6 +956,11 @@
 
             // ─── Sidebar sync: reflect selected room ───
             updateSidebar(card.dataset.total, card.dataset.perNight, 'Selected');
+            // Also show the selected room name + meal plan in the sidebar
+            const roomNameEl = document.getElementById('sidebar-room-name');
+            const mealPlanEl = document.getElementById('sidebar-meal-plan');
+            if (roomNameEl) roomNameEl.textContent = card.dataset.roomName || '—';
+            if (mealPlanEl) mealPlanEl.textContent = card.dataset.mealPlan || '—';
 
             setTimeout(function() {
                 panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

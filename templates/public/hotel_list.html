@@ -40,81 +40,19 @@
     <div class="container">
         <div class="row g-4">
 
-            {# ─── Filter sidebar ─── #}
-            <aside class="col-lg-3">
-                <form method="GET" class="card shadow-sm">
-                    <div class="card-body">
-                        <h6 class="card-title">
-                            <i class="bi bi-sliders"></i> Filters
-                        </h6>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Destination</label>
-                            <select name="destination" class="form-select form-select-sm">
-                                <option value="">All destinations</option>
-                                {% for d in destinations %}
-                                    <option value="{{ d.slug }}"
-                                        {% if selected_destination and selected_destination.id == d.id %}selected{% endif %}>
-                                        {{ d.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Stars</label>
-                            <select name="stars" class="form-select form-select-sm">
-                                <option value="">Any rating</option>
-                                {% for n in [5, 4, 3, 2, 1] %}
-                                    <option value="{{ n }}"
-                                        {% if selected_stars == n %}selected{% endif %}>
-                                        {{ n }} star{{ "" if n == 1 else "s" }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Meal plan</label>
-                            <select name="meal_plan" class="form-select form-select-sm">
-                                <option value="">Any</option>
-                                {% for m in meal_plans %}
-                                    <option value="{{ m }}"
-                                        {% if selected_meal_plan == m %}selected{% endif %}>
-                                        {{ m|replace("_", " ")|title }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Search</label>
-                            <input type="text" name="q" class="form-control form-control-sm"
-                                   value="{{ query_text }}"
-                                   placeholder="Hotel name">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Sort by</label>
-                            <select name="sort" class="form-select form-select-sm">
-                                <option value="newest"     {% if sort == "newest" %}selected{% endif %}>Newest</option>
-                                <option value="name"       {% if sort == "name" %}selected{% endif %}>Name A-Z</option>
-                                <option value="stars_desc" {% if sort == "stars_desc" %}selected{% endif %}>Stars: high first</option>
-                                <option value="price_asc"  {% if sort == "price_asc" %}selected{% endif %}>Price: low to high</option>
-                                <option value="price_desc" {% if sort == "price_desc" %}selected{% endif %}>Price: high to low</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-eltut-primary btn-sm w-100">
-                            <i class="bi bi-check2-circle"></i> Apply filters
-                        </button>
-                        <a href="{{ url_for('public.hotel_list') }}"
-                           class="btn btn-link btn-sm w-100 mt-2 text-decoration-none">
-                            Clear all
-                        </a>
-                    </div>
-                </form>
-            </aside>
+            {# ─── Shared filter sidebar ─── #}
+            {% set qs = {
+                "destination": selected_destination.slug if selected_destination else "",
+                "check_in": request.args.get("check_in") or "",
+                "check_out": request.args.get("check_out") or "",
+                "adults": request.args.get("adults") or 2,
+                "children": request.args.get("children") or 0,
+                "q": query_text or "",
+            } %}
+            {% set product_type = "hotel" %}
+            {% set url_for_endpoint = "public.hotel_list" %}
+            {% set clear_url = url_for("public.hotel_list") %}
+            {% include "public/_filters_sidebar.html" %}
 
             {# ─── Results ─── #}
             <div class="col-lg-9">
