@@ -423,3 +423,13 @@ Python files:  111
 Total lines:   21191
 
 END OF STRUCTURE REPORT
+
+
+
+
+
+everytime for update run session report_index
+
+python -m scripts.session_report > _session_context.txt
+Get-Content _session_context.txt
+
