@@ -189,6 +189,69 @@
   crossorigin="anonymous"></script>
 
 {% block scripts %}{% endblock %}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DATE RANGE LINK — check-in / check-out calendars stay in sync
+     Fires on any page. When a check-in date is picked, the check-out
+     input's `min` is bumped to that day. When a check-out is picked,
+     the check-in input's `max` is set to that day.
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    function nextDay(iso) {
+        if (!iso) return '';
+        const d = new Date(iso + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        const pad = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+
+    function wire(checkIn, checkOut) {
+        if (!checkIn || !checkOut) return;
+        // If checkout has no min yet and checkin has a value, apply it
+        if (checkIn.value && !checkOut.min) {
+            checkOut.min = nextDay(checkIn.value);
+        }
+        checkIn.addEventListener('change', function() {
+            checkOut.min = nextDay(checkIn.value);
+            // If existing checkout is now invalid, clear it
+            if (checkOut.value && checkOut.value <= checkIn.value) {
+                checkOut.value = '';
+            }
+        });
+        checkOut.addEventListener('change', function() {
+            if (checkIn.value && checkOut.value && checkOut.value <= checkIn.value) {
+                checkOut.value = '';
+                alert('Check-out must be after check-in.');
+            }
+        });
+    }
+
+    // ─── Wire every pair of date inputs on the page ──────────────
+    // Match by name pairs: check_in / check_out
+    const inps = document.querySelectorAll('input[type="date"][name="check_in"]');
+    inps.forEach(function(ci) {
+        // Find the matching check_out — either same form, or nearest sibling
+        const form = ci.closest('form');
+        let co = null;
+        if (form) {
+            co = form.querySelector('input[type="date"][name="check_out"]');
+        }
+        if (!co) {
+            // Fallback: nearest following check_out
+            let n = ci.nextElementSibling;
+            while (n && n.tagName !== 'INPUT' && !co) {
+                co = n.querySelector && n.querySelector('input[name="check_out"]');
+                n = n.nextElementSibling;
+            }
+        }
+        wire(ci, co);
+    });
+})();
+</script>
+
 </body>
 </html>
 

@@ -91,4 +91,62 @@
         </main>
     </div>
 </div>
+
+{# ═══════════════════════════════════════════════════════════════
+   DATE RANGE LINK — check-in / check-out calendars stay in sync
+   Same script as the public layout. Applies to every admin form
+   with input[name="check_in"] + input[name="check_out"].
+   ═══════════════════════════════════════════════════════════════ #}
+{% block admin_date_range_js %}
+<script>
+(function() {
+    'use strict';
+
+    function nextDay(iso) {
+        if (!iso) return '';
+        const d = new Date(iso + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        const pad = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+
+    function wire(checkIn, checkOut) {
+        if (!checkIn || !checkOut) return;
+        if (checkIn.value && !checkOut.min) {
+            checkOut.min = nextDay(checkIn.value);
+        }
+        checkIn.addEventListener('change', function() {
+            checkOut.min = nextDay(checkIn.value);
+            if (checkOut.value && checkOut.value <= checkIn.value) {
+                checkOut.value = '';
+            }
+        });
+        checkOut.addEventListener('change', function() {
+            if (checkIn.value && checkOut.value && checkOut.value <= checkIn.value) {
+                checkOut.value = '';
+                alert('Check-out must be after check-in.');
+            }
+        });
+    }
+
+    const inps = document.querySelectorAll('input[type="date"][name="check_in"]');
+    inps.forEach(function(ci) {
+        const form = ci.closest('form');
+        let co = null;
+        if (form) {
+            co = form.querySelector('input[type="date"][name="check_out"]');
+        }
+        if (!co) {
+            let n = ci.nextElementSibling;
+            while (n && n.tagName !== 'INPUT' && !co) {
+                co = n.querySelector && n.querySelector('input[name="check_out"]');
+                n = n.nextElementSibling;
+            }
+        }
+        wire(ci, co);
+    });
+})();
+</script>
+{% endblock admin_date_range_js %}
+
 {% endblock %}
