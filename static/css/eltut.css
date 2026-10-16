@@ -3314,3 +3314,42 @@ body.home-page {
     background: #e5a800;
     color: #ffffff;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ELTUT GLOBAL SCROLLBAR — brand blue (#035175)
+   Applies to the whole page scrollbar in Chrome / Edge / Safari
+   and Firefox. Brand navy with a subtle gradient on the thumb.
+   ═══════════════════════════════════════════════════════════════════ */
+html {
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: #035175 transparent;
+}
+
+/* Chrome / Edge / Safari */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+    background: rgba(3, 81, 117, 0.05);
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #035175 0%, #064a6b 100%);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background .15s;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #0a678f 0%, #035175 100%);
+    background-clip: padding-box;
+}
+html::-webkit-scrollbar-corner,
+body::-webkit-scrollbar-corner {
+    background: transparent;
+}

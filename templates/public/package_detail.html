@@ -1,14 +1,15 @@
 {% extends "base.html" %}
-{% block title %}{{ package.name }} â£” {{ config.APP_NAME }}{% endblock %}
+{% block title %}{{ package.name }} — {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
 {% set _has_dates = request.args.get('check_in') and request.args.get('check_out') %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PACKAGE DETAIL â£” hero + gallery + options + itinerary + reviews
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 <section class="pt-4">
     <div class="container">
+
+        {# ═══════════════════════════════════════════════════════════
+           BREADCRUMB
+           ═══════════════════════════════════════════════════════════ #}
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
@@ -17,11 +18,17 @@
             </ol>
         </nav>
 
+        {# ═══════════════════════════════════════════════════════════
+           MAIN LAYOUT — grid with main column + sidebar
+           ═══════════════════════════════════════════════════════════ #}
         <div class="pkg-layout">
-            {# â”£â”£â”£ MAIN COLUMN â”£â”£â”£ #}
+
+            {# ═══════════════════════════════════════════════════════
+               MAIN COLUMN
+               ═══════════════════════════════════════════════════════ #}
             <div class="pkg-main">
 
-                {# â”£â”£â”£ Hero card â”£â”£â”£ #}
+                {# ─── HERO CARD ─────────────────────────────────────── #}
                 <div class="card shadow-sm mb-4 border-0">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
@@ -36,13 +43,13 @@
                                         </span>
                                     {% endif %}
                                 </div>
-                               <h1 class="mb-2" style="font-size: 2.3rem; color: rgb(3, 81, 117)">{{ package.name }}</h1>
+                                <h1 class="mb-2" style="font-size: 2.3rem; color: rgb(3, 81, 117)">{{ package.name }}</h1>
                                 <div class="d-flex flex-wrap gap-3 text-muted small">
                                     {% if destination %}
                                         <span><i class="bi bi-geo-alt"></i> {{ destination.name }}</span>
                                     {% endif %}
-                              {% set _nights = nights if (check_in and check_out) else package.duration_nights %}
-<span><i class="bi bi-moon-stars"></i> {{ _nights }} night{{ "" if _nights == 1 else "s" }}</span>
+                                    {% set _nights = nights if (check_in and check_out) else package.duration_nights %}
+                                    <span><i class="bi bi-moon-stars"></i> {{ _nights }} night{{ "" if _nights == 1 else "s" }}</span>
                                     <span><i class="bi bi-people"></i> up to {{ package.capacity }} guests</span>
                                     {% if avg_rating and review_count %}
                                         <span class="stars">
@@ -59,33 +66,34 @@
                             </div>
 
                             {% if options and options[0].grand_total %}
-    <div class="text-end">
-        <div class="text-muted small">From</div>
-        <div class="fs-3 fw-bold text-eltut-terracotta">
-            {{ currency }} {{ "%.0f"|format(options[0].grand_total) }}
-        </div>
-        <div class="text-muted small">total price</div>
-    </div>
-{% elif price_adult %}
-    <div class="text-end">
-        <div class="text-muted small">From</div>
-        <div class="fs-3 fw-bold text-eltut-terracotta">
-            {{ currency }} {{ "%.0f"|format(price_adult) }}
-        </div>
-        <div class="text-muted small">per adult</div>
-    </div>
-{% endif %}
+                                <div class="text-end">
+                                    <div class="text-muted small">From</div>
+                                    <div class="fs-3 fw-bold text-eltut-terracotta">
+                                        {{ currency }} {{ "%.0f"|format(options[0].grand_total) }}
+                                    </div>
+                                    <div class="text-muted small">total price</div>
+                                </div>
+                            {% elif price_adult %}
+                                <div class="text-end">
+                                    <div class="text-muted small">From</div>
+                                    <div class="fs-3 fw-bold text-eltut-terracotta">
+                                        {{ currency }} {{ "%.0f"|format(price_adult) }}
+                                    </div>
+                                    <div class="text-muted small">per adult</div>
+                                </div>
+                            {% endif %}
+                        </div>
 
                         {% if options and options[0].is_land_only %}
-                        <div class="alert alert-info d-flex align-items-center gap-2 mt-4 mb-0" role="alert">
-                            <i class="bi bi-info-circle-fill"></i>
-                            <div class="small">
-                                <strong>Land-only package.</strong>
-                                Flights are not included — you'll arrange your own travel.
-                                Your hotel, transfers, and <strong>day-by-day itinerary</strong>
-                                are all included below.
+                            <div class="alert alert-info d-flex align-items-center gap-2 mt-4 mb-0" role="alert">
+                                <i class="bi bi-info-circle-fill"></i>
+                                <div class="small">
+                                    <strong>Land-only package.</strong>
+                                    Flights are not included — you'll arrange your own travel.
+                                    Your hotel, transfers, and <strong>day-by-day itinerary</strong>
+                                    are all included below.
+                                </div>
                             </div>
-                        </div>
                         {% endif %}
 
                         <div class="d-flex flex-wrap gap-2 mt-4">
@@ -112,9 +120,8 @@
                         </div>
                     </div>
                 </div>
-                </div>
 
-                {# â”£â”£â”£ Gallery â”£â”£â”£ #}
+                {# ─── GALLERY ───────────────────────────────────────── #}
                 {% set visible_images = [] %}
                 {% for img in images %}
                     {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
@@ -146,7 +153,7 @@
                                     {% else %}
                                         <img src="{{ img.url }}" class="d-block w-100"
                                              style="height: 460px; object-fit: cover;"
-                                             alt="{{ package.name }} â£” photo {{ loop.index }}">
+                                             alt="{{ package.name }} — photo {{ loop.index }}">
                                     {% endif %}
                                 </div>
                             {% endfor %}
@@ -189,75 +196,78 @@
                     </div>
                 {% endif %}
 
+                {# ─── TRIP PICKER (dates + party) ──────────────────── #}
+                <div class="section-header icon-ink mt-4" id="trip-picker-section">
+                    <span class="icon-box"><i class="bi bi-calendar-range"></i></span>
+                    <span class="title">
+                        Choose your trip
+                        <span class="subtitle">Prices update once dates are selected</span>
+                    </span>
+                </div>
+                <form method="get" class="card shadow-sm mb-4 border-0" id="trip-picker">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1" for="pk-check-in">Check-in</label>
+                                <input type="date" id="pk-check-in" name="check_in" class="form-control"
+                                       min="{{ min_notice_date.isoformat() }}"
+                                       max="{{ max_horizon_date.isoformat() }}"
+                                       value="{{ check_in.isoformat() if _has_dates else '' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1" for="pk-check-out">Check-out</label>
+                                <input type="date" id="pk-check-out" name="check_out" class="form-control"
+                                       min="{{ min_notice_date.isoformat() }}"
+                                       max="{{ max_checkout_date.isoformat() }}"
+                                       value="{{ check_out.isoformat() if _has_dates else '' }}" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1" for="pk-adults">Adults</label>
+                                <input type="number" id="pk-adults" name="adults" min="1" max="8"
+                                       class="form-control" value="{{ adults if _has_dates else 2 }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1" for="pk-children">Children</label>
+                                <input type="number" id="pk-children" name="children" min="0" max="8"
+                                       class="form-control" value="{{ children if _has_dates else 0 }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-eltut-primary w-100">
+                                    <i class="bi bi-search"></i> Check price
+                                </button>
+                            </div>
+                        </div>
+                        {% if not _has_dates or not validation.ok %}
+                            <div class="small text-muted mt-3">
+                                <i class="bi bi-info-circle"></i>
+                                Select your dates and party to see live package prices.
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
 
-{# â”£â”£â”£ Trip picker (dates + party) â”£â”£â”£ #}
-<div class="section-header icon-ink mt-4" id="trip-picker-section">
-    <span class="icon-box"><i class="bi bi-calendar-range"></i></span>
-    <span class="title">
-        Choose your trip
-        <span class="subtitle">Prices update once dates are selected</span>
-    </span>
-</div>
-<form method="get" class="card shadow-sm mb-4 border-0" id="trip-picker">
-    <div class="card-body">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label small text-muted mb-1" for="pk-check-in">Check-in</label>
-                <input type="date" id="pk-check-in" name="check_in" class="form-control"
-                       min="{{ min_notice_date.isoformat() }}"
-                       max="{{ max_horizon_date.isoformat() }}"
-                       value="{{ check_in.isoformat() if _has_dates else '' }}" required>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted mb-1" for="pk-check-out">Check-out</label>
-                <input type="date" id="pk-check-out" name="check_out" class="form-control"
-                       min="{{ min_notice_date.isoformat() }}"
-                       max="{{ max_checkout_date.isoformat() }}"
-                       value="{{ check_out.isoformat() if _has_dates else '' }}" required>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted mb-1" for="pk-adults">Adults</label>
-                <input type="number" id="pk-adults" name="adults" min="1" max="8"
-                       class="form-control" value="{{ adults if _has_dates else 2 }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted mb-1" for="pk-children">Children</label>
-                <input type="number" id="pk-children" name="children" min="0" max="8"
-                       class="form-control" value="{{ children if _has_dates else 0 }}">
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-eltut-primary w-100">
-                    <i class="bi bi-search"></i> Check price
-                </button>
-            </div>
-        </div>
-        {% if not _has_dates or not validation.ok %}
-            <div class="small text-muted mt-3">
-                <i class="bi bi-info-circle"></i>
-                Select your dates and party to see live package prices.
-            </div>
-        {% endif %}
-    </div>
-</form>
+                {% if validation and not validation.ok %}
+                    <div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        <div>
+                            <strong>Can't book those dates.</strong><br>
+                            {{ validation.message }}
+                        </div>
+                    </div>
+                {% endif %}
 
-{% if validation and not validation.ok %}
-<div class="alert alert-danger d-flex align-items-start gap-2 mb-4" role="alert">
-    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-    <div>
-        <strong>Can't book those dates.</strong><br>
-        {{ validation.message }}
-    </div>
-</div>
-{% endif %}
-
-                {# â”£â”£â”£ Departure options â£” radio-selectable â”£â”£â”£ #}
+                {# ─── DEPARTURE OPTIONS ────────────────────────────── #}
                 {% if options %}
                     <div class="section-header icon-nile mt-2" id="departures">
                         <span class="icon-box"><i class="bi bi-calendar-check"></i></span>
                         <span class="title">
                             Available departures
                             <span class="subtitle">
-                                Pick the flight that suits you â£” price updates automatically.
+                                {% if options[0].is_land_only %}
+                                    Land-only package — day-by-day itinerary included.
+                                {% else %}
+                                    Pick the flight that suits you — price updates automatically.
+                                {% endif %}
                             </span>
                         </span>
                     </div>
@@ -265,31 +275,32 @@
                     <div class="row g-3 mb-4" id="options-grid">
                         {% for opt in options %}
                             <div class="col-md-6 col-lg-4">
-                               <label class="card h-100 shadow-sm border-0 option-card"
-       data-option-id="{{ opt.id }}"
-       data-adult-price="{{ opt.price_adult or 0 }}"
-       data-child-price="{{ opt.price_child or 0 }}"
-       data-grand-total="{{ opt.grand_total or 0 }}"
-       data-currency="{{ opt.currency or 'GBP' }}"
-       data-airline="{{ opt.airline_name or '' }}"
-       data-airline-slug="{{ (opt.airline_name or '')|lower|replace(' ', '') }}"
-       data-airline-logo="{{ opt.airline_logo or '' }}"
-       data-from="{{ opt.flight_from or '' }}"
-       data-to="{{ opt.flight_to or '' }}"
-       data-luggage="{{ opt.luggage_allowance or '' }}"
-       data-departure="{{ opt.departure_date.isoformat() if opt.departure_date else '' }}"
-       data-return="{{ opt.return_date.isoformat() if opt.return_date else '' }}"       data-land-total="{{ opt.land_total or 0 }}"
-       data-flight-total="{{ opt.flight_total or 0 }}"
-       data-markup-total="{{ opt.markup_total or 0 }}"
-       data-transfer-total="{{ opt.transfer_total or 0 }}"
-       data-return-estimated="{{ 'true' if opt.return_estimated else 'false' }}">
+                                <label class="card h-100 shadow-sm border-0 option-card"
+                                       data-option-id="{{ opt.id }}"
+                                       data-adult-price="{{ opt.price_adult or 0 }}"
+                                       data-child-price="{{ opt.price_child or 0 }}"
+                                       data-grand-total="{{ opt.grand_total or 0 }}"
+                                       data-currency="{{ opt.currency or 'GBP' }}"
+                                       data-airline="{{ opt.airline_name or '' }}"
+                                       data-airline-slug="{{ (opt.airline_name or '')|lower|replace(' ', '') }}"
+                                       data-airline-logo="{{ opt.airline_logo or '' }}"
+                                       data-from="{{ opt.flight_from or '' }}"
+                                       data-to="{{ opt.flight_to or '' }}"
+                                       data-luggage="{{ opt.luggage_allowance or '' }}"
+                                       data-departure="{{ opt.departure_date.isoformat() if opt.departure_date else '' }}"
+                                       data-return="{{ opt.return_date.isoformat() if opt.return_date else '' }}"
+                                       data-land-total="{{ opt.land_total or 0 }}"
+                                       data-flight-total="{{ opt.flight_total or 0 }}"
+                                       data-markup-total="{{ opt.markup_total or 0 }}"
+                                       data-transfer-total="{{ opt.transfer_total or 0 }}"
+                                       data-return-estimated="{{ 'true' if opt.return_estimated else 'false' }}"
+                                       data-is-land-only="{{ 'true' if opt.is_land_only else 'false' }}">
                                     <input type="radio" name="selected_option"
                                            value="{{ opt.id }}" class="option-radio"
                                            {% if loop.first %}checked{% endif %}
                                            style="position:absolute; opacity:0; pointer-events:none;">
 
                                     <div class="card-body d-flex flex-column">
-                                        {# Selected indicator (top-right) #}
                                         <div class="option-selected-badge">
                                             <i class="bi bi-check-circle-fill"></i>
                                         </div>
@@ -300,7 +311,7 @@
                                                 {% if opt.departure_date %}
                                                     {{ opt.departure_date.strftime("%d %b %Y") }}
                                                     {% if opt.return_date %}
-                                                        <span class="text-muted">â†’ {{ opt.return_date.strftime("%d %b %Y") }}</span>
+                                                        <span class="text-muted">→ {{ opt.return_date.strftime("%d %b %Y") }}</span>
                                                     {% endif %}
                                                 {% else %}
                                                     Flexible
@@ -332,7 +343,7 @@
                                         {% elif opt.flight_from and opt.flight_to %}
                                             <div class="small text-muted mb-3">
                                                 <i class="bi bi-airplane"></i>
-                                                {{ opt.flight_from }} â†’ {{ opt.flight_to }}
+                                                {{ opt.flight_from }} → {{ opt.flight_to }}
                                             </div>
                                         {% endif %}
 
@@ -343,23 +354,22 @@
                                                 </div>
                                             </div>
                                         {% elif opt.price_adult is not none %}
-    <div class="mt-auto pt-3 border-top">
-        <div class="d-flex align-items-baseline gap-2 mb-2 flex-wrap">
-            <span class="price-pill">
-                {% if opt.grand_total %}
-                    <span class="price-amount">{{ opt.currency }} {{ "%.0f"|format(opt.grand_total) }}</span>
-                    <span class="text-muted small fw-normal ms-1">total</span>
-                {% else %}
-                    <span class="price-amount">{{ opt.currency }} {{ "%.0f"|format(opt.price_adult) }}</span>
-                    <span class="text-muted small fw-normal ms-1">/ adult</span>
-                {% endif %}
-            </span>
-            {% if opt.grand_total and opt.price_adult %}
-                <span class="text-muted small" style="font-size:0.72rem;">
-                    ({{ opt.currency }} {{ "%.0f"|format(opt.price_adult) }} / adult)
-                </span>
-            {% endif %}
-        </div>
+                                            <div class="mt-auto pt-3 border-top">
+                                                <div class="d-flex align-items-baseline gap-2 mb-2 flex-wrap">
+                                                    <span class="price-pill">
+                                                        {% if opt.grand_total %}
+                                                            <span class="price-amount">{{ opt.currency }} {{ "%.0f"|format(opt.grand_total) }}</span>
+                                                            <span class="text-muted small fw-normal ms-1">total</span>
+                                                        {% else %}
+                                                            <span class="price-amount">{{ opt.currency }} {{ "%.0f"|format(opt.price_adult) }}</span>
+                                                            <span class="text-muted small fw-normal ms-1">/ adult</span>
+                                                        {% endif %}
+                                                    </span>
+                                                    {% if opt.grand_total and opt.price_adult %}
+                                                        <span class="text-muted small" style="font-size:0.72rem;">
+                                                            ({{ opt.currency }} {{ "%.0f"|format(opt.price_adult) }} / adult)
+                                                        </span>
+                                                    {% endif %}
                                                 </div>
                                                 {% if opt.price_child is not none %}
                                                     <div class="small text-muted mb-3">
@@ -388,9 +398,8 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-
-                {# â”£â”£â”£ Your selected flight (live-updating panel) â”£â”£â”£ #}
-                {% if options %}
+                {# ─── SELECTED FLIGHT PANEL (live-updating) ───────── #}
+                {% if options and not options[0].is_land_only %}
                     <div class="section-header icon-gold mt-4" id="selected-flight-panel">
                         <span class="icon-box"><i class="bi bi-airplane"></i></span>
                         <span class="title">
@@ -402,7 +411,6 @@
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-body">
                             <div class="row align-items-center g-3">
-                                {# Airline logo + name #}
                                 <div class="col-md-3 d-flex align-items-center gap-3">
                                     <div class="sf-logo-wrap">
                                         <img id="sf-logo" src="" alt=""
@@ -412,27 +420,24 @@
                                            style="font-size:2rem; color:#9ca3af;"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-bold" id="sf-airline">â£”</div>
-                                        <div class="small text-muted" id="sf-luggage">â£”</div>
+                                        <div class="fw-bold" id="sf-airline">—</div>
+                                        <div class="small text-muted" id="sf-luggage">—</div>
                                     </div>
                                 </div>
 
-                                {# Route #}
                                 <div class="col-md-3">
                                     <div class="small text-muted">Route</div>
-                                    <div class="fw-semibold" id="sf-route">â£”</div>
+                                    <div class="fw-semibold" id="sf-route">—</div>
                                 </div>
 
-                                {# Departure #}
                                 <div class="col-md-3">
                                     <div class="small text-muted">Departure</div>
-                                    <div class="fw-semibold" id="sf-departure">â£”</div>
+                                    <div class="fw-semibold" id="sf-departure">—</div>
                                 </div>
 
-                                {# Return + Status #}
                                 <div class="col-md-3">
                                     <div class="small text-muted">Return</div>
-                                    <div class="fw-semibold" id="sf-return">â£”</div>
+                                    <div class="fw-semibold" id="sf-return">—</div>
                                     <div class="mt-1">
                                         <span class="badge bg-success-subtle text-success-emphasis">Included</span>
                                     </div>
@@ -442,7 +447,7 @@
                     </div>
                 {% endif %}
 
-                {# â”£â”£â”£ Description â”£â”£â”£ #}
+                {# ─── DESCRIPTION ─────────────────────────────────── #}
                 {% if package.description %}
                     <div class="section-header icon-ink mt-4">
                         <span class="icon-box"><i class="bi bi-info-circle"></i></span>
@@ -451,7 +456,7 @@
                     <p>{{ package.description }}</p>
                 {% endif %}
 
-                {# â”£â”£â”£ Itinerary as timeline â”£â”£â”£ #}
+                {# ─── DAY-BY-DAY ITINERARY ────────────────────────── #}
                 {% if itineraries %}
                     <div class="section-header icon-nile mt-4">
                         <span class="icon-box"><i class="bi bi-signpost-split"></i></span>
@@ -476,7 +481,7 @@
                     </div>
                 {% endif %}
 
-                {# â”£â”£â”£ Inclusions / Exclusions â”£â”£â”£ #}
+                {# ─── INCLUSIONS / EXCLUSIONS ─────────────────────── #}
                 {% if inclusions or exclusions %}
                     <div class="row g-3 mb-4">
                         {% if inclusions %}
@@ -515,148 +520,138 @@
                         {% endif %}
                     </div>
                 {% endif %}
+                {# ─── HOTEL + ROOM ────────────────────────────────── #}
+                {% if hotel or room %}
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-building"></i></span>
+                        <span class="title">Your accommodation</span>
+                    </div>
 
-                {# â”£â”£â”£ Hotel + Room â”£â”£â”£ #}
-{% if hotel or room %}
-    <div class="section-header icon-ink mt-4">
-        <span class="icon-box"><i class="bi bi-building"></i></span>
-        <span class="title">Your accommodation</span>
-    </div>
+                    <div class="row g-3 mb-4">
+                        {% if hotel %}
+                            {% set hotel_img = hotel.images[0].url if hotel.images else None %}
+                            <div class="col-12">
+                                <div class="card shadow-sm border-0 accommodation-split">
+                                    <div class="accommodation-split-media">
+                                        {% if hotel_img %}
+                                            <img src="{{ hotel_img }}" alt="{{ hotel.name }}"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="accommodation-split-placeholder" style="display:none;">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="accommodation-split-placeholder">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
 
-    <div class="row g-3 mb-4">
+                                    <div class="accommodation-split-body">
+                                        <div class="mb-1">
+                                            {% for _ in range(hotel.stars or 0) %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% endfor %}
+                                            <span class="text-muted small ms-1">
+                                                {{ hotel.stars }}-star hotel
+                                            </span>
+                                        </div>
+                                        <h4 class="mb-2 accommodation-split-name">{{ hotel.name }}</h4>
 
-        {# â”£â”£â”£ Hotel card â£” image left, details right â”£â”£â”£ #}
-        {% if hotel %}
-            {% set hotel_img = hotel.images[0].url if hotel.images else None %}
-            <div class="col-12">
-                <div class="card shadow-sm border-0 accommodation-split">
+                                        {% if hotel.address %}
+                                            <div class="small text-muted mb-2">
+                                                <i class="bi bi-geo-alt"></i> {{ hotel.address }}
+                                            </div>
+                                        {% endif %}
 
-                    {# LEFT: image #}
-                    <div class="accommodation-split-media">
-                        {% if hotel_img %}
-                            <img src="{{ hotel_img }}" alt="{{ hotel.name }}"
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="accommodation-split-placeholder" style="display:none;">
-                                <i class="bi bi-building"></i>
-                            </div>
-                        {% else %}
-                            <div class="accommodation-split-placeholder">
-                                <i class="bi bi-building"></i>
+                                        {% if destination %}
+                                            <div class="small text-muted mb-3">
+                                                <i class="bi bi-pin-map"></i> {{ destination.name }}
+                                            </div>
+                                        {% endif %}
+
+                                        {% if room %}
+                                            <hr class="my-3">
+                                            <div class="small fw-semibold text-uppercase text-muted mb-2"
+                                                 style="letter-spacing:.05em; font-size:.7rem;">
+                                                Room type
+                                            </div>
+                                            <div class="mb-1"><strong>{{ room.type }}</strong></div>
+                                            <div class="small text-muted mb-1">
+                                                <i class="bi bi-egg-fried"></i>
+                                                {{ room.meal_plan|replace("_", " ")|title }}
+                                            </div>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-people"></i>
+                                                Up to {{ room.max_occupancy }} guests
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
                     </div>
+                {% endif %}
 
-                    {# RIGHT: details #}
-                    <div class="accommodation-split-body">
-                        <div class="mb-1">
-                            {% for _ in range(hotel.stars or 0) %}
-                                <i class="bi bi-star-fill text-warning"></i>
-                            {% endfor %}
-                            <span class="text-muted small ms-1">
-                                {{ hotel.stars }}-star hotel
-                            </span>
+                {# ─── THE NEIGHBORHOOD ────────────────────────────── #}
+                {% if hotel and hotel.neighborhood_info %}
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-geo-alt"></i></span>
+                        <span class="title">
+                            The neighborhood
+                            {% if hotel.name %}
+                                <span class="subtitle">Around {{ hotel.name }}</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-body">
+                            <p class="mb-0" style="white-space: pre-wrap;">{{ hotel.neighborhood_info }}</p>
                         </div>
-                        <h4 class="mb-2 accommodation-split-name">{{ hotel.name }}</h4>
-
-                        {% if hotel.address %}
-                            <div class="small text-muted mb-2">
-                                <i class="bi bi-geo-alt"></i> {{ hotel.address }}
-                            </div>
-                        {% endif %}
-
-                        {% if destination %}
-                            <div class="small text-muted mb-3">
-                                <i class="bi bi-pin-map"></i> {{ destination.name }}
-                            </div>
-                        {% endif %}
-
-                        {% if room %}
-                            <hr class="my-3">
-                            <div class="small fw-semibold text-uppercase text-muted mb-2"
-                                 style="letter-spacing:.05em; font-size:.7rem;">
-                                Room type
-                            </div>
-                            <div class="mb-1"><strong>{{ room.type }}</strong></div>
-                            <div class="small text-muted mb-1">
-                                <i class="bi bi-egg-fried"></i>
-                                {{ room.meal_plan|replace("_", " ")|title }}
-                            </div>
-                            <div class="small text-muted">
-                                <i class="bi bi-people"></i>
-                                Up to {{ room.max_occupancy }} guests
-                            </div>
-                        {% endif %}
                     </div>
-                </div>
-            </div>
-        {% endif %}
+                {% endif %}
 
-    </div>
-{% endif %}
+                {# ─── LOCATION / MAP ──────────────────────────────── #}
+                {% if hotel and hotel.latitude and hotel.longitude %}
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-map"></i></span>
+                        <span class="title">
+                            Location
+                            {% if hotel.address %}
+                                <span class="subtitle">{{ hotel.address }}</span>
+                            {% endif %}
+                        </span>
+                    </div>
 
-{# â”£â”£â”£ The neighborhood â”£â”£â”£ #}
-{% if hotel and hotel.neighborhood_info %}
-    <div class="section-header icon-nile mt-4">
-        <span class="icon-box"><i class="bi bi-geo-alt"></i></span>
-        <span class="title">
-            The neighborhood
-            {% if hotel.name %}
-                <span class="subtitle">Around {{ hotel.name }}</span>
-            {% endif %}
-        </span>
-    </div>
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body">
-            <p class="mb-0" style="white-space: pre-wrap;">{{ hotel.neighborhood_info }}</p>
-        </div>
-    </div>
-{% endif %}
+                    <div class="map-frame mb-3">
+                        <iframe
+                            src="https://maps.google.com/maps?q={{ (hotel.name or package.name) | urlencode }}{% if hotel.address %},{{ hotel.address | urlencode }}{% endif %}&ll={{ hotel.latitude }},{{ hotel.longitude }}&z=17&output=embed"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Map of {{ hotel.name or package.name }}"></iframe>
 
-{# â”£â”£â”£ Location / Map â”£â”£â”£ #}
-{% if hotel and hotel.latitude and hotel.longitude %}
-    <div class="section-header icon-nile mt-4">
-        <span class="icon-box"><i class="bi bi-map"></i></span>
-        <span class="title">
-            Location
-            {% if hotel.address %}
-                <span class="subtitle">{{ hotel.address }}</span>
-            {% endif %}
-        </span>
-    </div>
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ (hotel.name or package.name) | urlencode }}{% if hotel.address %}+{{ hotel.address | urlencode }}{% endif %}"
+                           target="_blank" rel="noopener"
+                           class="map-open-btn">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                            Open in Google Maps
+                        </a>
+                    </div>
+                {% elif hotel and hotel.address %}
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-map"></i></span>
+                        <span class="title">Location</span>
+                    </div>
+                    <div class="alert alert-secondary small mb-4">
+                        <i class="bi bi-geo-alt"></i> {{ hotel.address }}
+                    </div>
+                {% endif %}
 
-   <div class="map-frame mb-3">
-    <iframe
-        src="https://maps.google.com/maps?q={{ (hotel.name or package.name) | urlencode }}{% if hotel.address %},{{ hotel.address | urlencode }}{% endif %}&ll={{ hotel.latitude }},{{ hotel.longitude }}&z=17&output=embed"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        title="Map of {{ hotel.name or package.name }}"></iframe>
+                {# ─── EGYPT GUIDE INCLUDE ─────────────────────────── #}
+                {% include "public/_egypt_guide.html" %}
 
-    <a href="https://www.google.com/maps/search/?api=1&query={{ (hotel.name or package.name) | urlencode }}{% if hotel.address %}+{{ hotel.address | urlencode }}{% endif %}"
-       target="_blank" rel="noopener"
-       class="map-open-btn">
-        <i class="bi bi-box-arrow-up-right"></i>
-        Open in Google Maps
-    </a>
-</div>
-{% elif hotel and hotel.address %}
-    <div class="section-header icon-nile mt-4">
-        <span class="icon-box"><i class="bi bi-map"></i></span>
-        <span class="title">Location</span>
-    </div>
-    <div class="alert alert-secondary small mb-4">
-        <i class="bi bi-geo-alt"></i> {{ hotel.address }}
-    </div>
-{% endif %}
-                         
-                                
-{% include "public/_egypt_guide.html" %}
-
-
-
-
-                {# â”£â”£â”£ FAQs â”£â”£â”£ #}
+                {# ─── FAQs ────────────────────────────────────────── #}
                 {% if faqs %}
                     <div class="section-header icon-ink mt-4">
                         <span class="icon-box"><i class="bi bi-question-circle"></i></span>
@@ -692,7 +687,7 @@
                     </div>
                 {% endif %}
 
-                {# â”£â”£â”£ Tips â”£â”£â”£ #}
+                {# ─── TIPS ────────────────────────────────────────── #}
                 {% if tips %}
                     <div class="section-header icon-gold mt-4">
                         <span class="icon-box"><i class="bi bi-lightbulb"></i></span>
@@ -711,7 +706,7 @@
                     </ul>
                 {% endif %}
 
-                {# â”£â”£â”£ Reviews â”£â”£â”£ #}
+                {# ─── REVIEWS ─────────────────────────────────────── #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
                     <span class="title">
@@ -802,13 +797,16 @@
                 {% endif %}
 
             </div>
-          
-
-            {# â”£â”£â”£ SIDEBAR â”£â”£â”£ #}
+            {# ═══════════════════════════════════════════════════════════
+               END pkg-main
+               ═══════════════════════════════════════════════════════════ #}
+            {# ═══════════════════════════════════════════════════════════
+               SIDEBAR
+               ═══════════════════════════════════════════════════════════ #}
             <aside class="pkg-aside">
-                <div class="card shadow-sm sticky-top border-0 overflow-hidden" style="top: 1rem;">
+                <div class="card shadow-sm border-0 overflow-hidden">
 
-                    {# â”£â”£â”£ Hero image â”£â”£â”£ #}
+                    {# ─── SIDEBAR HERO IMAGE ──────────────────────── #}
                     <div class="sidebar-hero">
                         {% if images %}
                             <img src="{{ images[0].url }}" alt="{{ package.name }}"
@@ -823,64 +821,61 @@
                         {% endif %}
                     </div>
 
-                    {# â”£â”£â”£ Accommodation details â”£â”£â”£ #}
+                    {# ─── ACCOMMODATION DETAILS ───────────────────── #}
                     {% if hotel %}
-                    <div class="card-body border-bottom" id="sidebar-accommodation">
-                        <div class="small fw-semibold text-uppercase text-muted mb-2"
-                             style="letter-spacing:.05em; font-size:.7rem;">
-                            Your accommodation
-                        </div>
-
-                        {# Star rating #}
-                        {% if hotel.stars %}
-                            <div class="mb-1" style="color:#f2c964; font-size:0.9rem;">
-                                {% for _ in range(hotel.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                <span class="text-muted ms-1" style="font-size:0.78rem;">
-                                    {{ hotel.stars }}-star hotel
-                                </span>
+                        <div class="card-body border-bottom" id="sidebar-accommodation">
+                            <div class="small fw-semibold text-uppercase text-muted mb-2"
+                                 style="letter-spacing:.05em; font-size:.7rem;">
+                                Your accommodation
                             </div>
-                        {% endif %}
 
-                        {# Hotel name #}
-                        <div class="fw-semibold" style="font-size:1.02rem; color:#1e3a5f;">
-                            {{ hotel.name }}
-                        </div>
-
-                        {# Destination #}
-                        {% if destination %}
-                            <div class="small text-muted mb-2">
-                                <i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i>
-                                {{ destination.name }}{% if destination.region %}, {{ destination.region }}{% endif %}
-                            </div>
-                        {% endif %}
-
-                        {# Room type #}
-                        {% if room %}
-                            <div class="mt-3 pt-3" style="border-top:1px dashed rgba(28,25,23,0.12);">
-                                <div class="small text-muted text-uppercase mb-1"
-                                     style="letter-spacing:.05em; font-size:.68rem;">
-                                    Room type
+                            {% if hotel.stars %}
+                                <div class="mb-1" style="color:#f2c964; font-size:0.9rem;">
+                                    {% for _ in range(hotel.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                    <span class="text-muted ms-1" style="font-size:0.78rem;">
+                                        {{ hotel.stars }}-star hotel
+                                    </span>
                                 </div>
-                                <div class="fw-semibold">{{ room.type }}</div>
+                            {% endif %}
 
-                                {% if room.meal_plan %}
-                                    <div class="text-muted small">
-                                        <i class="bi bi-cup-hot"></i>
-                                        {{ room.meal_plan|replace("_", " ")|replace("-", " ")|title }}
-                                    </div>
-                                {% endif %}
-
-                                {% if room.max_occupancy %}
-                                    <div class="text-muted small">
-                                        <i class="bi bi-people"></i>
-                                        Up to {{ room.max_occupancy }} guest{{ "" if room.max_occupancy == 1 else "s" }}
-                                    </div>
-                                {% endif %}
+                            <div class="fw-semibold" style="font-size:1.02rem; color:#1e3a5f;">
+                                {{ hotel.name }}
                             </div>
-                        {% endif %}
-                    </div>
+
+                            {% if destination %}
+                                <div class="small text-muted mb-2">
+                                    <i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i>
+                                    {{ destination.name }}{% if destination.region %}, {{ destination.region }}{% endif %}
+                                </div>
+                            {% endif %}
+
+                            {% if room %}
+                                <div class="mt-3 pt-3" style="border-top:1px dashed rgba(28,25,23,0.12);">
+                                    <div class="small text-muted text-uppercase mb-1"
+                                         style="letter-spacing:.05em; font-size:.68rem;">
+                                        Room type
+                                    </div>
+                                    <div class="fw-semibold">{{ room.type }}</div>
+
+                                    {% if room.meal_plan %}
+                                        <div class="text-muted small">
+                                            <i class="bi bi-cup-hot"></i>
+                                            {{ room.meal_plan|replace("_", " ")|replace("-", " ")|title }}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if room.max_occupancy %}
+                                        <div class="text-muted small">
+                                            <i class="bi bi-people"></i>
+                                            Up to {{ room.max_occupancy }} guest{{ "" if room.max_occupancy == 1 else "s" }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
                     {% endif %}
-                    {# â”£â”£â”£ Selected flight summary (JS-updated) â”£â”£â”£ #}
+
+                    {# ─── SELECTED FLIGHT SUMMARY (JS-updated) ────── #}
                     {% if options and not options[0].is_land_only %}
                         <div class="card-body border-bottom" id="selected-flight-summary">
                             <div class="small fw-semibold text-uppercase text-muted mb-2"
@@ -892,28 +887,28 @@
                                      style="height:32px; max-width:70px; object-fit:contain; display:none;"
                                      onerror="this.style.display='none';">
                                 <div>
-                                    <div class="fw-semibold" id="sel-airline-name">â£”</div>
-                                    <div class="small text-muted" id="sel-route">â£”</div>
+                                    <div class="fw-semibold" id="sel-airline-name">—</div>
+                                    <div class="small text-muted" id="sel-route">—</div>
                                 </div>
                             </div>
-                            <div class="small text-muted" id="sel-dates">â£”</div>
+                            <div class="small text-muted" id="sel-dates">—</div>
                         </div>
                     {% endif %}
 
-                    {# â”£â”£â”£ Dates + party + price breakdown â”£â”£â”£ #}
+                    {# ─── DATES + PARTY + PRICE BREAKDOWN ────────── #}
                     {% if _has_dates and validation.ok and sidebar_pricing and sidebar_pricing.total is not none %}
                         <div class="card-body border-bottom">
                             {% if check_in and check_out %}
                                 <div class="small mb-1">
                                     <i class="bi bi-calendar-range text-eltut-terracotta"></i>
                                     <strong>{{ check_in.strftime("%d %b %Y") }}</strong>
-                                    â†’
+                                    →
                                     <strong>{{ check_out.strftime("%d %b %Y") }}</strong>
                                 </div>
                             {% endif %}
                             <div class="small text-muted mb-3">
                                 <i class="bi bi-moon-stars"></i> {{ nights }} night{{ "" if nights == 1 else "s" }}
-                                Â·
+                                &middot;
                                 <i class="bi bi-people"></i>
                                 {{ adults }} adult{{ "" if adults == 1 else "s" }}
                                 {% if children %}
@@ -922,7 +917,8 @@
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em; font-size:.7rem;">
+                                <div class="small fw-semibold text-uppercase text-muted"
+                                     style="letter-spacing:.05em; font-size:.7rem;">
                                     Price breakdown
                                 </div>
                                 <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 small"
@@ -934,84 +930,85 @@
 
                             <div class="collapse show" id="pkg-price-breakdown">
 
-    {# If we have a real flight option, show the full breakdown #}
-    {% if options and options[0].grand_total %}
-        {% set _opt = options[0] %}
-        {% set _cur = sidebar_pricing.currency or 'GBP' %}
+                                {# ─── REAL OPTION BREAKDOWN ───────────── #}
+                                {% if options and options[0].grand_total %}
+                                    {% set _opt = options[0] %}
+                                    {% set _cur = sidebar_pricing.currency or 'GBP' %}
 
-        <div class="d-flex justify-content-between small mb-1">
-            <span class="text-muted">
-                <i class="bi bi-house"></i> Land cost ({{ nights }} night{{ "" if nights == 1 else "s" }})
-            </span>
-            <span id="breakdown-land-total">{{ _cur }} {{ "%.2f"|format(_opt.land_total) }}</span>
-        </div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            <i class="bi bi-house"></i> Land cost ({{ nights }} night{{ "" if nights == 1 else "s" }})
+                                        </span>
+                                        <span id="breakdown-land-total">{{ _cur }} {{ "%.2f"|format(_opt.land_total) }}</span>
+                                    </div>
 
-        {% if not _opt.is_land_only %}
-        <div class="d-flex justify-content-between small mb-1">
-            <span class="text-muted">
-                <i class="bi bi-airplane-fill" style="color:#c85a3e;"></i>
-                Flights ({{ _opt.airline_name or 'Airline' }})
-            </span>
-            <span id="breakdown-flight-total">GBP {{ "%.2f"|format(_opt.flight_total) }}</span>
-        </div>
-        {% endif %}
+                                    {% if not _opt.is_land_only %}
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">
+                                                <i class="bi bi-airplane-fill" style="color:#c85a3e;"></i>
+                                                Flights ({{ _opt.airline_name or 'Airline' }})
+                                            </span>
+                                            <span id="breakdown-flight-total">GBP {{ "%.2f"|format(_opt.flight_total) }}</span>
+                                        </div>
+                                    {% endif %}
 
-        <div class="d-flex justify-content-between small mb-1">
-            <span class="text-muted">
-                <i class="bi bi-percent"></i> Service fee
-            </span>
-            <span id="breakdown-markup-total">GBP {{ "%.2f"|format(_opt.markup_total) }}</span>
-        </div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            <i class="bi bi-percent"></i> Service fee
+                                        </span>
+                                        <span id="breakdown-markup-total">GBP {{ "%.2f"|format(_opt.markup_total) }}</span>
+                                    </div>
 
-        <div class="d-flex justify-content-between small mb-2">
-            <span class="text-muted">
-                <i class="bi bi-car-front"></i> Transfers
-            </span>
-            <span id="breakdown-transfer-total">GBP {{ "%.2f"|format(_opt.transfer_total) }}</span>
-        </div>
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted">
+                                            <i class="bi bi-car-front"></i> Transfers
+                                        </span>
+                                        <span id="breakdown-transfer-total">GBP {{ "%.2f"|format(_opt.transfer_total) }}</span>
+                                    </div>
 
-        {% if _opt.return_estimated %}
-            <div class="small text-muted mb-2" style="padding-left:1.15rem; font-size:0.68rem;">
-                <i class="bi bi-info-circle"></i> Return leg estimated (outbound Ã— 2)
-            </div>
-        {% endif %}
+                                    {% if _opt.return_estimated %}
+                                        <div class="small text-muted mb-2" style="padding-left:1.15rem; font-size:0.68rem;">
+                                            <i class="bi bi-info-circle"></i> Return leg estimated (outbound × 2)
+                                        </div>
+                                    {% endif %}
 
-        <div class="d-flex justify-content-between align-items-baseline pt-2"
-             style="border-top:1px solid rgba(28,25,23,0.1);">
-            <span class="fw-bold">Total</span>
-            <span class="fs-5 fw-bold text-eltut-terracotta" id="sidebar-total">
-                {{ _cur }} {{ "%.2f"|format(_opt.grand_total) }}
-            </span>
-        </div>
+                                    <div class="d-flex justify-content-between align-items-baseline pt-2"
+                                         style="border-top:1px solid rgba(28,25,23,0.1);">
+                                        <span class="fw-bold">Total</span>
+                                        <span class="fs-5 fw-bold text-eltut-terracotta" id="sidebar-total">
+                                            {{ _cur }} {{ "%.2f"|format(_opt.grand_total) }}
+                                        </span>
+                                    </div>
 
-    {% else %}
-        {# Legacy fallback â£” no real flight option, use land-only breakdown #}
-        <div class="d-flex justify-content-between small mb-1">
-            <span class="text-muted">
-                Adult â£” <span id="breakdown-adult-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.adult_rate or 0) }}</span> Ã— {{ adults }} adult{{ "" if adults == 1 else "s" }}
-            </span>
-        </div>
-        {% if children > 0 %}
-            <div class="d-flex justify-content-between small mb-1">
-                <span class="text-muted">
-                    Child â£” <span id="breakdown-child-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.child_rate or 0) }}</span> Ã— {{ children }} child{{ "" if children == 1 else "ren" }}
-                </span>
-            </div>
-        {% endif %}
-        <div class="d-flex justify-content-between align-items-baseline">
-            <span class="fw-bold">Total</span>
-            <span class="fs-5 fw-bold text-eltut-terracotta" id="sidebar-total">
-                {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.total) }}
-            </span>
-        </div>
+                                {# ─── LEGACY FALLBACK ─────────────────── #}
+                                {% else %}
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">
+                                            Adult — <span id="breakdown-adult-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.adult_rate or 0) }}</span> × {{ adults }} adult{{ "" if adults == 1 else "s" }}
+                                        </span>
+                                    </div>
+                                    {% if children > 0 %}
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">
+                                                Child — <span id="breakdown-child-price">{{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.child_rate or 0) }}</span> × {{ children }} child{{ "" if children == 1 else "ren" }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                    <div class="d-flex justify-content-between align-items-baseline">
+                                        <span class="fw-bold">Total</span>
+                                        <span class="fs-5 fw-bold text-eltut-terracotta" id="sidebar-total">
+                                            {{ sidebar_pricing.currency }} {{ "%.2f"|format(sidebar_pricing.total) }}
+                                        </span>
+                                    </div>
 
-        <div class="small text-muted text-end mt-1">
-            for the full {{ nights }}-night package
-        </div>
-    {% endif %}
+                                    <div class="small text-muted text-end mt-1">
+                                        for the full {{ nights }}-night package
+                                    </div>
+                                {% endif %}
 
-</div>
                             </div>
+                        </div>
+
                     {% elif not _has_dates %}
                         <div class="card-body border-bottom bg-light">
                             <div class="small text-muted mb-0">
@@ -1022,6 +1019,7 @@
                         </div>
                     {% endif %}
 
+                    {# ─── READY TO BOOK ──────────────────────────── #}
                     <div class="card-body">
                         <h5 class="card-title mb-3">
                             <i class="bi bi-calendar-check"></i> Ready to book?
@@ -1065,173 +1063,186 @@
                     </div>
                 </div>
             </aside>
+            {# ═══════════════════════════════════════════════════════════
+               END pkg-aside
+               ═══════════════════════════════════════════════════════════ #}
+
         </div>
+        {# ═══════════════════════════════════════════════════════════════
+           END pkg-layout
+           ═══════════════════════════════════════════════════════════════ #}
 
-       {# â”£â”£â”£ Related packages â”£â”£â”£ #}
-{% if related %}
-    <hr class="my-5">
-    <div class="section-header icon-ink mb-4">
-        <span class="icon-box"><i class="bi bi-grid"></i></span>
-        <span class="title">
-            More packages in {{ destination.name if destination else "this destination" }}
-            <span class="subtitle">Handpicked trips you might also like</span>
-        </span>
-    </div>
+        {# ═══════════════════════════════════════════════════════════════
+           RELATED PACKAGES
+           ═══════════════════════════════════════════════════════════════ #}
+        {% if related %}
+            <hr class="my-5">
+            <div class="section-header icon-ink mb-4">
+                <span class="icon-box"><i class="bi bi-grid"></i></span>
+                <span class="title">
+                    More packages in {{ destination.name if destination else "this destination" }}
+                    <span class="subtitle">Handpicked trips you might also like</span>
+                </span>
+            </div>
 
-    <div class="row g-4">
-        {% for rel in related %}
-            {% set rel_img = rel.images[0].url if rel.images else None %}
-            {% set rel_dest = search_destinations()|selectattr('id', 'equalto', rel.destination_id)|first %}
-            {% set rel_price_row = rel.prices[0] if rel.prices else None %}
+            <div class="row g-4">
+                {% for rel in related %}
+                    {% set rel_img = rel.images[0].url if rel.images else None %}
+                    {% set rel_dest = search_destinations()|selectattr('id', 'equalto', rel.destination_id)|first %}
+                    {% set rel_price_row = rel.prices[0] if rel.prices else None %}
 
-            <div class="col-md-6 col-lg-4">
-                <a href="{{ url_for('public.package_detail', slug=rel.slug) }}"
-                   class="related-card">
+                    <div class="col-md-6 col-lg-4">
+                        <a href="{{ url_for('public.package_detail', slug=rel.slug) }}"
+                           class="related-card">
+                            <div class="related-card-media">
+                                {% if rel_img %}
+                                    <img src="{{ rel_img }}" alt="{{ rel.name }}"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="related-card-placeholder" style="display:none;">
+                                        <i class="bi bi-suitcase-lg"></i>
+                                    </div>
+                                {% else %}
+                                    <div class="related-card-placeholder">
+                                        <i class="bi bi-suitcase-lg"></i>
+                                    </div>
+                                {% endif %}
 
-                    {# â”£â”£â”£ Image with overlay badges â”£â”£â”£ #}
-                    <div class="related-card-media">
-                        {% if rel_img %}
-                            <img src="{{ rel_img }}" alt="{{ rel.name }}"
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="related-card-placeholder" style="display:none;">
-                                <i class="bi bi-suitcase-lg"></i>
+                                {% if rel.package_type %}
+                                    <span class="related-badge related-badge--type">
+                                        {{ rel.package_type|title }}
+                                    </span>
+                                {% endif %}
+
+                                {% if rel.duration_nights %}
+                                    <span class="related-badge related-badge--nights">
+                                        <i class="bi bi-moon-stars"></i>
+                                        {{ rel.duration_nights }} night{{ "" if rel.duration_nights == 1 else "s" }}
+                                    </span>
+                                {% endif %}
                             </div>
-                        {% else %}
-                            <div class="related-card-placeholder">
-                                <i class="bi bi-suitcase-lg"></i>
+
+                            <div class="related-card-body">
+                                <h6 class="related-card-title">{{ rel.name }}</h6>
+
+                                {% if rel_dest %}
+                                    <div class="related-card-meta">
+                                        <i class="bi bi-geo-alt-fill"></i> {{ rel_dest.name }}
+                                    </div>
+                                {% endif %}
+
+                                {% if rel_price_row %}
+                                    <div class="related-card-price">
+                                        <span class="related-price-label">from</span>
+                                        <span class="related-price">
+                                            {{ rel_price_row.currency }}&nbsp;{{ "%.0f"|format(rel_price_row.adult_price) }}
+                                        </span>
+                                        <span class="related-price-unit">/ person</span>
+                                    </div>
+                                {% endif %}
+
+                                <div class="related-card-cta">
+                                    View package <i class="bi bi-arrow-right"></i>
+                                </div>
                             </div>
-                        {% endif %}
-
-                        {# Type badge (top-left) #}
-                        {% if rel.package_type %}
-                            <span class="related-badge related-badge--type">
-                                {{ rel.package_type|title }}
-                            </span>
-                        {% endif %}
-
-                        {# Nights badge (top-right) #}
-                        {% if rel.duration_nights %}
-                            <span class="related-badge related-badge--nights">
-                                <i class="bi bi-moon-stars"></i>
-                                {{ rel.duration_nights }} night{{ "" if rel.duration_nights == 1 else "s" }}
-                            </span>
-                        {% endif %}
+                        </a>
                     </div>
+                {% endfor %}
+            </div>
 
-                    {# â”£â”£â”£ Body â”£â”£â”£ #}
-                    <div class="related-card-body">
-                        <h6 class="related-card-title">{{ rel.name }}</h6>
-
-                        {% if rel_dest %}
-                            <div class="related-card-meta">
-                                <i class="bi bi-geo-alt-fill"></i> {{ rel_dest.name }}
-                            </div>
-                        {% endif %}
-
-                        {% if rel_price_row %}
-                            <div class="related-card-price">
-                                <span class="related-price-label">from</span>
-                                <span class="related-price">
-                                    {{ rel_price_row.currency }}&nbsp;{{ "%.0f"|format(rel_price_row.adult_price) }}
-                                </span>
-                                <span class="related-price-unit">/ person</span>
-                            </div>
-                        {% endif %}
-
-                        <div class="related-card-cta">
-                            View package <i class="bi bi-arrow-right"></i>
-                        </div>
-                    </div>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('public.package_list') }}" class="btn btn-outline-primary">
+                    Browse all packages <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
-        {% endfor %}
-    </div>
+        {% endif %}
 
-    <div class="text-center mt-4">
-        <a href="{{ url_for('public.package_list') }}" class="btn btn-outline-primary">
-            Browse all packages <i class="bi bi-arrow-right"></i>
-        </a>
     </div>
-{% endif %}
-    </div>
+    {# END container #}
 </section>
 
-{# â”£â”£â”£ Write-review modal â”£â”£â”£ #}
+{# ═══════════════════════════════════════════════════════════════════
+   WRITE-REVIEW MODAL
+   ═══════════════════════════════════════════════════════════════════ #}
 {% if current_user.is_authenticated and not user_has_reviewed %}
-<div class="modal fade" id="writeReviewModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form method="POST" action="{{ url_for('public.review_submit') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="product_type" value="package">
-                <input type="hidden" name="product_id" value="{{ package.id }}">
+    <div class="modal fade" id="writeReviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="{{ url_for('public.review_submit') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="product_type" value="package">
+                    <input type="hidden" name="product_id" value="{{ package.id }}">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-pencil-square"></i> Write a review
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Rating</label>
-                        <div class="btn-group w-100" role="group">
-                            {% for n in [5, 4, 3, 2, 1] %}
-                                <input type="radio" class="btn-check"
-                                       name="rating" id="pkg-rating-{{ n }}"
-                                       value="{{ n }}"
-                                       {% if n == 5 %}checked{% endif %}>
-                                <label class="btn btn-outline-warning" for="pkg-rating-{{ n }}">
-                                    {{ n }} <i class="bi bi-star-fill"></i>
-                                </label>
-                            {% endfor %}
-                        </div>
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-pencil-square"></i> Write a review
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Your name <span class="text-danger">*</span></label>
-                            <input type="text" name="guest_name" class="form-control" required
-                                   maxlength="150"
-                                   value="{{ current_user.full_name if current_user.is_authenticated else '' }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" name="guest_email" class="form-control" required
-                                   maxlength="255"
-                                   value="{{ current_user.email if current_user.is_authenticated else '' }}">
-                            <div class="form-text small">
-                                <i class="bi bi-shield-lock"></i> Never shown publicly.
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="btn-group w-100" role="group">
+                                {% for n in [5, 4, 3, 2, 1] %}
+                                    <input type="radio" class="btn-check"
+                                           name="rating" id="pkg-rating-{{ n }}"
+                                           value="{{ n }}"
+                                           {% if n == 5 %}checked{% endif %}>
+                                    <label class="btn btn-outline-warning" for="pkg-rating-{{ n }}">
+                                        {{ n }} <i class="bi bi-star-fill"></i>
+                                    </label>
+                                {% endfor %}
                             </div>
                         </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Your name <span class="text-danger">*</span></label>
+                                <input type="text" name="guest_name" class="form-control" required
+                                       maxlength="150"
+                                       value="{{ current_user.full_name if current_user.is_authenticated else '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="guest_email" class="form-control" required
+                                       maxlength="255"
+                                       value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                                <div class="form-text small">
+                                    <i class="bi bi-shield-lock"></i> Never shown publicly.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Title (optional)</label>
+                            <input type="text" name="title" class="form-control" maxlength="150">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Your review</label>
+                            <textarea name="body" class="form-control" rows="5"
+                                      maxlength="2000" required></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Title (optional)</label>
-                        <input type="text" name="title" class="form-control" maxlength="150">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-eltut-primary">
+                            <i class="bi bi-send"></i> Publish review
+                        </button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Your review</label>
-                        <textarea name="body" class="form-control" rows="5"
-                                  maxlength="2000" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-eltut-primary">
-                        <i class="bi bi-send"></i> Publish review
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 {% endif %}
-
+{# ═══════════════════════════════════════════════════════════════════
+   PACKAGE DETAIL — PAGE-SPECIFIC STYLES
+   ═══════════════════════════════════════════════════════════════════ #}
 <style>
-/* ═════════════════════════════════════════════════════════════════
-   PACKAGE DETAIL — LAYOUT GRID (explicit, not Bootstrap)
-   ═════════════════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────────────────
+   LAYOUT GRID (explicit, not Bootstrap)
+   The main column and sidebar are laid out with CSS Grid so the
+   sidebar always sits in the right column on desktop regardless of
+   any nested flex behaviour.
+   ───────────────────────────────────────────────────────────────── */
 .pkg-layout {
     display: grid !important;
     grid-template-columns: 1fr !important;
@@ -1244,40 +1255,74 @@
 
 @media (min-width: 992px) {
     .pkg-layout {
-        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr) !important;
+        grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr) !important;
     }
-    /* Sticky the ASIDE itself (grid item) — not the card inside,
-       because a short parent blocks the child's sticky behaviour. */
     .pkg-aside {
         position: sticky !important;
         top: 1rem !important;
         align-self: start !important;
         max-height: calc(100vh - 2rem);
         overflow-y: auto;
+        overflow-x: hidden;
+    }
+    /* ─── Sidebar scrollbar — golden yellow ──────────────────── */
+    .pkg-aside {
+        scrollbar-width: thin;                                    /* Firefox */
+        scrollbar-color: #e6b422 transparent;                     /* Firefox */
+    }
+    .pkg-aside::-webkit-scrollbar {
+        width: 8px;
+    }
+    .pkg-aside::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .pkg-aside::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #f5c964 0%, #d9a117 100%);
+        border-radius: 8px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+    .pkg-aside::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #ffd97a 0%, #e6b422 100%);
+        background-clip: padding-box;
     }
 }
+
 @media (max-width: 991.98px) {
     .pkg-aside > .card {
         position: static !important;
     }
 }
 
-/* Sidebar hero image */
+/* ─────────────────────────────────────────────────────────────────
+   SIDEBAR HERO IMAGE
+   ───────────────────────────────────────────────────────────────── */
 .sidebar-hero {
     width: 100%;
     height: 270px;
     overflow: hidden;
     background: #f3f4f6;
 }
-.sidebar-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sidebar-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
 .sidebar-hero-fallback {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    color: #9ca3af; font-size: 3rem;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 3rem;
     background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
 }
 
-/* Option card selection */
+/* ─────────────────────────────────────────────────────────────────
+   OPTION CARD SELECTION
+   ───────────────────────────────────────────────────────────────── */
 .option-card {
     cursor: pointer;
     position: relative;
@@ -1285,11 +1330,11 @@
     border: 2px solid #e5e7eb !important;
 }
 .option-card:hover {
-    border-color: #c0392b !important;
+    border-color: #1266c5 !important;
     box-shadow: 0 6px 20px rgba(192, 57, 43, .1);
 }
 .option-card.is-selected {
-    border-color: #c0392b !important;
+    border-color: #b14f04 !important;
     background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%);
     box-shadow: 0 8px 24px rgba(192, 57, 43, .15);
 }
@@ -1328,7 +1373,9 @@
     color: #fff;
 }
 
-/* Selected flight panel logo wrap */
+/* ─────────────────────────────────────────────────────────────────
+   SELECTED-FLIGHT PANEL LOGO
+   ───────────────────────────────────────────────────────────────── */
 .sf-logo-wrap {
     width: 90px;
     height: 44px;
@@ -1337,20 +1384,32 @@
     justify-content: center;
     flex-shrink: 0;
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   PRINT STYLES
+   ───────────────────────────────────────────────────────────────── */
+@media print {
+    .pkg-aside { position: static !important; }
+    .nav, footer, .btn { display: none !important; }
+}
 </style>
 
+
+{# ═══════════════════════════════════════════════════════════════════
+   PACKAGE DETAIL — SIDEBAR OPTION SWITCHING JS
+   ═══════════════════════════════════════════════════════════════════ #}
 <script>
 (function() {
     'use strict';
 
-    // â”£â”£â”£ Server-side data for JS â”£â”£â”£
+    // ─── Server-side data ─────────────────────────────────────────
     const ADULTS = {{ adults }};
     const CHILDREN = {{ children }};
     const CHECK_IN = "{{ check_in.isoformat() if check_in else '' }}";
     const CHECK_OUT = "{{ check_out.isoformat() if check_out else '' }}";
     const BOOK_URL = "{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}";
 
-    // Airline logos by normalized name
+    // ─── Airline logos by normalized name ────────────────────────
     const AIRLINE_LOGOS = {
         {% for name, data in airline_lookup.items() %}
             "{{ name }}": "{{ data.logo_url or '' }}"{% if not loop.last %},{% endif %}
@@ -1362,14 +1421,14 @@
     }
 
     function selectOption(card) {
-        // Update visual selection
+        // Visual selection
         document.querySelectorAll('.option-card').forEach(c => c.classList.remove('is-selected'));
         card.classList.add('is-selected');
 
         const radio = card.querySelector('.option-radio');
         if (radio) radio.checked = true;
 
-        // Extract data
+        // Extract data attributes
         const airlineName = card.dataset.airline || '';
         const airlineSlug = card.dataset.airlineSlug || '';
         const airlineLogo = card.dataset.airlineLogo || '';
@@ -1382,22 +1441,28 @@
         const childPrice = parseFloat(card.dataset.childPrice) || 0;
         const currency = card.dataset.currency || 'GBP';
         const optionId = card.dataset.optionId;
+        const isLandOnly = card.dataset.isLandOnly === 'true';
 
-        // â”£â”£â”£ Update SIDEBAR summary â”£â”£â”£
-        document.getElementById('sel-airline-name').textContent = airlineName || 'â£”';
-        document.getElementById('sel-route').textContent = (from && to) ? `${from} â†’ ${to}` : 'Land only';
-        document.getElementById('sel-dates').textContent = dep && ret ? `${dep} â†’ ${ret}` : 'Flexible dates';
+        // ─── Update sidebar summary (only if it exists) ──────────
+        const selAirlineName = document.getElementById('sel-airline-name');
+        const selRoute = document.getElementById('sel-route');
+        const selDates = document.getElementById('sel-dates');
+        if (selAirlineName) selAirlineName.textContent = airlineName || '—';
+        if (selRoute) selRoute.textContent = (from && to) ? `${from} → ${to}` : 'Land only';
+        if (selDates) selDates.textContent = (dep && ret) ? `${dep} → ${ret}` : 'Flexible dates';
 
         const sidebarLogoEl = document.getElementById('sel-airline-logo');
         const sidebarLogo = airlineLogo || AIRLINE_LOGOS[airlineSlug] || '';
-        if (sidebarLogo) {
-            sidebarLogoEl.src = sidebarLogo;
-            sidebarLogoEl.style.display = 'block';
-        } else {
-            sidebarLogoEl.style.display = 'none';
+        if (sidebarLogoEl) {
+            if (sidebarLogo) {
+                sidebarLogoEl.src = sidebarLogo;
+                sidebarLogoEl.style.display = 'block';
+            } else {
+                sidebarLogoEl.style.display = 'none';
+            }
         }
 
-        // â”£â”£â”£ Update SELECTED FLIGHT panel (main column) â”£â”£â”£
+        // ─── Update selected-flight panel ────────────────────────
         const sfAirline = document.getElementById('sf-airline');
         const sfRoute = document.getElementById('sf-route');
         const sfDeparture = document.getElementById('sf-departure');
@@ -1405,7 +1470,7 @@
         const sfLuggage = document.getElementById('sf-luggage');
 
         if (sfAirline) sfAirline.textContent = airlineName || 'Multiple airlines';
-        if (sfRoute) sfRoute.textContent = (from && to) ? `${from} â†’ ${to}` : 'Land only';
+        if (sfRoute) sfRoute.textContent = (from && to) ? `${from} → ${to}` : 'Land only';
         if (sfDeparture) sfDeparture.textContent = dep || 'Flexible';
         if (sfReturn) sfReturn.textContent = ret || 'Flexible';
         if (sfLuggage) sfLuggage.textContent = luggage ? `${luggage} luggage` : '';
@@ -1424,15 +1489,13 @@
             }
         }
 
-        // â”£â”£â”£ Update price breakdown â”£â”£â”£
+        // ─── Update price breakdown ──────────────────────────────
         const adultPriceEl = document.getElementById('breakdown-adult-price');
         const childPriceEl = document.getElementById('breakdown-child-price');
         if (adultPriceEl) adultPriceEl.textContent = fmt(adultPrice, currency);
         if (childPriceEl) childPriceEl.textContent = fmt(childPrice, currency);
 
-        // Recompute total
-                // Recompute total â£” prefer grand_total (land + flight + markup + transfer)
-               // Recompute total â£” prefer grand_total (land + flight + markup + transfer)
+        // Recompute total — prefer grand_total
         const grandTotal = parseFloat(card.dataset.grandTotal || '0');
         const total = grandTotal > 0
             ? grandTotal
@@ -1440,7 +1503,7 @@
         const totalEl = document.getElementById('sidebar-total');
         if (totalEl) totalEl.textContent = fmt(total, currency);
 
-        // Update the breakdown lines if we have real flight data
+        // Update breakdown lines
         if (grandTotal > 0) {
             const landTotal = parseFloat(card.dataset.landTotal || '0');
             const flightTotal = parseFloat(card.dataset.flightTotal || '0');
@@ -1450,17 +1513,18 @@
             const landEl = document.getElementById('breakdown-land-total');
             if (landEl) landEl.textContent = fmt(landTotal, currency);
             const flightEl = document.getElementById('breakdown-flight-total');
-            if (flightEl) flightEl.textContent = 'GBP ' + flightTotal.toFixed(2);
+            if (flightEl) flightEl.textContent = fmt(flightTotal, currency);
             const markupEl = document.getElementById('breakdown-markup-total');
-            if (markupEl) markupEl.textContent = 'GBP ' + markupTotal.toFixed(2);
+            if (markupEl) markupEl.textContent = fmt(markupTotal, currency);
             const transferEl = document.getElementById('breakdown-transfer-total');
-            if (transferEl) transferEl.textContent = 'GBP ' + transferTotal.toFixed(2);
+            if (transferEl) transferEl.textContent = fmt(transferTotal, currency);
         }
-        // Update Book button href
+
+        // ─── Update Book button href ─────────────────────────────
         const bookBtn = document.getElementById('book-departure-btn');
         if (bookBtn) {
             const params = new URLSearchParams();
-            params.set('package_flight_id', optionId);
+            if (optionId) params.set('package_flight_id', optionId);
             if (CHECK_IN) params.set('check_in', CHECK_IN);
             if (CHECK_OUT) params.set('check_out', CHECK_OUT);
             params.set('adults', ADULTS);
@@ -1469,7 +1533,7 @@
         }
     }
 
-    // Wire up option cards
+    // ─── Wire up option cards ────────────────────────────────────
     document.querySelectorAll('.option-card').forEach(card => {
         card.addEventListener('click', function(e) {
             if (e.target.closest('a')) return;
@@ -1477,11 +1541,11 @@
         });
     });
 
-    // Auto-select first on page load
+    // ─── Auto-select first card on page load ─────────────────────
     const first = document.querySelector('.option-card');
     if (first) selectOption(first);
 
-    // Collapse toggle label
+    // ─── Collapse toggle label ──────────────────────────────────
     const collapse = document.getElementById('pkg-price-breakdown');
     if (collapse) {
         collapse.addEventListener('show.bs.collapse', function() {
