@@ -1,10 +1,11 @@
 ﻿======================================================
 ELTUT TOURS — FULL CODE REPORT
-Generated: 2026-10-15 03:23:52
+Generated: 2026-10-16 02:08:23
 Root:      C:\Users\washo\Desktop\eltut-tours-platform
 ======================================================
 
 ========== 1. FILE TREE (excluding noise) ==========
+         0  _eur_hits.txt
          0  scripts\flight_formats\__init__.py
          0  static\images\uploads\.gitkeep
          0  static\videos\uploads\.gitkeep
@@ -20,6 +21,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
        368  testing\_verify_currency.py
        370  testing\_check_indexes2.py
        374  testing\_verify_easyjet.py
+       394  flight_template.csv
        403  testing\_verify_pkg_options_page.py
        404  testing\_verify_airline_col.py
        415  testing\_check_dest_images.py
@@ -33,13 +35,17 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
        489  testing\_check_addons.py
        496  testing\_check_airline_names.py
        501  _investigate_edit.py
+       541  _add_flight_admin.py
        558  testing\_diag_meta2.py
        563  testing\_test_addons2.py
        594  testing\_find_slug.py
        598  testing\_verify_modal_data.py
+       603  _fix_ajax.py
        605  requirements.txt
+       613  _fix_rate.py
        678  testing\_check_pricing_math.py
        695  testing\_patch_reco.py
+       738  _relabel_gbp.py
        748  testing\_verify_meta_images.py
        754  testing\_check_booking_schema.py
        756  _investigate_admin.py
@@ -47,6 +53,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
        768  testing\_check_room_capacity.py
        794  testing\_check_children.py
        803  blueprints\api\__init__.py
+       815  _scan_eur.py
        838  _investigate_models.py
        848  testing\_check_meta_hero.py
        869  testing\_fix_pkg_urls.py
@@ -58,10 +65,13 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
        945  testing\_diag_step3.py
        949  testing\_patch_template.py
        961  testing\_check_all_images.py
+       966  _scan_eur2.py
        967  testing\_test_booking_service.py
      1,010  data\airports.csv
      1,014  testing\_patch_search.py
+     1,039  _sweep_eur.py
      1,050  testing\_check_rate_dates.py
+     1,058  _add_nav.py
      1,060  testing\_check_currencies.py
      1,072  blueprints\__init__.py
      1,097  testing\_check_facility_types.py
@@ -72,6 +82,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      1,236  testing\_patch_content_append.py
      1,269  testing\_check_prices.py
      1,275  testing\_find_gap.py
+     1,289  _add_dates_save.py
      1,300  _investigate_template.py
      1,314  testing\_patch_routes3.py
      1,322  templates\public\quote_request_thanks.html
@@ -83,7 +94,11 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      1,512  _find_585.py
      1,522  templates\auth\forgot_password.html
      1,544  testing\_patch_pkg_breakdown.py
+     1,573  _debug_dates.py
+     1,690  templates\admin\hotel_csv_import.html
      1,696  blueprints\account\forms.py
+     1,744  _convert_to_gbp.py
+     1,776  _add_rate_edit.py
      1,789  templates\auth\reset_password.html
      1,836  blueprints\admin\routes.py
      1,849  .env.example
@@ -96,10 +111,13 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      2,020  testing\_patch_meta2.py
      2,037  scripts\backfill_airport_codes.py
      2,059  testing\_airline_backfill2.py
+     2,060  templates\admin\flight_import.html
      2,086  testing\_patch_pricing.py
+     2,098  _fix_flight_options.py
      2,104  testing\_backup_261.py
      2,107  testing\_patch_routes.py
      2,121  testing\_patch_booking_pricing.py
+     2,122  blueprints\admin\hotel_csv_admin.py
      2,129  testing\_patch_home_template.py
      2,133  testing\_apply_patch.py
      2,146  models\airport.py
@@ -109,12 +127,14 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      2,331  testing\_check_flights.py
      2,370  testing\_verify_261.py
      2,371  templates\auth\login.html
+     2,427  _backup_prices.py
      2,488  templates\public\about.html
      2,525  models\room_rate.py
      2,558  testing\_patch_reco_modal.py
      2,616  _verify.py
      2,631  _verify_final.py
      2,650  testing\_find_rich_hotels.py
+     2,720  templates\admin\hotel_csv.html
      2,748  utils.py
      2,868  testing\_patch_activity_routes.py
      2,871  blueprints\public\__init__.py
@@ -135,20 +155,24 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      3,732  templates\public\booking_confirmation.html
      3,735  testing\_patch_sidebar.py
      3,770  models\airline.py
+     3,782  _fix_card_nights.py
      3,782  templates\account\index.html
      3,783  testing\_patch_booking_sidebar.py
      3,805  blueprints\public\enquiry_routes.py
      3,853  templates\public\enquiry_form.html
      3,879  testing\_patch_meta_images.py
-     3,932  blueprints\admin\__init__.py
+     3,975  _fix_nights.py
      3,994  config.py
+     3,999  blueprints\admin\__init__.py
      4,073  models\booking.py
      4,198  render.yaml
      4,294  data\jet2_london-gatwick_hurghada_.csv
+     4,321  blueprints\admin\flight_admin.py
      4,354  testing\_airline_backfill.py
      4,384  models\destination.py
      4,402  testing\_seed_package_options.py
      4,461  services\__init__.py
+     4,477  models\package_flight.py
      4,496  templates\account\bookings.html
      4,657  scripts\seed_cover_images.py
      4,824  templates\account\profile.html
@@ -158,21 +182,24 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      5,076  scripts\fix_options.py
      5,079  blueprints\auth\routes.py
      5,125  templates\admin\activity_list.html
-     5,143  templates\admin\package_list.html
      5,207  models\package_option.py
      5,282  models\flight_price.py
      5,287  templates\admin\user_list.html
+     5,307  services\package_pricing_service.py
      5,355  models\newsletter.py
      5,402  testing\_patch_home_route.py
-     5,460  templates\admin\base.html
+     5,623  _add_rate_edit_btn2.py
      5,687  scripts\reset_db.py
+     5,799  templates\admin\base.html
+     5,830  templates\admin\flight_admin.html
      5,839  templates\admin\airline_list.html
      5,902  models\booking_status_history.py
      5,928  models\guide.py
+     5,945  _tmp\part_b.html
      5,957  templates\admin\quote_new.html
      5,977  testing\_patch_fast_home.py
      5,978  models\flight.py
-     6,131  blueprints\public\search_routes.py
+     6,070  blueprints\public\search_routes.py
      6,210  templates\admin\destination_images.html
      6,258  blueprints\admin\report_routes.py
      6,403  static\images\airlines\c0f259fd12d0ae4c926548437f965b9441da8767.png
@@ -181,6 +208,8 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      6,490  models\booking_traveller.py
      6,697  testing\_enrich_261.py
      6,776  models\supplier.py
+     6,778  _add_rate_edit_btn.py
+     6,794  services\flight_csv_service.py
      6,808  templates\admin\review_list.html
      6,838  templates\admin\airline_form.html
      6,869  extensions.py
@@ -190,7 +219,6 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      7,028  models\site_content.py
      7,034  scripts\flight_formats\easyjet_to_canonical.py
      7,037  mongo\client.py
-     7,054  templates\admin\room_form.html
      7,074  templates\admin\content_edit.html
      7,084  templates\admin\content_index.html
      7,110  models\booking_item.py
@@ -211,7 +239,8 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
      8,244  blueprints\admin\user_admin.py
      8,302  static\images\airlines\1deedf9b230ac1620304736d514b6ac1294db24c.png
      8,553  templates\base.html.pre_home_theme.bak
-     8,711  templates\admin\index.html
+     8,709  templates\admin\index.html
+     8,776  services\hotel_csv_service.py
      8,882  blueprints\public\quote_routes.py
      8,980  templates\base.html.pre_logo.bak
      8,980  templates\base.html.pre_polish.bak
@@ -229,21 +258,23 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
     10,102  blueprints\api\packages_api.py
     10,232  mongo\search_events.py
     10,280  blueprints\admin\offer_admin.py
-    10,339  templates\public\_search_widget.html
+    10,508  templates\public\_search_widget.html
     10,716  blueprints\public\activity_routes.py
     10,928  services\recommendation_service.py
     10,945  services\auth_service.py
+    10,984  templates\admin\room_form.html
     11,096  services\report_service.py
-    11,146  services\pricing_service.py
     11,237  blueprints\public\routes.py
     11,416  blueprints\admin\airline_admin.py
+    11,446  services\pricing_service.py
     11,471  static\images\airlines\124167c04b4a165a0136bc53621bc5ed9a862f6d.jpg
     11,837  services\availability_service.py
+    12,007  templates\admin\package_list.html
     12,129  blueprints\admin\quote_admin.py
     12,154  mongo\reviews.py
     12,334  blueprints\api\payments_api.py
     12,501  blueprints\admin\booking_admin.py
-    12,512  models\__init__.py
+    12,512  models\__init__.py.bak
     12,744  templates\admin\report_index.html
     12,765  templates\public\quote_view.html
     13,103  templates\admin\booking_detail.html
@@ -252,9 +283,9 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
     13,423  static\images\airlines\3dc658a5efb1537cb385eb23d85d6dcdc0c93d02.jpg
     13,571  templates\admin\offers.html
     13,857  models\quote.py
-    14,181  blueprints\public\hotel_routes.py
     14,253  data\imports\easyjet_canonical.csv
     14,537  models\hotel.py
+    14,600  blueprints\public\hotel_routes.py
     15,042  static\css\search_results.css
     15,145  services\payment_service.py
     15,166  templates\admin\activity_form.html
@@ -266,48 +297,51 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
     17,170  testing\_audit.py
     17,618  scripts\seed_package_details.py
     17,623  blueprints\admin\activity_admin.py
-    17,729  templates\public\package_list.html
-    18,021  services\flight_service.py
-    18,089  templates\public\hotel_list.html
+    18,038  templates\public\package_list.html
     18,158  static\images\uploads\2b029abc3237faea07339609906d0fad8d927213.jpeg
     18,264  templates\public\activity_list.html
     18,279  flash.text
+    18,403  templates\public\hotel_list.html
+    18,419  services\flight_service.py
     18,456  scripts\enrich_package_faqs_tips.py
+    18,812  models\__init__.py
     19,375  static\images\uploads\d1fcb04db92b9a339386098afac3b486a4c3fedd.jpg
     19,751  services\email_service.py
     20,775  templates\admin\quote_detail.html
+    21,208  services\booking_service.py
     21,731  models\activity.py
-    21,757  models\package.py
-    21,847  services\booking_service.py
+    21,757  models\package.py.bak
     21,989  services\quote_service.py
     22,002  templates\public\_egypt_guide.html
-    22,529  blueprints\admin\hotel_admin.py
     23,489  structure_report.txt
+    23,735  blueprints\admin\hotel_admin.py
+    23,812  combined_fares_clean.csv
     23,952  blueprints\admin\media_routes.py
-    24,370  templates\admin\hotel_form.html
     24,384  static\images\destinations\5750386524a9221bfb2c059e5e930d761010461b.jpg
     24,630  blueprints\public\package_routes.py.bak
-    25,951  blueprints\public\package_routes.py
+    24,806  templates\admin\hotel_form.html
+    25,725  blueprints\public\package_routes.py
     26,198  services\content_service.py
-    27,367  blueprints\admin\package_admin.py.bak
     28,116  blueprints\public\booking_routes.py
-    28,117  blueprints\admin\package_admin.py
+    28,117  blueprints\admin\package_admin.py.bak
     30,209  templates\public\search_results.html
+    31,350  combined_fares.csv
     32,405  static\images\uploads\349be79dcc70c91c757db3ba85b3f6876b6194bb.jpg
     32,908  PROJECT_STATE.md
     34,844  services\search_service.py
+    36,160  templates\admin\package_form.html
     37,407  templates\admin\content_slideshow.html
     37,700  static\images\uploads\39620807d9b45e8952ab5a5ffbd259ceea285901.jpg
-    40,148  templates\admin\package_form.html
     41,126  scripts\seed_from_csv.py
+    42,254  models\package.py
     43,047  static\images\uploads\757cec9e35573c63601f3c7a7652851b5801c4ef.jpg
     43,175  templates\public\activity_detail.html
     49,344  static\images\uploads\9cb855d5acbf7ceb1f8a9248da927463a139451e.jpg
     51,097  data\easyjet_Gatwic.csv
     54,036  templates\public\booking_start.html
     55,879  static\images\activities\4389e38a4f932a83adbdc135c151b70dde174022.jpg
-    56,605  templates\public\hotel_detail.html
-    57,052  templates\public\index.html
+    56,602  templates\public\hotel_detail.html
+    57,045  templates\public\index.html
     57,442  static\images\activities\72e0373778d7240c2b9c46de318301df9bf6660b.jpg
     58,189  static\images\activities\fe533baa3ed4b04be9b326920d0c47c52efc37ed.jpg
     58,959  static\images\activities\17f4dcd494bd1ae0e0308f5e2339b9bfc25923d3.jpg
@@ -321,7 +355,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
     73,700  static\images\uploads\2a29835022ceeb0b3b463d17d22673cc3d47e780.jpg
     75,245  static\images\activities\ba2e4c119b290a9c296420545f485411d5c3129f.jpg
     77,296  static\images\activities\6217a8fa4cad2310ebfe42ecc97d2519326b7e89.jpg
-    78,234  templates\public\package_detail.html
+    78,040  templates\public\package_detail.html
     79,341  static\images\activities\2c7bffdc667b0534e7de70b8a36fa67e0c18c96e.jpg
     79,588  static\images\activities\c8a67c8f6fc99e3640a12bf2db2898bd74fc87cd.jpg
     81,008  static\images\heroes\holiday.jpg
@@ -544,6 +578,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
    756,760  static\images\destinations\db1bc82aa4bae7adba8e43533756f08d7868adaa.jpg
    756,760  static\images\heroes\fish.jpg
    756,760  static\images\uploads\db1bc82aa4bae7adba8e43533756f08d7868adaa.jpg
+   759,359  blueprints\admin\package_admin.py
    771,628  static\images\activities\015982d22f75778c91053a3f93c2a7d4935bf79a.jpg
    777,861  static\images\activities\cb38af51dbdc31f9f70a12c6cdd0dfb5203365a8.jpg
    779,646  static\images\activities\0f97aefa153dba30d1ca6a5fc7bc57cafe8ba6c8.jpg
@@ -699,6 +734,7 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
  1,630,138  static\images\activities\77783e8eff6d7926c4cb068e170093979037f6d4.jpg
  1,632,508  static\images\activities\d80517c613bdb84847f13657ec968bdd7124c96a.jpg
  1,633,017  static\images\activities\a9636038fd528689d277fcc3869bbf3bd811d720.jpg
+ 1,645,151  backups\prices_before_gbp.json
  1,658,429  static\images\activities\97e10c74ab4c468965f36ee0c950900faa4f21ab.jpg
  1,661,593  static\images\activities\c74c2c91169faa93f5673af0d18698391c8e8e8a.jpg
  1,663,507  static\images\activities\8d330500351c8cdcacf68905a0e5bc6a8023ef6a.jpg
@@ -1053,20 +1089,21 @@ Root:      C:\Users\washo\Desktop\eltut-tours-platform
 19,432,757  static\images\activities\7cc8a56f4d2df46f41cd345fffeadb884cf10333.jpg
 
 ========== 2. TOP-LEVEL FOLDERS ==========
-backups                                      1 files
-blueprints                                  41 files
+backups                                      2 files
+blueprints                                  43 files
 cloud_function                               3 files
 data                                         7 files
 instance                                     0 files
 logs                                         0 files
 migrations                                   0 files
-models                                      27 files
+models                                      30 files
 mongo                                        7 files
 scripts                                     21 files
-services                                    14 files
+services                                    17 files
 static                                     753 files
-templates                                   60 files
+templates                                   64 files
 testing                                     88 files
+_tmp                                         1 files
 
 ========== 3. MODELS (classes, columns, relationships) ==========
 
@@ -1451,6 +1488,16 @@ class Package(Base, SlugMixin, TimestampMixin):
     what_to_bring: Mapped[str | None] = mapped_column(Text, nullable=True)
     things_to_know: Mapped[str | None] = mapped_column(Text, nullable=True)
     google_maps_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    check_in: Mapped[date | None] = mapped_column(Date, nullable=True)
+    check_out: Mapped[date | None] = mapped_column(Date, nullable=True)
+    transfer_fee: Mapped[Decimal | None] = mapped_column(
+    transfer_description: Mapped[str | None] = mapped_column(
+    markup_value: Mapped[Decimal | None] = mapped_column(
+    markup_kind: Mapped[str | None] = mapped_column(
+    markup_description: Mapped[str | None] = mapped_column(
+    tax_value: Mapped[Decimal | None] = mapped_column(
+    tax_kind: Mapped[str | None] = mapped_column(
+    tax_description: Mapped[str | None] = mapped_column(
     prices: Mapped[list["PackagePrice"]] = relationship(
     images: Mapped[list["PackageImage"]] = relationship(
     inclusions: Mapped[list["PackageInclusion"]] = relationship(
@@ -1511,6 +1558,20 @@ class PackageTip(Base):
     sort_order: Mapped[int] = mapped_column(
     package: Mapped["Package"] = relationship(back_populates="tips")  # noqa: F821
 __all__ = [
+
+### FILE: models\package_flight.py
+class PackageFlight(Base, TimestampMixin):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(
+    outbound_flight_id: Mapped[int | None] = mapped_column(
+    inbound_flight_id: Mapped[int | None] = mapped_column(
+    label: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    sort_order: Mapped[int] = mapped_column(
+    is_active: Mapped[bool] = mapped_column(
+    package: Mapped["Package"] = relationship(  # noqa: F821
+    outbound_flight: Mapped["FlightPrice | None"] = relationship(  # noqa: F821
+    inbound_flight: Mapped["FlightPrice | None"] = relationship(  # noqa: F821
+__all__ = ["PackageFlight"]
 
 ### FILE: models\package_option.py
 class PackageOption(Base, TimestampMixin):
@@ -1775,6 +1836,16 @@ def send_admin_quote_request(enquiry: dict[str, Any]) -> bool:
 def send_quote_to_customer(quote: Any) -> bool:
 def send_review_thanks(
 
+### FILE: services\flight_csv_service.py
+log = logging.getLogger(__name__)
+COLUMNS = [
+def _clean(v):
+def _parse_date(v):
+def _parse_decimal(v):
+def _parse_int(v, default):
+def import_csv(file_obj, *, replace: bool = False):
+def export_csv():
+
 ### FILE: services\flight_import_service.py
 log = logging.getLogger(__name__)
 CANONICAL_COLUMNS = [
@@ -1814,6 +1885,25 @@ def _transfer_cost(passengers: int) -> Decimal:
 def flight_options_for_package(
         def sort_key(r: FlightPrice):
 __all__ = [
+
+### FILE: services\hotel_csv_service.py
+log = logging.getLogger(__name__)
+EXPORT_COLS = [
+def _clean(v):
+def _int(v, default=0):
+def _dec(v):
+def _date(v):
+def _meal_label(v):
+def _slug(name):
+def _get_or_create_destination(session, name, iata):
+def import_csv(file_obj, *, replace: bool = False):
+def export_csv():
+
+### FILE: services\package_pricing_service.py
+def _dec(v):
+def _rate_for_room(room_id, check_in, check_out):
+def compute_package_flight_card(package, card):
+def build_package_rows(packages):
 
 ### FILE: services\payment_service.py
 log = logging.getLogger(__name__)
@@ -1855,7 +1945,7 @@ def price_hotel(
 def price_package(package_id: int, adults: int, children: int = 0) -> Decimal:
 def price_addons(addons: Iterable[dict[str, Any]]) -> Decimal:
 def compute_booking_total(
-_SYMBOLS = {"USD": "$", "EUR": "â‚¬", "GBP": "Â£"}
+_SYMBOLS = {"USD": "$", "GBP": "Â£", "GBP": "Â£"}
 def format_currency(amount: Any, currency: str = "USD") -> str:
 
 ### FILE: services\quote_service.py
@@ -2278,6 +2368,15 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
     def destination_images()
     def destination_image_upload()
     def destination_image_delete()
+--- blueprints\admin\flight_admin.py ---
+  @admin_bp.route("/flights")
+  @admin_bp.route("/flights/import", methods=["GET", "POST"])
+  @admin_bp.route("/flights/export")
+  @admin_bp.route("/flights/<int:fp_id>/delete", methods=["POST"])
+    def flight_admin_index()
+    def flight_admin_import()
+    def flight_admin_export()
+    def flight_admin_delete()
 --- blueprints\admin\hotel_admin.py ---
   @admin_bp.route("/hotels")
   @admin_bp.route("/hotels/new", methods=["GET", "POST"])
@@ -2288,6 +2387,7 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/rooms/<int:room_id>/edit", methods=["GET", "POST"])
   @admin_bp.route("/rooms/<int:room_id>/delete", methods=["POST"])
   @admin_bp.route("/rooms/<int:room_id>/rates/new", methods=["POST"])
+  @admin_bp.route("/room-rates/<int:rate_id>/edit", methods=["POST"])
   @admin_bp.route("/room-rates/<int:rate_id>/delete", methods=["POST"])
   @admin_bp.route("/hotels/<int:hotel_id>/children/<child_type>/new", methods=["POST"])
   @admin_bp.route(
@@ -2310,12 +2410,22 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
     def room_rate_new()
     def _float()
     def _date()
+    def room_rate_edit()
+    def _float()
+    def _date()
     def room_rate_delete()
     def _next_child_sort_order()
     def hotel_child_new()
     def hotel_child_delete()
     def hotel_facility_new()
     def hotel_facility_delete()
+--- blueprints\admin\hotel_csv_admin.py ---
+  @admin_bp.route("/hotel-csv")
+  @admin_bp.route("/hotel-csv/import", methods=["GET", "POST"])
+  @admin_bp.route("/hotel-csv/export")
+    def hotel_csv_index()
+    def hotel_csv_import()
+    def hotel_csv_export()
 --- blueprints\admin\media_routes.py ---
   @admin_bp.route("/media")
   @admin_bp.route("/media/product/<product_type>/<int:parent_id>")
@@ -2374,12 +2484,19 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
   @admin_bp.route("/packages/<int:package_id>/options/new", methods=["POST"])
   @admin_bp.route("/packages/<int:package_id>/options/<int:option_id>/update", methods=["POST"])
   @admin_bp.route("/options/<int:option_id>/delete", methods=["POST"])
+  @admin_bp.route("/packages/<int:package_id>/flight-cards/new", methods=["POST"])
+  @admin_bp.route("/package-flight-cards/<int:card_id>/delete", methods=["POST"])
+  @admin_bp.route("/package-flight-cards/<int:card_id>/toggle", methods=["POST"])
+  @admin_bp.route("/api/packages/rooms-for-hotel/<int:hotel_id>")
     def _log()
     def package_list()
     def _form_choices()
     def _rooms_for_hotel()
     def _apply_form_to_package()
     def _maybe_int()
+    def _parse_date()
+    def _decimal_or_none()
+    def _str_or_none()
     def package_new()
     def package_edit()
     def package_toggle()
@@ -2405,6 +2522,11 @@ def volume_by_day(*, days: int = 30) -> list[dict[str, Any]]:
     def package_option_new()
     def package_option_update()
     def package_option_delete()
+    def package_flight_card_new()
+    def _int_or_none()
+    def package_flight_card_delete()
+    def package_flight_card_toggle()
+    def api_rooms_for_hotel()
 --- blueprints\admin\quote_admin.py ---
   @admin_bp.route("/quotes")
   @admin_bp.route("/quotes/requests")
@@ -2836,38 +2958,16 @@ MAX_CONTENT_LENGTH=16777216
 
 ========== 10. GIT ==========
 --- git status -s ---
- M blueprints/public/package_routes.py
+ M blueprints/admin/hotel_admin.py
  M code_report.txt
-A  migrations/alembic.ini
-A  migrations/script.py.mako
- M models/__init__.py
- M models/destination.py
- M templates/public/package_detail.html
-?? _count_windows.py
-?? _find_585.py
-?? _investigate_admin.py
-?? _investigate_edit.py
-?? _investigate_models.py
-?? _investigate_template.py
-?? _list_pkgs.py
-?? _test_opts.py
-?? _verify.py
-?? _verify_final.py
-?? blueprints/public/package_routes.py.bak
-?? data/airports.csv
-?? data/easyjet_Gatwic.csv
-?? data/imports/
-?? data/jet2_london-gatwick_hurghada_.csv
-?? migrations/versions/cf562bdd0e9e_add_destination_airport_code.py
-?? migrations/versions/e708a53fc10f_add_flight_prices_table.py
-?? migrations/versions/fb14d56277d7_add_airports_table.py
-?? models/airport.py
-?? models/flight_price.py
-?? scripts/backfill_airport_codes.py
-?? scripts/flight_formats/
-?? scripts/seed_airports.py
-?? services/flight_import_service.py
-?? services/flight_service.py
+ M templates/admin/room_form.html
+?? _add_rate_edit.py
+?? _add_rate_edit_btn.py
+?? _add_rate_edit_btn2.py
+?? blueprints/admin/hotel_csv_admin.py
+?? services/hotel_csv_service.py
+?? templates/admin/hotel_csv.html
+?? templates/admin/hotel_csv_import.html
 
 --- git branch -a ---
 * main
@@ -2875,6 +2975,8 @@ A  migrations/script.py.mako
   remotes/origin/main
 
 --- git log --oneline -30 ---
+f91ede1 feat: add flight service and package pricing service
+f287f4f Add initial Alembic configuration and migration script templates
 8ac429f Refactor hotel and package templates for improved layout and readability
 afbe242 fix: Update package references to "Holiday Packages" for consistency
 3bedad9 Add search results template with enhanced layout and filtering options
@@ -2903,13 +3005,13 @@ a00ad77 Add search results template with filtering options and pagination
 75ec2d6 feat: remove obsolete testing scripts and update CSS styles for improved UI
 22e1b8f feat: add itinerary timeline styles and enhance package options management
 e9cbc86 Add airline management templates and logo upload functionality
-abd5fd3 feat: add functionality for managing package price windows and flights
-3354935 Add reviews section and quote request functionality
 
 ========== 11. MIGRATIONS ==========
 FILE: 3656e6880fd2_add_party_pricing_to_quotes.py
 FILE: 3d06a807b617_add_detail_content_columns_to_products.py
+FILE: 3e83e7b5d1ce_add_package_check_in_check_out.py
 FILE: 4b821243b413_add_airline_id_to_flights.py
+FILE: 5e08df29fed6_add_package_flights_table_and_package_.py
 FILE: 6063bba994dc_add_room_rates_table.py
 FILE: 660bf441c996_initial_schema_28_tables.py
 FILE: 692f68cad115_add_airlines_master_list.py
@@ -2937,7 +3039,7 @@ FILE: relax_room_rates_validity.py
      5,125  templates\admin\activity_list.html
      6,838  templates\admin\airline_form.html
      5,839  templates\admin\airline_list.html
-     5,460  templates\admin\base.html
+     5,799  templates\admin\base.html
     13,103  templates\admin\booking_detail.html
      6,991  templates\admin\booking_list.html
      7,074  templates\admin\content_edit.html
@@ -2945,21 +3047,25 @@ FILE: relax_room_rates_validity.py
     37,407  templates\admin\content_slideshow.html
      6,210  templates\admin\destination_images.html
      7,287  templates\admin\enquiry_list.html
-    24,370  templates\admin\hotel_form.html
+     5,830  templates\admin\flight_admin.html
+     2,060  templates\admin\flight_import.html
+     2,720  templates\admin\hotel_csv.html
+     1,690  templates\admin\hotel_csv_import.html
+    24,806  templates\admin\hotel_form.html
      5,074  templates\admin\hotel_list.html
-     8,711  templates\admin\index.html
+     8,709  templates\admin\index.html
      9,500  templates\admin\media_index.html
      8,167  templates\admin\media_product.html
     13,571  templates\admin\offers.html
-    40,148  templates\admin\package_form.html
-     5,143  templates\admin\package_list.html
+    36,160  templates\admin\package_form.html
+    12,007  templates\admin\package_list.html
     20,775  templates\admin\quote_detail.html
      9,102  templates\admin\quote_list.html
      5,957  templates\admin\quote_new.html
      7,559  templates\admin\quote_requests.html
     12,744  templates\admin\report_index.html
      6,808  templates\admin\review_list.html
-     7,054  templates\admin\room_form.html
+    10,984  templates\admin\room_form.html
      8,194  templates\admin\user_detail.html
      5,287  templates\admin\user_list.html
      1,522  templates\auth\forgot_password.html
@@ -2968,7 +3074,7 @@ FILE: relax_room_rates_validity.py
      1,789  templates\auth\reset_password.html
      9,015  templates\base.html
     22,002  templates\public\_egypt_guide.html
-    10,339  templates\public\_search_widget.html
+    10,508  templates\public\_search_widget.html
      2,488  templates\public\about.html
     43,175  templates\public\activity_detail.html
     18,264  templates\public\activity_list.html
@@ -2976,11 +3082,11 @@ FILE: relax_room_rates_validity.py
     54,036  templates\public\booking_start.html
      2,205  templates\public\contact.html
      3,853  templates\public\enquiry_form.html
-    56,605  templates\public\hotel_detail.html
-    18,089  templates\public\hotel_list.html
-    57,052  templates\public\index.html
-    78,234  templates\public\package_detail.html
-    17,729  templates\public\package_list.html
+    56,602  templates\public\hotel_detail.html
+    18,403  templates\public\hotel_list.html
+    57,045  templates\public\index.html
+    78,040  templates\public\package_detail.html
+    18,038  templates\public\package_list.html
      7,183  templates\public\quote_request_form.html
      1,322  templates\public\quote_request_thanks.html
     12,765  templates\public\quote_view.html
@@ -3729,21 +3835,21 @@ Blockers:
 
 
 ========== 14. IMPORT SMOKE TEST ==========
-python : [2026-10-15 03:23:58,676] WARNING in app: MONGO_URI is unset or still a placeholder 
+python : [2026-10-16 02:08:29,733] WARNING in app: MONGO_URI is unset or still a placeholder 
 ù Mongo-backed features (reviews, enquiries, logs) will raise at request time until a real 
 Atlas URI is provided.
 At line:244 char:6
 +     (python _smoke.py 2>&1) | Out-File $out -Append -Encoding utf8
 +      ~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: ([2026-10-15 03:...RI is provided.:String) [], R 
+    + CategoryInfo          : NotSpecified: ([2026-10-16 02:...RI is provided.:String) [], R 
    emoteException
     + FullyQualifiedErrorId : NativeCommandError
  
-[2026-10-15 03:23:58,676] INFO in client: Mongo not initialised ù skipping index creation 
+[2026-10-16 02:08:29,733] INFO in client: Mongo not initialised ù skipping index creation 
 (MongoDB has not been initialised. Set a real MONGO_URI in .env and let the app factory run, 
 or call extensions.init_mongo(uri, db_name) manually.)
-[2026-10-15 03:23:58,677] INFO in app: ElTut Tours startup
-[2026-10-15 03:23:58,811] INFO in app: App created ù env=development, 
+[2026-10-16 02:08:29,733] INFO in app: ElTut Tours startup
+[2026-10-16 02:08:29,808] INFO in app: App created ù env=development, 
 config=DevelopmentConfig
 models: OK
 services: OK
@@ -3756,8 +3862,8 @@ blueprints.api: OK
 app.py: OK
 
 ========== 15. PROJECT STATS ==========
-Python files:  210
-Total lines:   32004
-Report size:   192008 bytes
+Python files:  234
+Total lines:   33926
+Report size:   196401 bytes
 
 END OF CODE REPORT
