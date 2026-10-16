@@ -1,4 +1,4 @@
-﻿"""
+"""
 _enrich_261.py - Enrich hotel 261 with realistic full data.
 v2: Uses only types allowed by the DB CHECK constraint:
     ('general', 'wellness', 'dining', 'sport', 'family', 'business', 'other')

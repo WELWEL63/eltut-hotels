@@ -1,4 +1,4 @@
-﻿"""_airline_backfill2.py - Defensive backfill with progress + error handling."""
+"""_airline_backfill2.py - Defensive backfill with progress + error handling."""
 from app import create_app
 from extensions import db
 from models import Airline, Flight

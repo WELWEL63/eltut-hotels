@@ -1,4 +1,4 @@
-﻿p = 'blueprints/admin/package_admin.py'
+p = 'blueprints/admin/package_admin.py'
 with open(p, encoding='utf-8') as f:
     c = f.read()
 

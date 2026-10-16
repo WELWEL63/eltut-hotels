@@ -1,4 +1,4 @@
-﻿import json
+import json
 from sqlalchemy import select
 from app import create_app
 from extensions import db

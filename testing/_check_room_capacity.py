@@ -1,4 +1,4 @@
-﻿from sqlalchemy import select, func
+from sqlalchemy import select, func
 from app import create_app
 from extensions import db
 from models.room import Room

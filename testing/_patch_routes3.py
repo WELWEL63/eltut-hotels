@@ -1,4 +1,4 @@
-﻿import re
+import re
 p = 'blueprints/public/booking_routes.py'
 with open(p, encoding='utf-8') as f:
     c = f.read()

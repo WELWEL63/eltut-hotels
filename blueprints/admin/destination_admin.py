@@ -1,4 +1,4 @@
-﻿"""
+"""
 blueprints/admin/destination_admin.py
 ─────────────────────────────────────
 Admin UI for managing home-page destination images.

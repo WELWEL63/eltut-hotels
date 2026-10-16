@@ -1,4 +1,4 @@
-﻿"""
+"""
 blueprints/public/search_routes.py
 â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 Public search widget handler + results page.

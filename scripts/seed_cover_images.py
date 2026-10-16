@@ -15,8 +15,8 @@ Idempotent: running it twice does nothing the second time (products with
 at least one image are skipped).
 
 Usage:
-    python scripts\seed_cover_images.py            # apply
-    python scripts\seed_cover_images.py --dry-run  # preview only
+    python scripts\\seed_cover_images.py            # apply
+    python scripts\\seed_cover_images.py --dry-run  # preview only
 """
 
 from __future__ import annotations

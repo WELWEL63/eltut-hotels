@@ -1,4 +1,4 @@
-﻿import pathlib
+import pathlib
 
 p = pathlib.Path("scripts/seed_from_csv.py")
 s = p.read_text(encoding="utf-8")

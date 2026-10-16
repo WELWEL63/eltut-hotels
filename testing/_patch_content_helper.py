@@ -1,4 +1,4 @@
-﻿p = 'services/content_service.py'
+p = 'services/content_service.py'
 with open(p, encoding='utf-8') as f:
     c = f.read()
 

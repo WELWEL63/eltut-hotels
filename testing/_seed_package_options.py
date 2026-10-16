@@ -1,4 +1,4 @@
-﻿"""_seed_package_options.py - Create 3 test flight options for package 885."""
+"""_seed_package_options.py - Create 3 test flight options for package 885."""
 from datetime import date
 from decimal import Decimal
 

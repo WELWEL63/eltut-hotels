@@ -1,4 +1,4 @@
-﻿"""
+"""
 blueprints/public/hotel_routes.py
 ─────────────────────────────────
 Hotel listing and detail pages.

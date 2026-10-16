@@ -1,4 +1,4 @@
-﻿"""models/booking.py - reservations."""
+"""models/booking.py - reservations."""
 
 from __future__ import annotations
 

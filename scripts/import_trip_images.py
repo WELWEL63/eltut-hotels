@@ -1,4 +1,4 @@
-﻿"""
+r"""
 scripts/import_trip_images.py
 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Bulk-import trip gallery images into the ActivityImage table.

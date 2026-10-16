@@ -1,4 +1,4 @@
-﻿from app import create_app
+from app import create_app
 from extensions import db
 from blueprints.public.booking_routes import _product_meta
 from models.room import Room

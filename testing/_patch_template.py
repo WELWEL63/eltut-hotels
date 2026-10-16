@@ -1,4 +1,4 @@
-﻿p = 'templates/public/booking_start.html'
+p = 'templates/public/booking_start.html'
 with open(p, encoding='utf-8') as f:
     c = f.read()
 

@@ -1,4 +1,4 @@
-﻿from datetime import date
+from datetime import date
 from app import create_app
 from extensions import db
 from blueprints.public.booking_routes import _room_stay_pricing

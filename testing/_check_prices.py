@@ -1,4 +1,4 @@
-﻿from datetime import date
+from datetime import date
 from app import create_app
 from services import search_service
 

@@ -1,4 +1,4 @@
-﻿from app import create_app
+from app import create_app
 from extensions import db
 from models.activity import Activity, ActivityPrice, ActivityImage
 from services import recommendation_service

@@ -1,4 +1,4 @@
-﻿p = 'blueprints/public/booking_routes.py'
+p = 'blueprints/public/booking_routes.py'
 with open(p, encoding='utf-8') as f:
     c = f.read()
 idx = c.find("if product_type == PRODUCT_TYPE_HOTEL")

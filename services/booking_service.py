@@ -1,4 +1,4 @@
-﻿"""
+"""
 services/booking_service.py
 â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
 Create, cancel, complete, and refund bookings â£” the transactional core

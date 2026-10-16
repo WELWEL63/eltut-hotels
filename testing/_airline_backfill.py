@@ -1,4 +1,4 @@
-﻿"""
+"""
 _airline_backfill.py
 ────────────────────
 1. Ensures required airlines exist in the master table.

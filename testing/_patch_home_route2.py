@@ -1,4 +1,4 @@
-﻿p = 'blueprints/public/routes.py'
+p = 'blueprints/public/routes.py'
 with open(p, encoding='utf-8') as f:
     c = f.read()
 

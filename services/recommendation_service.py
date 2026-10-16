@@ -1,4 +1,4 @@
-﻿"""
+"""
 services/recommendation_service.py
 ──────────────────────────────────
 Rank and return add-on activities for a hotel, package, or booking.

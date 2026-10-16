@@ -1,4 +1,4 @@
-﻿p = 'models/flight.py'
+p = 'models/flight.py'
 with open(p, encoding='utf-8') as f:
     c = f.read()
 

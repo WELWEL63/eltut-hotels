@@ -1,4 +1,4 @@
-﻿"""
+"""
 blueprints/public/booking_routes.py
 ───────────────────────────────────
 The booking flow — the heart of the customer journey.

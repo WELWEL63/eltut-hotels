@@ -1,4 +1,4 @@
-﻿from app import create_app
+from app import create_app
 from extensions import db
 from models import Flight, PackageOption, Package, Airline
 from sqlalchemy import select
