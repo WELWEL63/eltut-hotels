@@ -237,7 +237,7 @@ h5{
 .eltut-logo__sub {
     font-family: 'Playfair Display', 'Playfair Display', Georgia, serif;
     font-weight: 700;
-    font-size: 1.35rem;
+    font-size: 1.4em;
     letter-spacing: 0.18em;
     color: #f5ecd7;
     display: inline-block;
@@ -250,7 +250,8 @@ h5{
 .eltut-logo__sub {
     padding-top: 4px;
     padding-left: 4px;
-    letter-spacing: 0.18em !important;
+    font-size:1.5em!important;
+    letter-spacing: .55em !important;
     color: #e8d9b3;
 }
 .navbar-brand.eltut-logo:hover .eltut-logo__main { color: #ffffff; }
@@ -3352,4 +3353,109 @@ body::-webkit-scrollbar-thumb:hover {
 html::-webkit-scrollbar-corner,
 body::-webkit-scrollbar-corner {
     background: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BULLETPROOF TAB BAR — force visible on mobile
+   Overrides any conflicting rule that hides the tabs.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 767.98px) {
+
+    /* The whole widget — overflow visible so nothing gets clipped */
+    .search-widget,
+    .search-widget.search-widget-hero,
+    .search-widget-hero {
+        overflow: visible !important;
+    }
+
+    /* The UL — force flex, force height, force visibility */
+    .search-widget .nav-tabs,
+    .search-widget-hero .nav-tabs,
+    .search-widget ul.nav.nav-tabs,
+    .search-widget-hero ul.nav.nav-tabs,
+    ul.nav.nav-tabs {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        height: auto !important;
+        min-height: 56px !important;
+        padding: 0.5rem 0.4rem !important;
+        margin: 0 !important;
+        background: rgba(0, 0, 0, 0.35) !important;
+        border-radius: 14px 14px 0 0 !important;
+        border-bottom: 0 !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        z-index: 1 !important;
+    }
+
+    /* Each LI */
+    .search-widget .nav-tabs > .nav-item,
+    .search-widget-hero .nav-tabs > .nav-item,
+    .search-widget ul.nav.nav-tabs > li.nav-item,
+    .search-widget-hero ul.nav.nav-tabs > li.nav-item {
+        display: flex !important;
+        visibility: visible !important;
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Each BUTTON */
+    .search-widget .nav-tabs > .nav-item > .nav-link,
+    .search-widget-hero .nav-tabs > .nav-item > .nav-link,
+    .search-widget ul.nav.nav-tabs > li.nav-item > button.nav-link {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        flex: 1 1 100% !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.15rem !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 52px !important;
+        padding: 0.5rem 0.25rem !important;
+        font-size: 0.7rem !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        color: #fff !important;
+        background: transparent !important;
+        border: 0 !important;
+        border-radius: 8px !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+    }
+
+    .search-widget .nav-tabs > .nav-item > .nav-link i,
+    .search-widget-hero .nav-tabs > .nav-item > .nav-link i {
+        font-size: 1.1rem !important;
+        color: inherit !important;
+        margin: 0 !important;
+        display: inline-block !important;
+    }
+
+    /* Labels — force visible even though d-none d-sm-inline */
+    .search-widget .nav-tabs > .nav-item > .nav-link > span,
+    .search-widget-hero .nav-tabs > .nav-item > .nav-link > span {
+        display: inline !important;
+        visibility: visible !important;
+        font-size: 0.68rem !important;
+        color: inherit !important;
+    }
+
+    /* Active tab — big visual difference */
+    .search-widget .nav-tabs > .nav-item > .nav-link.active,
+    .search-widget-hero .nav-tabs > .nav-item > .nav-link.active {
+        background: #f5c964 !important;
+        color: #1c1917 !important;
+        box-shadow: none !important;
+    }
 }
