@@ -3460,5 +3460,438 @@ body::-webkit-scrollbar-corner {
     }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   RICH FOOTER TRUST STRIP
+   Partners + Social + ETTA + Trust + Payments
+   ═══════════════════════════════════════════════════════════════════ */
+
+.footer-row {
+    padding: 1.35rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.footer-row:first-of-type {
+    border-top: 0;
+    padding-top: 0.5rem;
+}
+
+.footer-row-label {
+    text-align: center;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    margin-bottom: 0.85rem;
+}
+
+/* ── Row 1: Partner logos ────────────────────────────────────── */
+.footer-partners {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.partner-logo {
+    height: 32px;
+    width: auto;
+    max-width: 110px;
+    object-fit: contain;
+    filter: grayscale(100%) brightness(0) invert(1);
+    opacity: 0.55;
+    transition: all 0.2s ease;
+}
+
+.partner-logo:hover {
+    filter: none;
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+/* ── Row 2: three columns ────────────────────────────────────── */
+.footer-row-mid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.footer-col {
+    min-width: 0;
+}
+
+/* Social */
+.footer-social {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.05rem;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.social-icon:hover {
+    background: #f5c964;
+    border-color: #f5c964;
+    color: #1c1917;
+    transform: translateY(-2px);
+}
+
+/* ETTA */
+.etta-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(245, 201, 100, 0.35);
+    border-radius: 10px;
+}
+
+.etta-logo {
+    height: 42px;
+    width: auto;
+    max-width: 60px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.etta-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.etta-text strong {
+    color: #f5c964;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.etta-number {
+    font-family: ui-monospace, 'Courier New', monospace;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.04em;
+}
+
+/* Trust badges */
+.footer-trust-badges {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem 0.85rem;
+}
+
+.trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+}
+
+.trust-badge i {
+    font-size: 0.9rem;
+    color: #f5c964;
+    flex-shrink: 0;
+}
+
+/* ── Row 3: Payments ─────────────────────────────────────────── */
+.footer-payments {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pay-logo {
+    height: 28px;
+    width: auto;
+    max-width: 64px;
+    object-fit: contain;
+    padding: 0.35rem 0.55rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 6px;
+    transition: transform 0.15s ease;
+}
+
+.pay-logo:hover {
+    transform: translateY(-2px);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+    .footer-row-mid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .footer-trust-badges {
+        grid-template-columns: 1fr 1fr;
+        max-width: 340px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .footer-row {
+        padding: 1rem 0;
+    }
+    .footer-partners {
+        gap: 1rem;
+    }
+    .partner-logo {
+        height: 24px;
+        max-width: 80px;
+    }
+    .pay-logo {
+        height: 24px;
+        max-width: 52px;
+    }
+    .social-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.95rem;
+    }
+    .etta-block {
+        flex-direction: column;
+        text-align: center;
+        padding: 0.75rem 1rem;
+    }
+    .footer-trust-badges {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
 
 
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   AD CAROUSEL — 50/50 split
+     LEFT:  photo, full-bleed, no animation
+     RIGHT: text panel with solid theme background, WHITE text
+   ═══════════════════════════════════════════════════════════════════ */
+
+.ad-carousel-section {
+    padding: 3.5rem 0;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.ad-carousel {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+}
+
+.ad-slide {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 500px;
+    overflow: hidden;
+    background: #1e3a5f; /* fallback */
+}
+
+/* ── LEFT: Photo ─────────────────────────────────────────────── */
+.ad-slide-photo-wrap {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    overflow: hidden;
+    background: #0a0a0a; /* dark fallback behind image */
+}
+
+.ad-slide-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* NO animation */
+}
+
+/* ── RIGHT: Text panel ──────────────────────────────────────── */
+.ad-slide-content {
+    grid-column: 1;
+    grid-row: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 3rem;
+    color: #ffffff;
+    z-index: 2;
+    background: #1e3a5f; /* overridden per theme */
+}
+
+/* ── Text elements — all WHITE, works on any solid theme ───── */
+.ad-slide-headline,
+.ad-slide-subhead,
+.ad-slide-eyebrow {
+    color: #ffffff;
+}
+
+.ad-slide-headline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.7rem, 2.4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.12;
+    margin: 0 0 1rem;
+    text-shadow: none;
+}
+
+.ad-highlight {
+    color: #f5c964;
+    font-style: italic;
+}
+
+.ad-slide-subhead {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 1.5rem;
+    max-width: 100%;
+}
+
+.ad-slide-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.4rem 0.85rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    align-self: flex-start;
+}
+
+/* ── Price block ─────────────────────────────────────────────── */
+.ad-price-block {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0.9rem 1.15rem;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(245, 201, 100, 0.5);
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+    align-self: flex-start;
+}
+.ad-price-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+.ad-price-was { font-size: 1.05rem; font-weight: 600; color: rgba(255, 255, 255, 0.6); text-decoration: line-through; text-decoration-color: #ff6b6b; text-decoration-thickness: 2px; }
+.ad-price-arrow { color: rgba(255, 255, 255, 0.6); }
+.ad-price-now { font-family: 'Playfair Display', Georgia, serif; font-size: 2.4rem; font-weight: 800; line-height: 1; color: #f5c964; letter-spacing: -0.02em; }
+.ad-price-pp { font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 700; color: #f5c964; margin-left: 0.1rem; }
+.ad-price-save { display: inline-flex; align-items: center; padding: 0.3rem 0.65rem; background: #ff3b3b; color: #ffffff; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; border-radius: 999px; box-shadow: 0 4px 12px rgba(255, 59, 59, 0.4); margin-left: auto; }
+
+/* ── CTA ─────────────────────────────────────────────────────── */
+.ad-slide-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.ad-slide-actions .btn { padding: 0.7rem 1.4rem; font-weight: 600; border-radius: 10px; }
+
+/* ═══ Theme backgrounds on the text panel (right side) ════════ */
+.ad-theme-1 .ad-slide-content { background: linear-gradient(135deg, #c85a3e 0%, #a8492f 100%); }
+.ad-theme-2 .ad-slide-content { background: linear-gradient(135deg, #035175 0%, #064a6b 100%); }
+.ad-theme-3 .ad-slide-content { background: linear-gradient(135deg, #d4a017 0%, #8a6a0f 100%); }
+.ad-theme-4 .ad-slide-content { background: linear-gradient(135deg, #1e3a5f 0%, #012a3f 100%); }
+.ad-theme-5 .ad-slide-content { background: linear-gradient(135deg, #8a3a24 0%, #c85a3e 100%); }
+.ad-theme-6 .ad-slide-content { background: linear-gradient(135deg, #e88a3a 0%, #c85a3e 100%); }
+
+/* ═══ Indicators ══════════════════════════════════════════════ */
+.ad-carousel-indicators {
+    bottom: 1rem;
+}
+.ad-carousel-indicators button {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.5); border: 0; margin: 0 4px;
+}
+.ad-carousel-indicators button.active {
+    background: #f5c964; width: 24px; border-radius: 4px;
+}
+
+/* ═══ Arrows ═══════════════════════════════════════════════════ */
+.ad-carousel-control {
+    width: 44px; height: 44px;
+    top: 50%; transform: translateY(-50%);
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    opacity: 0.85;
+    margin: 0 0.75rem;
+}
+.ad-carousel-control:hover { background: rgba(0,0,0,0.7); opacity: 1; }
+
+/* ═══ Mobile — stack: photo top, text bottom ═══════════════════ */
+@media (max-width: 767.98px) {
+    .ad-slide {
+        grid-template-columns: 1fr;
+        grid-template-rows: 220px 1fr;
+        height: auto;
+    }
+    .ad-slide-photo-wrap {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .ad-slide-content {
+        grid-column: 1;
+        grid-row: 2;
+        padding: 2rem 1.5rem;
+    }
+    .ad-slide-headline { font-size: 1.5rem; }
+    .ad-slide-subhead { font-size: 0.9rem; }
+    .ad-price-now { font-size: 1.9rem; }
+    .ad-price-was { font-size: 0.85rem; }
+    .ad-price-save { margin-left: 0; }
+    .ad-carousel-control { display: none; }
+    .ad-carousel-indicators { bottom: 0.6rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HOTEL LIST — description text on card
+   ═══════════════════════════════════════════════════════════════════ */
+.htl-card-desc {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #6b7280;
+    margin: 0.6rem 0 0.85rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   HEADER LAYER FIX
+   The header was being overlapped by page content — clicks on nav
+   links were landing on card links underneath.
+   ═══════════════════════════════════════════════════════════════════ */
+nav.navbar,
+nav.site-header,
+.site-header {
+    position: relative !important;
+    z-index: 1050 !important;
+}

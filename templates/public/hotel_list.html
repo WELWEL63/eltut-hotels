@@ -141,14 +141,12 @@
                                             </div>
                                         {% endif %}
 
-                                        {# Meta row: facilities / rooms #}
+                                        {% if h.description %}
+                                            <p class="htl-card-desc">{{ h.description|truncate(155, true) }}</p>
+                                        {% endif %}
+
+                                        {# Meta row: rooms #}
                                         <div class="htl-card-meta">
-                                            {% if h.facilities %}
-                                                <span>
-                                                    <i class="bi bi-stars"></i>
-                                                    {{ h.facilities|length }} facilities
-                                                </span>
-                                            {% endif %}
                                             {% if h.rooms %}
                                                 <span>
                                                     <i class="bi bi-door-open"></i>
@@ -157,17 +155,77 @@
                                             {% endif %}
                                         </div>
 
-                                        {# Facility chips #}
+                                        {# Facility icons — deduped by icon, capped at 6 #}
                                         {% if h.facilities %}
-                                            <div class="htl-card-chips">
-                                                {% for f in h.facilities[:3] %}
-                                                    <span class="htl-chip">
-                                                        <i class="bi bi-check2"></i> {{ f.name }}
+                                            {% set _icons_seen = [] %}
+                                            {% set _icons_out = [] %}
+                                            {% for fac in h.facilities %}
+                                                {% set fname = fac.name|lower %}
+                                                {% if 'wifi' in fname or 'wi-fi' in fname or 'internet' in fname %}
+                                                    {% set _ik = 'wifi' %}
+                                                {% elif 'pool' in fname or 'swimming' in fname %}
+                                                    {% set _ik = 'pool' %}
+                                                {% elif 'beach' in fname %}
+                                                    {% set _ik = 'beach' %}
+                                                {% elif 'restaurant' in fname or 'dining' in fname or 'food' in fname %}
+                                                    {% set _ik = 'dining' %}
+                                                {% elif 'spa' in fname or 'massage' in fname %}
+                                                    {% set _ik = 'spa' %}
+                                                {% elif 'gym' in fname or 'fitness' in fname %}
+                                                    {% set _ik = 'gym' %}
+                                                {% elif 'bar' in fname or 'lounge' in fname %}
+                                                    {% set _ik = 'bar' %}
+                                                {% elif 'kids' in fname or 'child' in fname or 'playground' in fname %}
+                                                    {% set _ik = 'kids' %}
+                                                {% elif 'concierge' in fname or 'reception' in fname %}
+                                                    {% set _ik = 'concierge' %}
+                                                {% elif 'air condition' in fname %}
+                                                    {% set _ik = 'ac' %}
+                                                {% elif 'parking' in fname %}
+                                                    {% set _ik = 'parking' %}
+                                                {% elif 'garden' in fname %}
+                                                    {% set _ik = 'garden' %}
+                                                {% elif 'airport' in fname or 'transfer' in fname or 'shuttle' in fname %}
+                                                    {% set _ik = 'transfer' %}
+                                                {% elif 'atm' in fname or 'bank' in fname %}
+                                                    {% set _ik = 'bank' %}
+                                                {% elif 'security' in fname or 'cctv' in fname %}
+                                                    {% set _ik = 'security' %}
+                                                {% else %}
+                                                    {% set _ik = '' %}
+                                                {% endif %}
+                                                {% if _ik and _ik not in _icons_seen and _icons_out|length < 6 %}
+                                                    {% set _ = _icons_seen.append(_ik) %}
+                                                    {% set _ = _icons_out.append(_ik) %}
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            <div class="htl-card-facilities">
+                                                {% for _ik in _icons_out %}
+                                                    <span class="htl-facility-icon" aria-hidden="true">
+                                                        {% if _ik == 'wifi' %}<i class="bi bi-wifi"></i>
+                                                        {% elif _ik == 'pool' %}<i class="bi bi-water"></i>
+                                                        {% elif _ik == 'beach' %}<i class="bi bi-umbrella"></i>
+                                                        {% elif _ik == 'dining' %}<i class="bi bi-cup-hot"></i>
+                                                        {% elif _ik == 'spa' %}<i class="bi bi-flower1"></i>
+                                                        {% elif _ik == 'gym' %}<i class="bi bi-heart-pulse"></i>
+                                                        {% elif _ik == 'bar' %}<i class="bi bi-cup-straw"></i>
+                                                        {% elif _ik == 'kids' %}<i class="bi bi-emoji-smile"></i>
+                                                        {% elif _ik == 'concierge' %}<i class="bi bi-bell"></i>
+                                                        {% elif _ik == 'ac' %}<i class="bi bi-snow"></i>
+                                                        {% elif _ik == 'parking' %}<i class="bi bi-p-circle"></i>
+                                                        {% elif _ik == 'garden' %}<i class="bi bi-tree"></i>
+                                                        {% elif _ik == 'transfer' %}<i class="bi bi-bus-front"></i>
+                                                        {% elif _ik == 'bank' %}<i class="bi bi-bank"></i>
+                                                        {% elif _ik == 'security' %}<i class="bi bi-shield-check"></i>
+                                                        {% else %}<i class="bi bi-check-circle"></i>
+                                                        {% endif %}
                                                     </span>
                                                 {% endfor %}
-                                                {% if h.facilities|length > 3 %}
-                                                    <span class="htl-chip htl-chip--more">
-                                                        + {{ h.facilities|length - 3 }}
+                                                {% if h.facilities|length > _icons_out|length %}
+                                                    <span class="htl-facility-icon htl-facility-icon--more"
+                                                          title="{{ h.facilities|length - _icons_out|length }} more">
+                                                        +{{ h.facilities|length - _icons_out|length }}
                                                     </span>
                                                 {% endif %}
                                             </div>

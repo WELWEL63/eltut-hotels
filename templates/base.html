@@ -65,13 +65,13 @@
                     <a class="nav-link" href="{{ maybe_url('public.index') }}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ maybe_url('public.activity_list') }}">Activities</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="{{ maybe_url('public.hotel_list') }}">Hotels</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ maybe_url('public.package_list') }}">Holidays Packages</a>
+                    <a class="nav-link" href="{{ maybe_url('public.package_list') }}">Holiday/Tour Packages</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.activity_list') }}">Activities</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ maybe_url('public.about') }}">About</a>
@@ -79,6 +79,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ maybe_url('public.contact') }}">Contact</a>
                 </li>
+
                 <a href="tel:0800124376" class="btn btn-eltut-primary btn-sm d-none d-lg-inline-flex me-2">
     <i class="bi bi-telephone-fill me-1"></i> 0800 124 376
 </a>
@@ -182,6 +183,144 @@
                 </ul>
             </div>
         </div>
+
+        {# ═══════════════════════════════════════════════════════════
+           RICH FOOTER TRUST STRIP
+           Row 1: partner logos (EasyJet, Jet2, ...)
+           Row 2: social + ETTA + trust badges
+           Row 3: payment methods
+           ═══════════════════════════════════════════════════════════ #}
+
+        {# ── Row 1: Partner airlines ───────────────────────────── #}
+        <div class="footer-row footer-row-partners">
+            <div class="footer-row-label">Flying with our partners</div>
+            <div class="footer-partners">
+                <img src="{{ url_for('static', filename='images/partners/easyjet.jpg') }}"
+                     alt="EasyJet" class="partner-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/partners/jet2.jpg') }}"
+                     alt="Jet2" class="partner-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/partners/tui.jpg') }}"
+                     alt="TUI" class="partner-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/partners/egyptair.jpg') }}"
+                     alt="EgyptAir" class="partner-logo"
+                     onerror="this.style.display='none';">
+                     <img src="{{ url_for('static', filename='images/partners/Tripadvisor2024.jpg') }}"
+                     alt="Tripadvisor" class="partner-logo"
+                     onerror="this.style.display='none';">
+                     <img src="{{ url_for('static', filename='images/partners/Egypt_logo.jpg') }}"
+                     alt="Egypt logo" class="partner-logo"
+                     onerror="this.style.display='none';">
+                     <img src="{{ url_for('static', filename='images/partners/Egypt_Tourism logo..jpg') }}"
+                     alt="Egypt Tourism" class="partner-logo"
+                     onerror="this.style.display='none';">
+                </div>
+        </div>
+
+        {# ── Row 2: Social + ETTA + trust badges ───────────────── #}
+        <div class="footer-row footer-row-mid">
+            <div class="footer-col footer-col-social">
+                <div class="footer-row-label">Follow us</div>
+                <div class="footer-social">
+                    <a href="https://facebook.com/eltuttours" target="_blank" rel="noopener"
+                       class="social-icon" aria-label="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="https://instagram.com/eltuttours" target="_blank" rel="noopener"
+                       class="social-icon" aria-label="Instagram">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://twitter.com/eltuttours" target="_blank" rel="noopener"
+                       class="social-icon" aria-label="Twitter / X">
+                        <i class="bi bi-twitter-x"></i>
+                    </a>
+                    <a href="https://tiktok.com/@eltuttours" target="_blank" rel="noopener"
+                       class="social-icon" aria-label="TikTok">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                    <a href="https://youtube.com/@eltuttours" target="_blank" rel="noopener"
+                       class="social-icon" aria-label="YouTube">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+                    <a href="https://wa.me/201001234567" target="_blank" rel="noopener"
+                       class="social-icon" aria-label="WhatsApp">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-col footer-col-etta">
+                <div class="footer-row-label">Registered &amp; protected</div>
+                <div class="etta-block">
+                    <img src="{{ url_for('static', filename='images/payments/protection.jpg') }}"
+                     alt="American Express" class="pay-logo"
+                     onerror="this.style.display='none';">
+                
+                    <img src="{{ url_for('static', filename='images/brands/ETTA.jpg') }}"
+                         alt="ETTA — Egyptian Travel &amp; Tourism Association"
+                         class="etta-logo"
+                         onerror="this.style.display='none';">
+                         
+                    <div class="etta-text">
+                        <strong>ETTA Member</strong>
+                        <span>Egyptian Travel &amp; Tourism Association</span>
+                        <span class="etta-number">Membership T576K</span>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="footer-col footer-col-trust">
+                <div class="footer-row-label">Book with confidence</div>
+                <div class="footer-trust-badges">
+                    <div class="trust-badge">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <span>SSL Secured</span>
+                    </div>
+                    <div class="trust-badge">
+                        <i class="bi bi-headset"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                    <div class="trust-badge">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <span>Free Cancellation*</span>
+                    </div>
+                    <div class="trust-badge">
+                        <i class="bi bi-tag-fill"></i>
+                        <span>No Hidden Fees</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── Row 3: Payment methods ────────────────────────────── #}
+        <div class="footer-row footer-row-pay">
+            <div class="footer-row-label">Secure payment methods</div>
+            <div class="footer-payments">
+                <img src="{{ url_for('static', filename='images/payments/card3.jpg') }}"
+                     alt="Visa" class="pay-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/payments/mastercard') }}"
+                     alt="Mastercard" class="pay-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/payments/protection.jpg') }}"
+                     alt="American Express" class="pay-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/payments/paypal.svg') }}"
+                     alt="PayPal" class="pay-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/payments/applepay.svg') }}"
+                     alt="Apple Pay" class="pay-logo"
+                     onerror="this.style.display='none';">
+                <img src="{{ url_for('static', filename='images/payments/googlepay.svg') }}"
+                     alt="Google Pay" class="pay-logo"
+                     onerror="this.style.display='none';">
+            </div>
+        </div>
+
+
         <hr class="border-secondary">
         <p class="text-center mb-0 small">
             &copy; {{ config.APP_NAME }}. Built as a coursework project.
@@ -257,6 +396,7 @@
     });
 })();
 </script>
+
 
 </body>
 </html>

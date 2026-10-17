@@ -321,10 +321,15 @@
 
                             {# Address line #}
                             {% if h.address %}
-                                <div class="pkg-card-address" style="font-size:0.78rem; color:#78716c; margin-bottom:0.75rem;">
+                                <div class="pkg-card-address" style="font-size:0.78rem; color:#78716c; margin-bottom:0.5rem;">
                                     <i class="bi bi-house" style="color:#c9a227;"></i>
                                     {{ h.address|truncate(70, true) }}
                                 </div>
+                            {% endif %}
+
+                            {# Description #}
+                            {% if h.description %}
+                                <p class="pkg-card-desc">{{ h.description|truncate(120, true) }}</p>
                             {% endif %}
 
                             {# Facilities preview (first 2) #}
@@ -344,48 +349,78 @@
                                 </ul>
                             {% endif %}
 
-{# Facilities icons row #}
+{# Facilities icons row — capped at 6, deduped by icon #}
 {% if h.facilities %}
+    {% set _icons_seen = [] %}
+    {% set _icons_out = [] %}
+    {% for fac in h.facilities %}
+        {% set fname = fac.name|lower %}
+        {% if 'wifi' in fname or 'wi-fi' in fname or 'internet' in fname %}
+            {% set _ik = 'wifi' %}
+        {% elif 'pool' in fname or 'swimming' in fname %}
+            {% set _ik = 'pool' %}
+        {% elif 'beach' in fname %}
+            {% set _ik = 'beach' %}
+        {% elif 'restaurant' in fname or 'dining' in fname or 'food' in fname %}
+            {% set _ik = 'dining' %}
+        {% elif 'spa' in fname or 'massage' in fname %}
+            {% set _ik = 'spa' %}
+        {% elif 'gym' in fname or 'fitness' in fname %}
+            {% set _ik = 'gym' %}
+        {% elif 'bar' in fname or 'lounge' in fname %}
+            {% set _ik = 'bar' %}
+        {% elif 'kids' in fname or 'child' in fname or 'playground' in fname %}
+            {% set _ik = 'kids' %}
+        {% elif 'concierge' in fname or 'reception' in fname %}
+            {% set _ik = 'concierge' %}
+        {% elif 'air condition' in fname %}
+            {% set _ik = 'ac' %}
+        {% elif 'parking' in fname %}
+            {% set _ik = 'parking' %}
+        {% elif 'garden' in fname %}
+            {% set _ik = 'garden' %}
+        {% elif 'airport' in fname or 'transfer' in fname or 'shuttle' in fname %}
+            {% set _ik = 'transfer' %}
+        {% elif 'atm' in fname or 'bank' in fname %}
+            {% set _ik = 'bank' %}
+        {% elif 'security' in fname or 'cctv' in fname %}
+            {% set _ik = 'security' %}
+        {% else %}
+            {% set _ik = '' %}
+        {% endif %}
+        {% if _ik and _ik not in _icons_seen and _icons_out|length < 6 %}
+            {% set _ = _icons_seen.append(_ik) %}
+            {% set _ = _icons_out.append(_ik) %}
+        {% endif %}
+    {% endfor %}
+
     <div class="pkg-card-chip-row hotel-facilities-icons">
-        {% for facility in h.facilities %}
-            {% set f = facility|lower %}
-            <span class="hotel-facility-icon"
-                  title="{{ facility }}"
-                  aria-label="{{ facility }}">
-                {% if 'wifi' in f or 'wi-fi' in f or 'internet' in f %}
-                    <i class="bi bi-wifi"></i>
-                {% elif 'pool' in f or 'swimming' in f %}
-                    <i class="bi bi-water"></i>
-                {% elif 'beach' in f or 'sea' in f %}
-                    <i class="bi bi-umbrella"></i>
-                {% elif 'restaurant' in f or 'dining' in f or 'food' in f %}
-                    <i class="bi bi-cup-hot"></i>
-                {% elif 'spa' in f or 'massage' in f %}
-                    <i class="bi bi-flower1"></i>
-                {% elif 'gym' in f or 'fitness' in f %}
-                    <i class="bi bi-heart-pulse"></i>
-                {% elif 'bar' in f %}
-                    <i class="bi bi-cup-straw"></i>
-                {% elif 'air condition' in f %}
-                    <i class="bi bi-snow"></i>
-                {% elif 'parking' in f %}
-                    <i class="bi bi-p-circle"></i>
-                {% elif 'kids' in f or 'child' in f or 'playground' in f %}
-                    <i class="bi bi-emoji-smile"></i>
-                {% elif 'garden' in f %}
-                    <i class="bi bi-tree"></i>
-                {% elif 'airport' in f or 'transfer' in f %}
-                    <i class="bi bi-bus-front"></i>
-                {% else %}
-                    <i class="bi bi-check-circle"></i>
+        {% for _ik in _icons_out %}
+            <span class="hotel-facility-icon" aria-hidden="true">
+                {% if _ik == 'wifi' %}<i class="bi bi-wifi"></i>
+                {% elif _ik == 'pool' %}<i class="bi bi-water"></i>
+                {% elif _ik == 'beach' %}<i class="bi bi-umbrella"></i>
+                {% elif _ik == 'dining' %}<i class="bi bi-cup-hot"></i>
+                {% elif _ik == 'spa' %}<i class="bi bi-flower1"></i>
+                {% elif _ik == 'gym' %}<i class="bi bi-heart-pulse"></i>
+                {% elif _ik == 'bar' %}<i class="bi bi-cup-straw"></i>
+                {% elif _ik == 'kids' %}<i class="bi bi-emoji-smile"></i>
+                {% elif _ik == 'concierge' %}<i class="bi bi-bell"></i>
+                {% elif _ik == 'ac' %}<i class="bi bi-snow"></i>
+                {% elif _ik == 'parking' %}<i class="bi bi-p-circle"></i>
+                {% elif _ik == 'garden' %}<i class="bi bi-tree"></i>
+                {% elif _ik == 'transfer' %}<i class="bi bi-bus-front"></i>
+                {% elif _ik == 'bank' %}<i class="bi bi-bank"></i>
+                {% elif _ik == 'security' %}<i class="bi bi-shield-check"></i>
+                {% else %}<i class="bi bi-check-circle"></i>
                 {% endif %}
             </span>
         {% endfor %}
 
-        {% if h.rooms %}
-            <span class="pkg-code">
-                <i class="bi bi-door-open"></i>
-                {{ h.rooms|length }} room types
+        {% if h.facilities|length > _icons_out|length %}
+            <span class="hotel-facility-icon hotel-facility-icon--more"
+                  title="{{ h.facilities|length - _icons_out|length }} more">
+                +{{ h.facilities|length - _icons_out|length }}
             </span>
         {% endif %}
     </div>
@@ -410,6 +445,11 @@
     </div>
 </section>
 {% endif %}
+{# ═══════════════════════════════════════════════════════════════════
+   AD CAROUSEL — promo slides between hotels and packages
+   ═══════════════════════════════════════════════════════════════════ #}
+{% include "public/_ad_carousel.html" %}
+
 {# ═══════════════════════════════════════════════════════════════════
    AFFORDABLE PACKAGES — hero strip + rich cards
    ═══════════════════════════════════════════════════════════════════ #}
@@ -550,6 +590,11 @@
                             </div>
 
                             <h5 class="pkg-card-title">{{ p.name }}</h5>
+
+                            {# Description #}
+                            {% if p.description %}
+                                <p class="pkg-card-desc">{{ p.description|truncate(120, true) }}</p>
+                            {% endif %}
 
                             {# Meta row #}
                             <div class="pkg-card-meta">
@@ -736,6 +781,11 @@
                         <div class="act-card-body">
 
                             <h5 class="act-card-title">{{ a.name }}</h5>
+
+                            {# Description #}
+                            {% if a.description %}
+                                <p class="pkg-card-desc act-card-desc">{{ a.description|truncate(120, true) }}</p>
+                            {% endif %}
 
                             {# Destination line #}
                             {% if dest %}
