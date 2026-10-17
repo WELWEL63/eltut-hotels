@@ -223,7 +223,7 @@ h5{
     border-color: rgba(245, 236, 215, 0.35);
 }
 
-/* Logo — Cinzel, two lines */
+/* Logo — 'Playfair Display', two lines */
 .navbar-brand.eltut-logo {
     display: flex;
     flex-direction: column;
@@ -235,7 +235,7 @@ h5{
 }
 .eltut-logo__main,
 .eltut-logo__sub {
-    font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+    font-family: 'Playfair Display', 'Playfair Display', Georgia, serif;
     font-weight: 700;
     font-size: 1.35rem;
     letter-spacing: 0.18em;
@@ -271,7 +271,7 @@ h5{
 .footer h1, .footer h2, .footer h3,
 .footer h4, .footer h5, .footer h6 {
     color: #f5ecd7 !important;
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     letter-spacing: 0.08em;
 }
 .footer a,
@@ -417,7 +417,7 @@ h5{
 
 /* Headline */
 .hero-headline {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.85rem, 4.5vw, 4.5rem);
     font-weight: 700;
     line-height: 1.08;
@@ -436,7 +436,7 @@ h5{
 
 /* Subhead */
 .hero-subhead {
-    font-family: 'Lora', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1rem, 1.6vw, 1.4rem);
     font-weight: 500;
     color: #f2c964;
@@ -1051,7 +1051,7 @@ body.home-page {
 .home-page section.bg-dark h2,
 .home-page section.bg-dark h3 {
     color: #f5ecd7 !important;
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     letter-spacing: 0.02em;
 }
 .home-page .cta-strip p,
@@ -1504,7 +1504,7 @@ body.home-page {
 }
 .pkgs-eyebrow i { color: #f2c964; }
 .pkgs-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.75rem, 3.4vw, 2.5rem);
     font-weight: 700;
     color: #1e3a5f;
@@ -1832,7 +1832,7 @@ body.home-page {
 }
 .acts-eyebrow i { color: #fff; }
 .acts-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.75rem, 3.4vw, 2.5rem);
     font-weight: 700;
     color: #1e3a5f;
@@ -2128,7 +2128,7 @@ body.home-page {
 }
 .htl-eyebrow i { color: #c9a227; }
 .htl-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.75rem, 3.2vw, 2.4rem);
     font-weight: 700;
     color: #1e3a5f;
@@ -2230,7 +2230,7 @@ body.home-page {
 }
 .htl-row-best i { color: #f5ecd7; font-size: 0.7rem; }
 .htl-row-name {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.15rem;
     font-weight: 700;
     line-height: 1.3;
@@ -2439,7 +2439,7 @@ body.home-page {
     padding: 1.15rem 1.2rem 1.15rem;
 }
 .htl-card-name {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.1rem;
     font-weight: 700;
     line-height: 1.28;
@@ -2526,7 +2526,7 @@ body.home-page {
     font-weight: 600;
 }
 .htl-price-amount {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.55rem;
     font-weight: 800;
     color: #1e3a5f;
@@ -2605,7 +2605,7 @@ body.home-page {
 }
 .htl-list-eyebrow i { color: #c9a227; }
 .htl-list-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.6rem, 2.8vw, 2.1rem);
     font-weight: 700;
     color: #1e3a5f;
@@ -2637,7 +2637,7 @@ body.home-page {
 }
 .htl-filter-card-body { padding: 1.35rem 1.35rem 1.25rem; }
 .htl-filter-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.05rem;
     font-weight: 700;
     color: #1e3a5f;
@@ -2773,7 +2773,7 @@ body.home-page {
 }
 .sr-eyebrow i { color: #c9a227; }
 .sr-rows-title {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.4rem, 2.4vw, 1.85rem);
     font-weight: 700;
     color: #1e3a5f;
@@ -2909,7 +2909,7 @@ body.home-page {
 }
 .sr-row-dest-chip i { color: #c9a227; font-size: 0.7rem; }
 .sr-row-name {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Playfair Display', Georgia, serif;
     font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.25;

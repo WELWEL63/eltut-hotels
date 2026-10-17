@@ -1,0 +1,676 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ "Edit" if package else "New" }} package — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">{{ "Edit" if package else "New" }} package</h1>
+    <a href="{{ url_for('admin.package_list') }}" class="btn btn-link">Back to list</a>
+</div>
+
+<form method="POST" class="card shadow-sm mb-4 border-0">
+    <div class="card-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <h5 class="mb-3"><i class="bi bi-info-circle"></i> Basic information</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label class="form-label">Code</label>
+                <input type="text" name="code" class="form-control"
+                       value="{{ package.code if package else '' }}"
+                       placeholder="(auto) PKG-0001" {% if package %}disabled{% endif %}>
+                {% if package %}
+                    <input type="hidden" name="code" value="{{ package.code }}">
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Name *</label>
+                <input type="text" name="name" class="form-control" required
+                       value="{{ package.name if package else '' }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select name="package_type" class="form-select">
+                    {% for t in package_types %}
+                        <option value="{{ t }}" {% if package and package.package_type == t %}selected{% endif %}>
+                            {{ t|title }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Destination *</label>
+                <select name="destination_id" class="form-select" required>
+                    <option value="">— pick one —</option>
+                    {% for d in destinations %}
+                        <option value="{{ d.id }}" {% if package and package.destination_id == d.id %}selected{% endif %}>
+                            {{ d.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Hotel *</label>
+                <select name="hotel_id" id="pkg-hotel-id" class="form-select" required>
+                    <option value="">— pick one —</option>
+                    {% for h in hotels %}
+                        <option value="{{ h.id }}" {% if package and package.hotel_id == h.id %}selected{% endif %}>
+                            {{ h.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Check-in *</label>
+                <input type="date" name="check_in" id="pkg-check-in" class="form-control"
+                       value="{{ package.check_in.isoformat() if package and package.check_in else '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Check-out *</label>
+                <input type="date" name="check_out" id="pkg-check-out" class="form-control"
+                       value="{{ package.check_out.isoformat() if package and package.check_out else '' }}">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Room *</label>
+                <select name="room_id" id="pkg-room-id" class="form-select" required>
+                    <option value="">— pick hotel + dates first —</option>
+                </select>
+                <div class="form-text small" id="pkg-room-hint"></div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Nights</label>
+                <input type="number" name="duration_nights" class="form-control" min="1"
+                       value="{{ package.duration_nights if package else 7 }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Capacity</label>
+                <input type="number" name="capacity" class="form-control" min="1"
+                       value="{{ package.capacity if package else 10 }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Min age</label>
+                <input type="number" name="min_age" class="form-control" min="0"
+                       value="{{ package.min_age if package and package.min_age is not none else '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Max age</label>
+                <input type="number" name="max_age" class="form-control" min="0"
+                       value="{{ package.max_age if package and package.max_age is not none else '' }}">
+            </div>
+            <div class="col-12">
+                <div class="form-check">
+                    <input type="checkbox" name="is_active" id="is_active" class="form-check-input"
+                           {% if not package or package.is_active %}checked{% endif %}>
+                    <label class="form-check-label" for="is_active">Active</label>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="mb-3"><i class="bi bi-file-text"></i> Descriptions &amp; policies</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3">{{ package.description if package else '' }}</textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Cancellation policy</label>
+                <textarea name="cancellation_policy" class="form-control" rows="2">{{ package.cancellation_policy if package else '' }}</textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Booking terms</label>
+                <textarea name="booking_terms" class="form-control" rows="2">{{ package.booking_terms if package else '' }}</textarea>
+            </div>
+        </div>
+
+        <h5 class="mb-3"><i class="bi bi-currency-pound"></i> Package costing (per person)</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Transfer fee (GBP)</label>
+                <input type="number" step="0.01" min="0" name="transfer_fee" class="form-control"
+                       value="{{ package.transfer_fee if package and package.transfer_fee is not none else '' }}"
+                       placeholder="e.g. 40.00">
+            </div>
+            <div class="col-md-9">
+                <label class="form-label">Transfer description</label>
+                <input type="text" name="transfer_description" class="form-control" maxlength="200"
+                       value="{{ package.transfer_description if package else '' }}"
+                       placeholder="e.g. Airport to hotel, per person">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Markup value</label>
+                <input type="number" step="0.01" min="0" name="markup_value" class="form-control"
+                       value="{{ package.markup_value if package and package.markup_value is not none else '' }}"
+                       placeholder="e.g. 20 or 12.5">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Markup kind</label>
+                <select name="markup_kind" class="form-select">
+                    <option value="">-- none --</option>
+                    <option value="fixed" {% if package and package.markup_kind == 'fixed' %}selected{% endif %}>GBP fixed</option>
+                    <option value="percent" {% if package and package.markup_kind == 'percent' %}selected{% endif %}>percent</option>
+                </select>
+            </div>
+            <div class="col-md-7">
+                <label class="form-label">Markup description</label>
+                <input type="text" name="markup_description" class="form-control" maxlength="200"
+                       value="{{ package.markup_description if package else '' }}"
+                       placeholder="e.g. Service fee">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Tax / fees value</label>
+                <input type="number" step="0.01" min="0" name="tax_value" class="form-control"
+                       value="{{ package.tax_value if package and package.tax_value is not none else '' }}"
+                       placeholder="e.g. 5 or 10">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Tax kind</label>
+                <select name="tax_kind" class="form-select">
+                    <option value="">-- none --</option>
+                    <option value="fixed" {% if package and package.tax_kind == 'fixed' %}selected{% endif %}>GBP fixed</option>
+                    <option value="percent" {% if package and package.tax_kind == 'percent' %}selected{% endif %}>percent</option>
+                </select>
+            </div>
+            <div class="col-md-7">
+                <label class="form-label">Tax description (hidden from customers)</label>
+                <input type="text" name="tax_description" class="form-control" maxlength="200"
+                       value="{{ package.tax_description if package else '' }}"
+                       placeholder="e.g. VAT">
+            </div>
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between">
+        <a href="{{ url_for('admin.package_list') }}" class="btn btn-link">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save package
+        </button>
+    </div>
+</form>
+
+{% if package %}
+<h5 class="mt-5 mb-3">
+    <i class="bi bi-airplane-engines"></i> Flight cards
+    <span class="badge bg-secondary">{{ package_flights|length }} / 6</span>
+    <span class="text-muted small ms-2">Destination airport: <strong>{{ dest_airport or 'not set' }}</strong></span>
+</h5>
+
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-body">
+        {% if not dest_airport %}
+            <div class="alert alert-warning small mb-3">
+                This package's destination has no airport code set. Set one on the destination page first.
+            </div>
+        {% endif %}
+
+        {% if package_flights %}
+            <div class="table-responsive mb-3">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Outbound</th>
+                            <th>Inbound</th>
+                            <th class="text-center">Nights</th>
+                            <th>Label</th>
+                            <th>Active</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in package_flights %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td class="small">
+                                    {% if c.outbound_flight %}
+                                        {{ c.outbound_flight.airline }}<br>
+                                        {{ c.outbound_flight.origin }} - {{ c.outbound_flight.destination }}<br>
+                                        <span class="text-muted">{{ c.outbound_flight.departure_date }} · GBP {{ "%.2f"|format(c.outbound_flight.price_gbp) }}</span>
+                                    {% else %}<span class="text-muted">-</span>{% endif %}
+                                </td>
+                                <td class="small">
+                                    {% if c.inbound_flight %}
+                                        {{ c.inbound_flight.airline }}<br>
+                                        {{ c.inbound_flight.origin }} - {{ c.inbound_flight.destination }}<br>
+                                        <span class="text-muted">{{ c.inbound_flight.departure_date }} · GBP {{ "%.2f"|format(c.inbound_flight.price_gbp) }}</span>
+                                    {% else %}<span class="text-muted">-</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if c.outbound_flight and c.inbound_flight %}
+                                        {% set n = (c.inbound_flight.departure_date - c.outbound_flight.departure_date).days %}
+                                        {% if n > 0 %}
+                                            <span class="badge bg-primary">{{ n }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ n }}</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small">{{ c.label or c.display_label }}</td>
+                                <td>
+                                    {% if c.is_active %}<span class="badge bg-success">Yes</span>
+                                    {% else %}<span class="badge bg-secondary">No</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('admin.package_flight_card_toggle', card_id=c.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-toggle-on"></i></button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('admin.package_flight_card_delete', card_id=c.id) }}" class="d-inline" onsubmit="return confirm('Delete this flight card?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info small mb-3">No flight cards yet. Add one below.</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('admin.package_flight_card_new', package_id=package.id) }}" class="row g-2 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Outbound flight</label>
+                <select name="outbound_flight_id" class="form-select form-select-sm">
+                    <option value="">- pick -</option>
+                    {% for f in outbound_flights %}
+                        <option value="{{ f.id }}">{{ f.airline }} · {{ f.departure_date }} · GBP {{ "%.2f"|format(f.price_gbp) }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small mb-1">Inbound flight</label>
+                <select name="inbound_flight_id" class="form-select form-select-sm">
+                    <option value="">- pick -</option>
+                    {% for f in inbound_flights %}
+                        <option value="{{ f.id }}">{{ f.airline }} · {{ f.departure_date }} · GBP {{ "%.2f"|format(f.price_gbp) }}</option>
+                    {% endfor %}
+                </select>
+                {% if not inbound_flights %}
+                    <div class="form-text small text-warning">No inbound flights for this airport yet.</div>
+                {% endif %}
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small mb-1">Label</label>
+                <input type="text" name="label" class="form-control form-control-sm" maxlength="200">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary btn-sm w-100"><i class="bi bi-plus-lg"></i> Add</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# Package price breakdown (auto-computed) #}
+<h5 class="mt-4 mb-3">
+    <i class="bi bi-cash-coin"></i> Package price breakdown
+    <span class="badge bg-info">auto-computed</span>
+</h5>
+<p class="text-muted small mb-3">
+    Read-only. Computed from hotel, room, dates, flights, transfer, markup, and tax selected above.
+</p>
+
+{% if not package.check_in or not package.check_out %}
+    <div class="alert alert-warning small mb-4">
+        Set the <strong>check-in</strong> and <strong>check-out</strong> dates above, then save, to see the breakdown.
+    </div>
+{% elif not package_flights %}
+    <div class="alert alert-info small mb-4">
+        Add at least one flight card above, then save, to see the breakdown.
+    </div>
+{% else %}
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Outbound</th>
+                        <th>Inbound</th>
+                        <th class="text-center">Nights</th>
+                        <th class="text-end">Hotel</th>
+                        <th class="text-end">Flights</th>
+                        <th class="text-end">Transfer</th>
+                        <th class="text-end">Markup</th>
+                        <th class="text-end">Tax</th>
+                        <th class="text-end">Per person</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rc in package_flight_breakdowns %}
+                        {% set calc = rc.calc %}
+                        {% set c = rc.card %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td class="small">
+                                {% if c.outbound_flight %}
+                                    {{ c.outbound_flight.airline }}<br>
+                                    <span class="text-muted">{{ c.outbound_flight.departure_date }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="small">
+                                {% if c.inbound_flight %}
+                                    {{ c.inbound_flight.airline }}<br>
+                                    <span class="text-muted">{{ c.inbound_flight.departure_date }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if calc.ok %}{{ calc.nights }}
+                                {% else %}<span class="text-danger small">{{ calc.error }}</span>{% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if calc.ok %}
+                                    GBP {{ "%.2f"|format(calc.hotel_total) }}
+                                    <div class="small text-muted">GBP {{ "%.2f"|format(calc.room_nightly) }}/n</div>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if calc.ok %}GBP {{ "%.2f"|format(calc.flight_total) }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if calc.ok %}GBP {{ "%.2f"|format(calc.transfer_fee) }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if calc.ok %}GBP {{ "%.2f"|format(calc.markup) }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end">
+                                {% if calc.ok %}GBP {{ "%.2f"|format(calc.tax) }}{% else %}-{% endif %}
+                            </td>
+                            <td class="text-end fw-bold">
+                                {% if calc.ok %}GBP {{ "%.2f"|format(calc.per_person) }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+{% endif %}
+
+{# ─── Itinerary ─── #}
+{% if package %}
+<h5 class="mt-4 mb-3">
+    <i class="bi bi-signpost-split"></i> Itinerary
+    <span class="badge bg-secondary">{{ itineraries|length }} day{{ "" if itineraries|length == 1 else "s" }}</span>
+</h5>
+<div class="card shadow-sm mb-3 border-0">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin.package_itinerary_new', package_id=package.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-1">
+                    <label class="form-label small mb-1">Day #</label>
+                    <input type="number" name="day_number" class="form-control form-control-sm" min="1"
+                           value="{{ (itineraries|length) + 1 }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Title</label>
+                    <input type="text" name="title" class="form-control form-control-sm" required
+                           placeholder="e.g. Arrival in Luxor">
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small mb-1">Description</label>
+                    <input type="text" name="description" class="form-control form-control-sm"
+                           placeholder="e.g. Check-in, welcome drink">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-sm w-100"><i class="bi bi-plus-lg"></i> Add day</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if itineraries %}
+    <div class="card shadow-sm mb-4 border-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px;">Day</th>
+                        <th style="width: 30%;">Title</th>
+                        <th>Description</th>
+                        <th class="text-end" style="width: 100px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for it in itineraries %}
+                        <tr>
+                            <td><span class="badge bg-primary">{{ it.day_number }}</span></td>
+                            <td>{{ it.title }}</td>
+                            <td class="small text-muted">{{ it.description or "-" }}</td>
+                            <td class="text-end">
+                                <form method="POST" class="d-inline"
+                                      action="{{ url_for('admin.package_itinerary_delete', itinerary_id=it.id) }}"
+                                      onsubmit="return confirm('Delete this day?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info small mb-4">No itinerary days yet.</div>
+{% endif %}
+
+{# ─── Inclusions / Exclusions ─── #}
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <h5 class="mb-2">
+            <i class="bi bi-check2-circle text-success"></i> Inclusions
+            <span class="badge bg-secondary">{{ inclusions|length }}</span>
+        </h5>
+        <div class="card shadow-sm mb-2 border-0">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.package_inclusion_new', package_id=package.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="item" class="form-control" required
+                               placeholder="e.g. Airport transfers">
+                        <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if inclusions %}
+            <ul class="list-group list-group-flush small">
+                {% for i in inclusions %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-check-lg text-success me-2"></i>{{ i.item }}</span>
+                        <form method="POST" action="{{ url_for('admin.package_inclusion_delete', inclusion_id=i.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info small mb-0">No inclusions yet.</div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <h5 class="mb-2">
+            <i class="bi bi-x-circle text-danger"></i> Exclusions
+            <span class="badge bg-secondary">{{ exclusions|length }}</span>
+        </h5>
+        <div class="card shadow-sm mb-2 border-0">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.package_exclusion_new', package_id=package.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="item" class="form-control" required
+                               placeholder="e.g. Personal expenses">
+                        <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if exclusions %}
+            <ul class="list-group list-group-flush small">
+                {% for e in exclusions %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-dash-lg text-danger me-2"></i>{{ e.item }}</span>
+                        <form method="POST" action="{{ url_for('admin.package_exclusion_delete', exclusion_id=e.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info small mb-0">No exclusions yet.</div>
+        {% endif %}
+    </div>
+</div>
+
+{# ─── FAQs ─── #}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <h5 class="mb-2">
+            <i class="bi bi-question-circle"></i> FAQs
+            <span class="badge bg-secondary">{{ faqs|length if faqs else 0 }}</span>
+        </h5>
+        {% if faqs %}
+            <ul class="list-group mb-3">
+                {% for f in faqs %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="me-2 flex-grow-1">
+                            <strong class="d-block small">{{ f.question }}</strong>
+                            {% if f.answer %}
+                                <span class="text-muted small">{{ f.answer[:120] }}{% if f.answer|length > 120 %}...{% endif %}</span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" class="d-inline flex-shrink-0"
+                              action="{{ url_for('admin.package_child_delete', package_id=package.id, child_type='faqs', row_id=f.id) }}"
+                              onsubmit="return confirm('Delete this FAQ?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info small mb-3">No FAQs yet.</div>
+        {% endif %}
+        <form method="POST"
+              action="{{ url_for('admin.package_child_new', package_id=package.id, child_type='faqs') }}"
+              class="card card-body bg-light border-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-2">
+                <label class="form-label small mb-1">Question</label>
+                <input type="text" name="question" class="form-control form-control-sm" required maxlength="500">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small mb-1">Answer</label>
+                <textarea name="answer" class="form-control form-control-sm" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-plus-lg"></i> Add FAQ</button>
+        </form>
+    </div>
+</div>
+
+{# ─── Tips ─── #}
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <h5 class="mb-2">
+            <i class="bi bi-lightbulb"></i> Tips
+            <span class="badge bg-secondary">{{ tips|length if tips else 0 }}</span>
+        </h5>
+        {% if tips %}
+            <ul class="list-group mb-3">
+                {% for t in tips %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <span class="small me-2 flex-grow-1">{{ t.tip }}</span>
+                        <form method="POST" class="d-inline flex-shrink-0"
+                              action="{{ url_for('admin.package_child_delete', package_id=package.id, child_type='tips', row_id=t.id) }}"
+                              onsubmit="return confirm('Delete this tip?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info small mb-3">No tips yet.</div>
+        {% endif %}
+        <form method="POST"
+              action="{{ url_for('admin.package_child_new', package_id=package.id, child_type='tips') }}"
+              class="card card-body bg-light border-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-2">
+                <label class="form-label small mb-1">Tip text</label>
+                <textarea name="tip" class="form-control form-control-sm" rows="2" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm align-self-start"><i class="bi bi-plus-lg"></i> Add tip</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+(function () {
+    var hotelSel = document.getElementById('pkg-hotel-id');
+    var roomSel = document.getElementById('pkg-room-id');
+    var inEl = document.getElementById('pkg-check-in');
+    var outEl = document.getElementById('pkg-check-out');
+    var hint = document.getElementById('pkg-room-hint');
+    if (!hotelSel || !roomSel) return;
+    var currentRoomId = "{{ package.room_id if package else '' }}";
+    function setHint(t) { if (hint) hint.textContent = t || ''; }
+    function loadRooms() {
+        var hid = hotelSel.value;
+        var ci = inEl ? inEl.value : '';
+        var co = outEl ? outEl.value : '';
+        if (!hid || !ci || !co) {
+            roomSel.innerHTML = '<option value="">- pick hotel + dates first -</option>';
+            setHint(hid ? 'Pick dates to see nightly rates' : '');
+            return;
+        }
+        roomSel.disabled = true;
+        roomSel.innerHTML = '<option value="">Loading...</option>';
+        setHint('');
+        fetch('/admin/api/packages/rooms-for-hotel/' + hid + '?check_in=' + ci + '&check_out=' + co)
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                roomSel.innerHTML = '<option value="">- pick a room -</option>';
+                data.rooms.forEach(function (room) {
+                    var opt = document.createElement('option');
+                    opt.value = room.id;
+                    var label = room.type;
+                    if (room.nightly) {
+                        var nights = data.nights || 0;
+                        var total = (room.nightly * nights).toFixed(2);
+                        label += ' — GBP ' + room.nightly.toFixed(2) + '/night (' + nights + 'n = GBP ' + total + ')';
+                    } else {
+                        label += ' — no rate for these dates';
+                    }
+                    opt.textContent = label;
+                    if (String(room.id) === String(currentRoomId)) opt.selected = true;
+                    roomSel.appendChild(opt);
+                });
+                roomSel.disabled = false;
+                setHint(data.rooms.length + ' room(s) available');
+            })
+            .catch(function () {
+                roomSel.innerHTML = '<option value="">Error loading rooms</option>';
+                roomSel.disabled = false;
+                setHint('Could not load rooms');
+            });
+    }
+    hotelSel.addEventListener('change', loadRooms);
+    if (inEl) inEl.addEventListener('change', loadRooms);
+    if (outEl) outEl.addEventListener('change', loadRooms);
+    if (hotelSel.value) loadRooms();
+})();
+</script>
+{% endblock %}

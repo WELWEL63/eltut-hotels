@@ -1,0 +1,140 @@
+﻿{% extends "base.html" %}
+{% block title %}Booking {{ booking.reference }} — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <aside class="col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('account.index') }}"
+                           class="list-group-item list-group-item-action">Dashboard</a>
+                        <a href="{{ url_for('account.bookings') }}"
+                           class="list-group-item list-group-item-action active">My bookings</a>
+                        <a href="{{ url_for('account.profile') }}"
+                           class="list-group-item list-group-item-action">Profile</a>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="col-lg-9">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('account.bookings') }}">My bookings</a></li>
+                        <li class="breadcrumb-item active">{{ booking.reference }}</li>
+                    </ol>
+                </nav>
+
+                <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap">
+                    <div>
+                        <h1 class="mb-1">{{ booking.reference }}</h1>
+                        <span class="badge bg-info">{{ booking.status|title }}</span>
+                        <span class="badge bg-secondary">{{ booking.product_type|title }}</span>
+                    </div>
+                    {% if booking.is_cancellable %}
+                        <form method="POST"
+                              action="{{ url_for('account.booking_cancel', reference=booking.reference) }}"
+                              onsubmit="return confirm('Cancel this booking?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline-danger" type="submit">
+                                <i class="bi bi-x-circle"></i> Cancel booking
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5>Summary</h5>
+                        <table class="table table-borderless mb-0">
+                            <tr><th>Travellers</th><td>{{ booking.travellers_adults }} adults, {{ booking.travellers_children }} children</td></tr>
+                            {% if booking.check_in_date %}
+                                <tr><th>Check-in</th><td>{{ booking.check_in_date }}</td></tr>
+                                <tr><th>Check-out</th><td>{{ booking.check_out_date }}</td></tr>
+                            {% endif %}
+                            {% if booking.activity_date %}
+                                <tr><th>Activity date</th><td>{{ booking.activity_date }}</td></tr>
+                            {% endif %}
+                            <tr><th>Total</th><td><strong>{{ booking.currency }} {{ "%.2f"|format(booking.total_amount) }}</strong></td></tr>
+                            <tr><th>Created</th><td>{{ booking.created_at.strftime("%d %b %Y %H:%M") }}</td></tr>
+                            {% if booking.special_requests %}
+                                <tr><th>Requests</th><td>{{ booking.special_requests }}</td></tr>
+                            {% endif %}
+                            {% if booking.cancelled_at %}
+                                <tr><th>Cancelled</th><td>{{ booking.cancelled_at.strftime("%d %b %Y %H:%M") }}</td></tr>
+                                <tr><th>Reason</th><td>{{ booking.cancellation_reason or "—" }}</td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                {% if items %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5>Line items</h5>
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr><th>Type</th><th>Product</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for it in items %}
+                                        <tr>
+                                            <td>{{ it.item_type|replace("_", " ")|title }}</td>
+                                            <td>{{ it.product_name_snapshot or (it.product_type ~ " #" ~ it.product_id) }}</td>
+                                            <td>{{ it.quantity }}</td>
+                                            <td>{{ it.currency }} {{ "%.2f"|format(it.unit_price) }}</td>
+                                            <td>{{ it.currency }} {{ "%.2f"|format(it.line_total) }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if payments %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5>Payments</h5>
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr><th>Provider</th><th>Status</th><th>Amount</th><th>When</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in payments %}
+                                        <tr>
+                                            <td>{{ p.provider|title }}</td>
+                                            <td><span class="badge bg-secondary">{{ p.status }}</span></td>
+                                            <td>{{ p.currency }} {{ "%.2f"|format(p.amount) }}</td>
+                                            <td>{{ p.created_at.strftime("%d %b %Y") }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if history %}
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5>History</h5>
+                            <ul class="list-unstyled mb-0">
+                                {% for h in history %}
+                                    <li class="mb-2 small">
+                                        <span class="text-muted">{{ h.created_at.strftime("%d %b %Y %H:%M") }}</span>
+                                        — {{ h.from_status or "created" }} → <strong>{{ h.to_status }}</strong>
+                                        by <em>{{ h.changed_by_role }}</em>
+                                        {% if h.reason %} — {{ h.reason }}{% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

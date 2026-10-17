@@ -1,0 +1,190 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ row.label }} — Site content{% endblock %}
+
+{% block admin_content %}
+{% if editor_type == 'html' %}
+    <script src="https://cdn.jsdelivr.net/npm/tinymce@7.3.0/tinymce.min.js"
+            referrerpolicy="origin"></script>
+{% endif %}
+
+{# ─── Compact header ─── #}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <a href="{{ url_for('admin.content_index') }}" class="text-decoration-none small">
+            <i class="bi bi-arrow-left"></i> All site content
+        </a>
+        <h1 class="mb-0">{{ row.label }}</h1>
+        <div class="small text-muted">
+            <code>{{ row.key }}</code>
+        </div>
+    </div>
+    {% if row.value is not none %}
+        <div class="text-end small">
+            <span class="badge bg-warning-subtle text-warning-emphasis">
+                Custom value set
+            </span>
+        </div>
+    {% endif %}
+</div>
+
+{# ─── Editor ─── #}
+<form method="POST"
+      action="{{ url_for('admin.content_edit', key=row.key) }}"
+      id="content-form">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            {% if editor_type == 'image_url' %}
+                <label class="form-label fw-semibold">Image URL</label>
+                <input type="url"
+                       name="value"
+                       id="value-input"
+                       class="form-control"
+                       value="{{ effective_value }}"
+                       placeholder="https://... or /static/images/...">
+                <div class="form-text">
+                    Full URL or a path under <code>/static/</code>.
+                </div>
+                <div class="mt-3">
+                    <div class="small text-muted mb-1">Preview</div>
+                    <img id="image-preview"
+                         src="{{ effective_value }}"
+                         alt=""
+                         class="rounded border"
+                         style="max-height:300px; max-width:100%; object-fit:cover;"
+                         onerror="this.style.display='none';">
+                </div>
+
+            {% elif editor_type == 'html' %}
+                <label class="form-label fw-semibold">Content</label>
+                <textarea name="value"
+                          id="value-input"
+                          class="form-control"
+                          rows="18">{{ effective_value }}</textarea>
+                <div class="form-text">
+                    Use the toolbar to style text: colour, font size, alignment,
+                    bold, italic, lists, links, tables, images.
+                </div>
+
+            {% elif editor_type == 'markdown' %}
+                <label class="form-label fw-semibold">Markdown</label>
+                <textarea name="value"
+                          id="value-input"
+                          class="form-control font-monospace"
+                          rows="18">{{ effective_value }}</textarea>
+                <div class="form-text">
+                    Standard markdown. Rendered as plain text until markdown
+                    support is added.
+                </div>
+
+            {% else %}
+                <label class="form-label fw-semibold">Text</label>
+                <textarea name="value"
+                          id="value-input"
+                          class="form-control"
+                          rows="10">{{ effective_value }}</textarea>
+            {% endif %}
+
+        </div>
+
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2"></i> Save changes
+                </button>
+                <a href="{{ url_for('admin.content_index') }}"
+                   class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+            {% if row.value is not none %}
+                <button type="submit"
+                        form="reset-form"
+                        class="btn btn-outline-warning"
+                        onclick="return confirm('Reset this key to its code default? The custom value will be lost.');">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset to code default
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</form>
+
+{# ─── Reset form (kept outside the main form to avoid nesting) ─── #}
+{% if row.value is not none %}
+    <form id="reset-form"
+          method="POST"
+          action="{{ url_for('admin.content_reset', key=row.key) }}"
+          class="d-none">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    </form>
+{% endif %}
+
+{# ─── TinyMCE init ─── #}
+{% if editor_type == 'html' %}
+<script>
+tinymce.init({
+    selector: '#value-input',
+    height: 520,
+    menubar: false,
+    plugins: 'lists link image table code autoresize',
+    toolbar: (
+        'undo redo | '
+        + 'blocks | '
+        + 'bold italic underline strikethrough | '
+        + 'forecolor backcolor | '
+        + 'fontsizeselect | '
+        + 'alignleft aligncenter alignright alignjustify | '
+        + 'bullist numlist outdent indent | '
+        + 'link image table | '
+        + 'code'
+    ),
+    fontsize_formats: '10px 12px 14px 16px 18px 20px 24px 28px 32px 40px 48px',
+    color_map: [
+        '000000', 'Black',         '333333', 'Dark grey',
+        '555555', 'Grey',          '999999', 'Light grey',
+        'FFFFFF', 'White',
+        'B22222', 'Red',           'DC143C', 'Crimson',
+        'FF8C00', 'Orange',        'FFD700', 'Gold',
+        '2E8B57', 'Sea green',     '006400', 'Dark green',
+        '1E90FF', 'Dodger blue',   '000080', 'Navy',
+        '4B0082', 'Indigo',        '8B4513', 'Brown',
+        'C71585', 'Pink',          'DDA0DD', 'Plum',
+    ],
+    branding: false,
+    promotion: false,
+    content_style: (
+        'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; '
+        + 'font-size: 15px; line-height: 1.5; padding: 8px 12px; }'
+    ),
+    // Auto-submit on Ctrl/Cmd+S
+    setup: function(editor) {
+        editor.addShortcut('ctrl+s', 'Save', function() {
+            document.getElementById('content-form').submit();
+        });
+        editor.addShortcut('meta+s', 'Save', function() {
+            document.getElementById('content-form').submit();
+        });
+    },
+});
+</script>
+{% endif %}
+
+{% if editor_type == 'image_url' %}
+<script>
+(function() {
+    const input = document.getElementById('value-input');
+    const preview = document.getElementById('image-preview');
+    if (!input || !preview) return;
+    input.addEventListener('input', function() {
+        const v = input.value.trim();
+        if (!v) { preview.style.display = 'none'; return; }
+        preview.src = v;
+        preview.style.display = 'block';
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,293 @@
+﻿{% extends "admin/base.html" %}
+{% block title %}{{ "Edit" if activity else "New" }} activity — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 class="mb-4">{{ "Edit" if activity else "New" }} activity</h1>
+
+{# ═══════════════════════════════════════════════════════════════ #}
+{#  MAIN FORM — activity core fields                               #}
+{# ═══════════════════════════════════════════════════════════════ #}
+<form method="POST" class="card shadow-sm">
+    <div class="card-body">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Code</label>
+                <input type="text" name="code" class="form-control"
+                       value="{{ activity.code if activity else '' }}"
+                       placeholder="(auto) — ACT-0001" {% if activity %}disabled{% endif %}>
+                {% if activity %}
+                    <input type="hidden" name="code" value="{{ activity.code }}">
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Name *</label>
+                <input type="text" name="name" class="form-control" required
+                       value="{{ activity.name if activity else '' }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Destination *</label>
+                <select name="destination_id" class="form-select" required>
+                    <option value="">— pick one —</option>
+                    {% for d in destinations %}
+                        <option value="{{ d.id }}"
+                            {% if activity and activity.destination_id == d.id %}selected{% endif %}>
+                            {{ d.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Guide (optional)</label>
+                <select name="guide_id" class="form-select">
+                    <option value="">— none —</option>
+                    {% for g in guides %}
+                        <option value="{{ g.id }}"
+                            {% if activity and activity.guide_id == g.id %}selected{% endif %}>
+                            {{ g.full_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select">
+                    {% for c in categories %}
+                        <option value="{{ c }}" {% if activity and activity.category == c %}selected{% endif %}>{{ c|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Difficulty</label>
+                <select name="difficulty" class="form-select">
+                    {% for d in difficulties %}
+                        <option value="{{ d }}" {% if activity and activity.difficulty == d %}selected{% endif %}>{{ d|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Description</label>
+                <textarea name="description" class="form-control" rows="3">{{ activity.description if activity else '' }}</textarea>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Duration (hours)</label>
+                <input type="number" name="duration_hours" class="form-control" step="0.5" min="0.5"
+                       value="{{ activity.duration_hours if activity else 2 }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Capacity</label>
+                <input type="number" name="capacity" class="form-control" min="1"
+                       value="{{ activity.capacity if activity else 20 }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Min age</label>
+                <input type="number" name="min_age" class="form-control" min="0"
+                       value="{{ activity.min_age if activity and activity.min_age is not none else '' }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Max age</label>
+                <input type="number" name="max_age" class="form-control" min="0"
+                       value="{{ activity.max_age if activity and activity.max_age is not none else '' }}">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Transportation</label>
+                <select name="transportation_type" class="form-select">
+                    {% for t in transports %}
+                        <option value="{{ t }}" {% if activity and activity.transportation_type == t %}selected{% endif %}>{{ t|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Meals included</label>
+                <select name="meals_included" class="form-select">
+                    {% for m in meals %}
+                        <option value="{{ m }}" {% if activity and activity.meals_included == m %}selected{% endif %}>{{ m|replace("_", " ")|title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Schedule</label>
+                <input type="text" name="schedule" class="form-control"
+                       value="{{ activity.schedule if activity else '' }}"
+                       placeholder="Every Day">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Meeting point</label>
+                <input type="text" name="meeting_point" class="form-control"
+                       value="{{ activity.meeting_point if activity else '' }}"
+                       placeholder="Hotel Lobby">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Departure</label>
+                <input type="text" name="departure_time" class="form-control"
+                       value="{{ activity.departure_time if activity else '' }}"
+                       placeholder="09:00 a.m">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Return</label>
+                <input type="text" name="return_time" class="form-control"
+                       value="{{ activity.return_time if activity else '' }}"
+                       placeholder="04:00 p.m">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">
+                    <i class="bi bi-geo-alt"></i> Google Maps URL
+                </label>
+                <input type="url" name="google_maps_url" class="form-control"
+                       value="{{ activity.google_maps_url if activity else '' }}"
+                       placeholder="https://www.google.com/maps?q=...&output=embed">
+                <div class="form-text small">
+                    Paste a Google Maps <strong>embed</strong> URL. To get one: open Google Maps,
+                    search your location, click <em>Share → Embed a map</em>, and copy the
+                    <code>src</code> value from the iframe.
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">What to bring</label>
+                <textarea name="what_to_bring" class="form-control" rows="2">{{ activity.what_to_bring if activity else '' }}</textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Cancellation policy</label>
+                <textarea name="cancellation_policy" class="form-control" rows="2">{{ activity.cancellation_policy if activity else '' }}</textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Accessibility</label>
+                <textarea name="accessibility" class="form-control" rows="2">{{ activity.accessibility if activity else '' }}</textarea>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Special offers</label>
+                <textarea name="special_offers" class="form-control" rows="2">{{ activity.special_offers if activity else '' }}</textarea>
+            </div>
+
+            <div class="col-12 form-check ms-2 mt-2">
+                <input type="checkbox" name="is_active" id="is_active" class="form-check-input"
+                       {% if not activity or activity.is_active %}checked{% endif %}>
+                <label class="form-check-label" for="is_active">Active</label>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer d-flex justify-content-between">
+        <a href="{{ url_for('admin.activity_list') }}" class="btn btn-link">Cancel</a>
+        <button type="submit" class="btn btn-primary">Save activity</button>
+    </div>
+</form>
+
+{# ═══════════════════════════════════════════════════════════════ #}
+{#  CHILD ROWS — FAQs + Tips (only for existing activities)        #}
+{# ═══════════════════════════════════════════════════════════════ #}
+{% if activity %}
+<div class="row g-4 mt-4">
+
+    {# ─── FAQs editor ─── #}
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="bi bi-question-circle"></i> FAQs
+                <span class="badge bg-secondary">{{ faqs|length if faqs else 0 }}</span>
+            </h5>
+        </div>
+
+        {% if faqs %}
+            <ul class="list-group mb-3">
+                {% for f in faqs %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="me-2 flex-grow-1">
+                            <strong class="d-block small">{{ f.question }}</strong>
+                            {% if f.answer %}
+                                <span class="text-muted small">
+                                    {{ f.answer[:120] }}{% if f.answer|length > 120 %}…{% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <form method="POST" class="d-inline flex-shrink-0"
+                              action="{{ url_for('admin.activity_child_delete', activity_id=activity.id, child_type='faqs', row_id=f.id) }}"
+                              onsubmit="return confirm('Delete this FAQ?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info small mb-3">No FAQs yet.</div>
+        {% endif %}
+
+        <form method="POST"
+              action="{{ url_for('admin.activity_child_new', activity_id=activity.id, child_type='faqs') }}"
+              class="card card-body bg-light border">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-2">
+                <label class="form-label small mb-1">Question</label>
+                <input type="text" name="question" class="form-control form-control-sm"
+                       required maxlength="500"
+                       placeholder="e.g. Is hotel pickup included?">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small mb-1">Answer</label>
+                <textarea name="answer" class="form-control form-control-sm" rows="3"
+                          placeholder="Answer shown to customers"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add FAQ
+            </button>
+        </form>
+    </div>
+
+    {# ─── Tips editor ─── #}
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                <i class="bi bi-lightbulb"></i> Tips
+                <span class="badge bg-secondary">{{ tips|length if tips else 0 }}</span>
+            </h5>
+        </div>
+
+        {% if tips %}
+            <ul class="list-group mb-3">
+                {% for t in tips %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <span class="small me-2 flex-grow-1">{{ t.tip }}</span>
+                        <form method="POST" class="d-inline flex-shrink-0"
+                              action="{{ url_for('admin.activity_child_delete', activity_id=activity.id, child_type='tips', row_id=t.id) }}"
+                              onsubmit="return confirm('Delete this tip?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="alert alert-info small mb-3">No tips yet.</div>
+        {% endif %}
+
+        <form method="POST"
+              action="{{ url_for('admin.activity_child_new', activity_id=activity.id, child_type='tips') }}"
+              class="card card-body bg-light border">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-2">
+                <label class="form-label small mb-1">Tip text</label>
+                <textarea name="tip" class="form-control form-control-sm" rows="2"
+                          required
+                          placeholder="e.g. Bring reef-safe sunscreen."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add tip
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,90 @@
+﻿{% extends "base.html" %}
+{% block title %}My bookings — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <aside class="col-lg-3">
+                <div class="card shadow-sm">
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('account.index') }}"
+                           class="list-group-item list-group-item-action">Dashboard</a>
+                        <a href="{{ url_for('account.bookings') }}"
+                           class="list-group-item list-group-item-action active">My bookings</a>
+                        <a href="{{ url_for('account.profile') }}"
+                           class="list-group-item list-group-item-action">Profile</a>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="col-lg-9">
+                <h1 class="mb-4">My bookings</h1>
+
+                {% if items %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Type</th>
+                                    <th>Dates</th>
+                                    <th>Status</th>
+                                    <th>Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in items %}
+                                    <tr>
+                                        <td class="fw-bold">{{ b.reference }}</td>
+                                        <td>{{ b.product_type|title }}</td>
+                                        <td>
+                                            {% if b.check_in_date %}
+                                                {{ b.check_in_date }} → {{ b.check_out_date }}
+                                            {% elif b.activity_date %}
+                                                {{ b.activity_date }}
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ b.status|title }}</span>
+                                        </td>
+                                        <td>{{ b.currency }} {{ "%.2f"|format(b.total_amount) }}</td>
+                                        <td>
+                                            <a href="{{ url_for('account.booking_detail', reference=b.reference) }}"
+                                               class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if total_pages > 1 %}
+                        <nav>
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                                    <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+                                </li>
+                                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                                    <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        You have no bookings yet.
+                        <a href="{{ url_for('public.activity_list') }}">Browse activities</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

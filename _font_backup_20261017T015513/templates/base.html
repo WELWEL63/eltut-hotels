@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ config.APP_NAME }}{% endblock %}</title>
+
+    {# Bootstrap 5 via CDN — we're not bundling a build step #}
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet">
+
+    {# Small custom overrides #}
+    <style>
+        body { min-height: 100vh; display: flex; flex-direction: column; }
+        main { flex: 1; }
+        .hero { background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%); color: #fff; }
+        .card-img-top { height: 200px; object-fit: cover; background: #e9ecef; }
+        .footer { background: #212529; color: #adb5bd; padding: 2rem 0; margin-top: 3rem; }
+        .footer a { color: #adb5bd; text-decoration: none; }
+        .footer a:hover { color: #fff; }
+    </style>
+
+    {% block head %}{% endblock %}
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- ElTut design system (layered over Bootstrap) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/eltut.css') }}?v=59">
+
+    <!-- Search results page styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search_results.css') }}?v=1">
+
+    <!-- 'Playfair Display' — inscription-style serif for the logo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family='Playfair Display':wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts: Playfair Display (headings) + Inter (body) -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<nav class="navbar navbar-expand-lg navbar-dark site-header">
+    <div class="container">
+        <a class="navbar-brand eltut-logo" href="{{ maybe_url('public.index') }}">
+            <span class="eltut-logo__main">E&nbsp;L&nbsp;T&nbsp;U&nbsp;T</span>
+            <span class="eltut-logo__sub">Tours</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navMain" aria-controls="navMain"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.index') }}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.activity_list') }}">Activities</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.hotel_list') }}">Hotels</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.package_list') }}">Holidays Packages</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.about') }}">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.contact') }}">Contact</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{{ maybe_url('account.index') }}">
+                                    My Account
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ maybe_url('account.bookings') }}">
+                                    My Bookings
+                                </a>
+                            </li>
+                            {% if current_user.is_admin %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ maybe_url('admin.index') }}">
+                                        Admin Panel
+                                    </a>
+                                </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST"
+                                      action="{{ maybe_url('auth.logout') }}"
+                                      class="d-inline">
+                                    <input type="hidden" name="csrf_token"
+                                           value="{{ csrf_token() }}">
+                                    <button class="dropdown-item" type="submit">
+                                        Log out
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ maybe_url('auth.login') }}">Sign in</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-sm mt-1 ms-2"
+                           href="{{ maybe_url('auth.register') }}">Register</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }}
+                                alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+                        </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="text-white">{{ config.APP_NAME }}</h5>
+                <p class="mb-0">
+                    Curated tours, hotels, and tour packages across Egypt.
+                </p>
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-white">Explore</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{{ maybe_url('public.hotel_list') }}">Hotels</a></li>
+                    <li><a href="{{ maybe_url('public.package_list') }}">Holiday Packages</a></li>
+                    <li><a href="{{ maybe_url('public.activity_list') }}">Activities</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h6 class="text-white">Company</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{{ maybe_url('public.about') }}">About us</a></li>
+                    <li><a href="{{ maybe_url('public.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary">
+        <p class="text-center mb-0 small">
+            &copy; {{ config.APP_NAME }}. Built as a coursework project.
+        </p>
+    </div>
+</footer>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"></script>
+
+{% block scripts %}{% endblock %}
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DATE RANGE LINK — check-in / check-out calendars stay in sync
+     Fires on any page. When a check-in date is picked, the check-out
+     input's `min` is bumped to that day. When a check-out is picked,
+     the check-in input's `max` is set to that day.
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    function nextDay(iso) {
+        if (!iso) return '';
+        const d = new Date(iso + 'T00:00:00');
+        d.setDate(d.getDate() + 1);
+        const pad = n => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+
+    function wire(checkIn, checkOut) {
+        if (!checkIn || !checkOut) return;
+        // If checkout has no min yet and checkin has a value, apply it
+        if (checkIn.value && !checkOut.min) {
+            checkOut.min = nextDay(checkIn.value);
+        }
+        checkIn.addEventListener('change', function() {
+            checkOut.min = nextDay(checkIn.value);
+            // If existing checkout is now invalid, clear it
+            if (checkOut.value && checkOut.value <= checkIn.value) {
+                checkOut.value = '';
+            }
+        });
+        checkOut.addEventListener('change', function() {
+            if (checkIn.value && checkOut.value && checkOut.value <= checkIn.value) {
+                checkOut.value = '';
+                alert('Check-out must be after check-in.');
+            }
+        });
+    }
+
+    // ─── Wire every pair of date inputs on the page ──────────────
+    // Match by name pairs: check_in / check_out
+    const inps = document.querySelectorAll('input[type="date"][name="check_in"]');
+    inps.forEach(function(ci) {
+        // Find the matching check_out — either same form, or nearest sibling
+        const form = ci.closest('form');
+        let co = null;
+        if (form) {
+            co = form.querySelector('input[type="date"][name="check_out"]');
+        }
+        if (!co) {
+            // Fallback: nearest following check_out
+            let n = ci.nextElementSibling;
+            while (n && n.tagName !== 'INPUT' && !co) {
+                co = n.querySelector && n.querySelector('input[name="check_out"]');
+                n = n.nextElementSibling;
+            }
+        }
+        wire(ci, co);
+    });
+})();
+</script>
+
+</body>
+</html>
+

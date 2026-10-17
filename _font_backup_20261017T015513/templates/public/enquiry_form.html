@@ -1,0 +1,72 @@
+﻿{% extends "base.html" %}
+{% block title %}Enquiry — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <h1 class="mb-3">Ask a question</h1>
+                <p class="text-muted">
+                    Have a question about a tour, hotel, or package? Send us a
+                    message and we'll get back to you within one business day.
+                </p>
+
+                <form method="POST" action="{{ url_for('public.enquiry_submit') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="type" value="quote_request">
+                    {% if product_type %}<input type="hidden" name="product_type" value="{{ product_type }}">{% endif %}
+                    {% if product_id %}<input type="hidden" name="product_id" value="{{ product_id }}">{% endif %}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Your name</label>
+                        <input type="text" name="name" id="name" class="form-control" required maxlength="120"
+                               value="{{ current_user.full_name if current_user.is_authenticated else '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" name="email" id="email" class="form-control" required
+                               value="{{ current_user.email if current_user.is_authenticated else '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone (optional)</label>
+                        <input type="tel" name="phone" id="phone" class="form-control" maxlength="40">
+                    </div>
+
+                    {% if product_type %}
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="adults" class="form-label">Adults</label>
+                                <input type="number" name="adults" id="adults" class="form-control" min="1" max="20" value="2">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="children" class="form-label">Children</label>
+                                <input type="number" name="children" id="children" class="form-control" min="0" max="20" value="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="check_in" class="form-label">Check-in / start date</label>
+                                <input type="date" name="check_in" id="check_in" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="check_out" class="form-label">Check-out / end date</label>
+                                <input type="date" name="check_out" id="check_out" class="form-control">
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Your message</label>
+                        <textarea name="message" id="message" rows="5" class="form-control" required maxlength="2000"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Send enquiry
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

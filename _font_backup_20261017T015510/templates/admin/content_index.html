@@ -1,0 +1,146 @@
+{% extends "admin/base.html" %}
+{% block title %}Site Content — Admin{% endblock %}
+
+{% block admin_content %}
+{# ─── Hero slideshow entry point ─── #}
+<div class="card shadow-sm mb-4 border-0" style="background: linear-gradient(135deg, #f5e6d3, #e8d3b8);">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">
+                <i class="bi bi-images text-eltut-terracotta"></i>
+                Home slideshow
+            </h5>
+            <p class="mb-0 small text-muted">
+                Upload images for the hero slideshow on the home page — up to 6 slides.
+            </p>
+        </div>
+        <a href="{{ url_for('admin.content_slideshow') }}"
+           class="btn btn-eltut-primary">
+            <i class="bi bi-arrow-right"></i> Manage slideshow
+        </a>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="mb-0">Site content</h1>
+        <p class="text-muted mb-0">
+            Edit headlines, images, and text used across the public site.
+        </p>
+    </div>
+    <div class="text-end">
+        <div class="text-muted small">{{ total }} key{{ "" if total == 1 else "s" }}</div>
+        {% if missing %}
+            <form method="POST"
+                  action="{{ url_for('admin.content_seed') }}"
+                  class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-primary mt-2">
+                    <i class="bi bi-plus-circle"></i>
+                    Seed {{ missing|length }} missing key{{ "" if missing|length == 1 else "s" }}
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if missing %}
+    <div class="alert alert-info small">
+        <i class="bi bi-info-circle"></i>
+        <strong>{{ missing|length }}</strong> registered key{{ "" if missing|length == 1 else "s" }}
+        do{{ "" if missing|length == 1 else "" }} not have a row yet.
+        Click "Seed" to insert them with default values.
+        Missing: {% for k in missing %}<code>{{ k }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+    </div>
+{% endif %}
+
+{% if not grouped %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center text-muted py-5">
+            <i class="bi bi-pencil-square" style="font-size:3rem;"></i>
+            <p class="mt-3 mb-0">No content rows yet.</p>
+            <p class="small">
+                Click "Seed" above to insert the {{ registry|length }} registered
+                key{{ "" if registry|length == 1 else "s" }} with their defaults.
+            </p>
+        </div>
+    </div>
+{% else %}
+
+    {% set page_meta = {
+        'home':    {'icon': 'house',         'title': 'Home page'},
+        'about':   {'icon': 'info-circle',   'title': 'About page'},
+        'contact': {'icon': 'envelope',      'title': 'Contact page'},
+        'footer':  {'icon': 'layout-text-window-reverse', 'title': 'Footer'},
+        'global':  {'icon': 'globe',         'title': 'Global'}
+    } %}
+
+    {% for page, rows in grouped.items() %}
+        {% set meta = page_meta.get(page, {'icon': 'file-text', 'title': page|title}) %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex align-items-center">
+                <i class="bi bi-{{ meta.icon }} me-2"></i>
+                <strong>{{ meta.title }}</strong>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis ms-2">
+                    {{ rows|length }}
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:22%;">Label</th>
+                            <th style="width:28%;">Key</th>
+                            <th>Current value</th>
+                            <th class="text-end" style="width:110px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">{{ row.label }}</div>
+                                    {% if row.notes %}
+                                        <div class="small text-muted">{{ row.notes }}</div>
+                                    {% endif %}
+                                </td>
+                                <td><code class="small">{{ row.key }}</code></td>
+                                <td>
+                                    {% if row.value %}
+                                        {% if row.content_type == 'image_url' %}
+                                            <img src="{{ row.value }}" alt=""
+                                                 style="max-height:40px; max-width:160px; object-fit:cover; border-radius:4px;">
+                                        {% else %}
+                                            <span class="text-truncate d-inline-block"
+                                                  style="max-width:420px; vertical-align:middle;"
+                                                  title="{{ row.value }}">
+                                                {{ row.value[:120] }}{% if row.value|length > 120 %}…{% endif %}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        {% set spec = registry.get(row.key) %}
+                                        {% if spec %}
+                                            <span class="text-muted small fst-italic">
+                                                (code default: {{ spec.default[:60] }}{% if spec.default|length > 60 %}…{% endif %})
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted small fst-italic">(empty)</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('admin.content_edit', key=row.key) }}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endfor %}
+
+{% endif %}
+{% endblock %}

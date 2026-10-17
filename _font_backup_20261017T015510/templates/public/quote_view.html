@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block title %}Your quote {{ quote.reference }} — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+
+                {% set badge = {
+                    "draft":     "secondary",
+                    "sent":      "primary",
+                    "accepted":  "success",
+                    "declined":  "danger",
+                    "expired":   "warning",
+                    "cancelled": "dark"
+                }.get(quote.status, "secondary") %}
+
+                {# ─── Header ─── #}
+                <div class="text-center mb-5">
+                    <div class="mb-3">
+                        <span class="badge bg-{{ badge }} fs-6">{{ quote.status }}</span>
+                    </div>
+                    <h1 class="section-title">Your personalised quote</h1>
+                    <p class="text-muted">
+                        Reference <code>{{ quote.reference }}</code>
+                    </p>
+                </div>
+
+                {# ─── Status banners ─── #}
+                {% if quote.status == "draft" %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-clock-history"></i>
+                        This quote is still being prepared by our team.
+                        You'll receive an email when it's ready.
+                    </div>
+                {% elif quote.status == "accepted" %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        <strong>You accepted this quote.</strong>
+                        {% if quote.accepted_at %}
+                            &middot; {{ quote.accepted_at | uk_datetime }}
+                        {% endif %}
+                        <br>
+                        A confirmation email is on its way. If you need to make
+                        changes, <a href="{{ url_for('public.contact') }}">contact us</a>.
+                    </div>
+                {% elif quote.status == "declined" %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-x-circle"></i>
+                        You declined this quote.
+                        <a href="{{ url_for('public.quote_request') }}">Submit a new request?</a>
+                    </div>
+                {% elif quote.status == "expired" %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-hourglass-split"></i>
+                        This quote has expired.
+                        <a href="{{ url_for('public.quote_request') }}">Submit a new request?</a>
+                    </div>
+                {% elif quote.status == "cancelled" %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-slash-circle"></i>
+                        This quote was cancelled by our team.
+                        <a href="{{ url_for('public.contact') }}">Contact us</a> if this is unexpected.
+                    </div>
+                {% endif %}
+
+                {# ─── Main card ─── #}
+                <div class="card shadow-sm mb-4">
+
+                    {% if quote.image_url %}
+                        <img src="{{ quote.image_url }}" alt="{{ quote.product_name_snapshot or 'Quote image' }}"
+                             class="card-img-top"
+                             style="height: 260px; object-fit: cover;"
+                             onerror="this.style.display='none';">
+                    {% endif %}
+
+                    <div class="card-body p-4 p-md-5">
+
+                        {# ─── Product ─── #}
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted text-uppercase small mb-1">Product</h6>
+                                <h4 class="mb-1">
+                                    {% if quote.product_name_snapshot %}
+                                        {{ quote.product_name_snapshot }}
+                                    {% else %}
+                                        {{ quote.product_type|capitalize }} #{{ quote.product_id }}
+                                    {% endif %}
+                                </h4>
+                                <div class="text-muted small">
+                                    <i class="bi bi-tag"></i>
+                                    {{ quote.product_type|capitalize }}
+                                    {% if quote.product_name_snapshot %}
+                                        &middot; #{{ quote.product_id }}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6 class="text-muted text-uppercase small mb-1">Party</h6>
+                                <h4 class="mb-1">
+                                    {{ quote.adults }} adult{{ "" if quote.adults == 1 else "s" }}
+                                    {% if quote.children %}
+                                        + {{ quote.children }} child{{ "" if quote.children == 1 else "ren" }}
+                                    {% endif %}
+                                </h4>
+                                <div class="text-muted small">
+                                    <i class="bi bi-people"></i>
+                                    {{ quote.party_size }} traveller{{ "" if quote.party_size == 1 else "s" }} total
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        {# ─── Price breakdown ─── #}
+                        <h6 class="text-muted text-uppercase small mb-3">
+                            <i class="bi bi-receipt"></i> Price breakdown
+                        </h6>
+                        <div class="table-responsive mb-3">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Traveller type</th>
+                                        <th class="text-end">Unit price</th>
+                                        <th class="text-end">Count</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Adults</td>
+                                        <td class="text-end">{{ quote.currency }} {{ "%.2f"|format(quote.price_adult) }}</td>
+                                        <td class="text-end">{{ quote.adults }}</td>
+                                        <td class="text-end fw-semibold">
+                                            {{ quote.currency }} {{ "%.2f"|format(quote.price_adult * quote.adults) }}
+                                        </td>
+                                    </tr>
+                                    {% if quote.children > 0 %}
+                                        <tr>
+                                            <td>Children</td>
+                                            <td class="text-end">{{ quote.currency }} {{ "%.2f"|format(quote.price_child) }}</td>
+                                            <td class="text-end">{{ quote.children }}</td>
+                                            <td class="text-end fw-semibold">
+                                                {{ quote.currency }} {{ "%.2f"|format(quote.price_child * quote.children) }}
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                                <tfoot class="table-group-divider">
+                                    <tr>
+                                        <th colspan="3" class="text-end fs-5">Total</th>
+                                        <th class="text-end fs-5 text-eltut-terracotta">
+                                            {{ quote.currency }} {{ "%.2f"|format(quote.price) }}
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        {% if quote.valid_until %}
+                            <p class="small text-muted mb-0">
+                                <i class="bi bi-calendar-event"></i>
+                                This price is valid until
+                                <strong>{{ quote.valid_until | uk_date_long }}</strong>.
+                            </p>
+                        {% endif %}
+
+                        {# ─── Message from admin ─── #}
+                        {% if quote.message %}
+                            <hr>
+                            <h6 class="text-muted text-uppercase small mb-3">
+                                <i class="bi bi-chat-left-text"></i> From our team
+                            </h6>
+                            <div class="border-start border-3 ps-3" style="white-space: pre-wrap;">{{ quote.message }}</div>
+                        {% endif %}
+                    </div>
+
+                    {# ─── Action footer ─── #}
+                    {% if quote.is_open %}
+                        <div class="card-footer bg-white p-4 d-flex flex-wrap gap-2 justify-content-end">
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-lg"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#declineModal">
+                                <i class="bi bi-x-circle"></i> Decline
+                            </button>
+                            <form method="POST"
+                                  action="{{ url_for('public.quote_accept', reference=quote.reference) }}"
+                                  class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-eltut-primary btn-lg">
+                                    <i class="bi bi-check-circle"></i> Accept &amp; book
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# ─── Need help? ─── #}
+                <div class="text-center text-muted small">
+                    Questions?
+                    <a href="{{ url_for('public.contact') }}">Contact our team</a>
+                    — we'll reply within a few hours.
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ─── Decline modal ─── #}
+{% if quote.is_open %}
+<div class="modal fade" id="declineModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST"
+                  action="{{ url_for('public.quote_decline', reference=quote.reference) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Decline this quote?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        You're welcome to tell us why — it helps us improve future quotes.
+                    </p>
+                    <label class="form-label">Reason (optional)</label>
+                    <textarea name="reason" class="form-control" rows="3"
+                              placeholder="e.g. Price is above my budget, dates no longer work..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle"></i> Decline quote
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

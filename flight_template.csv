@@ -1,3 +1,0 @@
-airline,origin,destination,departure_date,direction,price_gbp,currency,flight_number,departure_time,arrival_time,passengers_basis,luggage_kg,source_url,captured_at
-easyJet,LGW,HRG,2027-04-01,out,132.00,GBP,EZY8901,09:20,16:40,1 adult,23,https://easyjet.com/,2026-10-14T08:13:41Z
-easyJet,HRG,LGW,2027-04-08,back,128.00,GBP,EZY8902,17:40,21:30,1 adult,23,https://easyjet.com/,2026-10-14T08:13:41Z

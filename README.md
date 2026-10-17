@@ -191,3 +191,12 @@ No automated test suite yet. Two manual safety nets:
 ## License
 
 Proprietary — ElTut Tours.
+
+
+
+
+
+
+
+python -m scripts.session_report > _session_context.txt
+Get-Content _session_context.txt

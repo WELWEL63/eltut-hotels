@@ -131,3 +131,22 @@ def flight_admin_delete(fp_id: int):
     db.session.commit()
     flash("Flight price removed.", "success")
     return redirect(url_for("admin.flight_admin_index"))
+
+@admin_bp.route("/flights/delete-all", methods=["POST"])
+@admin_required
+def flight_admin_delete_all():
+    """Delete every row in flight_prices. Requires an explicit confirm field."""
+    confirmed = request.form.get("confirm_delete_all") == "yes"
+    if not confirmed:
+        flash("Tick the confirmation box first.", "warning")
+        return redirect(url_for("admin.flight_admin_index"))
+
+    try:
+        n = db.session.query(FlightPrice).delete()
+        db.session.commit()
+        flash(f"Deleted {n} flight prices. You can now import a fresh CSV.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Delete failed: {e}", "danger")
+
+    return redirect(url_for("admin.flight_admin_index"))
