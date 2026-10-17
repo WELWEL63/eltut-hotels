@@ -202,7 +202,8 @@ h5{
 
 .navbar.navbar-dark.site-header,
 .site-header {
-    background: #1f3756 !important;
+    background:  linear-gradient(#043347, #013f63c2);
+     
     border-bottom: 2px solid #c9a227 !important;
     box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
     padding-top: 0.9rem !important;
@@ -263,7 +264,7 @@ h5{
    ═══════════════════════════════════════════════════════════════════════ */
 
 .footer {
-    background: #1e3a5f !important;
+    background: linear-gradient(#043347, #013f63c2);
     border-top: 2px solid #c9a227 !important;
     color: #e8d9b3 !important;
     padding: 2.25rem 0 !important;
@@ -720,6 +721,8 @@ h5{
 /* Feature tiles — icon + label */
 .feature-tile {
     padding: 2rem 1.5rem;
+    font: weight 800px;
+    color:white!important;
     
     border-radius: var(--radius-md);
     background: #fff;
@@ -728,8 +731,8 @@ h5{
     height: 100%;
     border-top: 2px solid transparent;
     background-image:
-        linear-gradient(#ffffff, #ffffff),
-        linear-gradient(90deg, #c9a227 0%, #d4a017 50%, #c9a227 100%);
+        linear-gradient(#033e57, #86cef8c2),
+        linear-gradient(90deg, #ecf1f3 0%, #f7f8fa 50%, #f8fdff 100%);
     background-origin: border-box;
     background-clip: padding-box, border-box;
 }
@@ -739,10 +742,18 @@ h5{
 }
 .feature-tile .feature-icon {
     font-size: 5rem;
-    color: var(--eltut-terracotta);
+    color: whitesmoke;
     margin-bottom: 1rem;
     display: inline-block;
 }
+.feature-tile .feature-label {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: #fff!important;
+}
+
 
 /* Destination tiles — image with gradient overlay + label */
 .destination-tile {
@@ -3694,7 +3705,7 @@ body::-webkit-scrollbar-corner {
 
 .ad-carousel-section {
     padding: 3.5rem 0;
-    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background-color: #faf7f1;
 }
 
 .ad-carousel {
