@@ -510,10 +510,12 @@
                 <span class="text-muted"><i class="bi bi-building"></i> Hotel ({{ pricing_breakdown.nights }} nights)</span>
                 <span>{{ pricing_breakdown.currency }} {{ "%.2f"|format(pricing_breakdown.land_total) }}</span>
               </div>
+              {% if pricing_breakdown.flight_total and pricing_breakdown.flight_total > 0 %}
               <div class="d-flex justify-content-between small mb-2">
                 <span class="text-muted"><i class="bi bi-airplane-fill" style="color:#c85a3e;"></i> Flights</span>
                 <span>{{ pricing_breakdown.currency }} {{ "%.2f"|format(pricing_breakdown.flight_total) }}</span>
               </div>
+              {% endif %}
               <div class="d-flex justify-content-between small mb-2">
                 <span class="text-muted"><i class="bi bi-percent"></i> Service fee</span>
                 <span>{{ pricing_breakdown.currency }} {{ "%.2f"|format(pricing_breakdown.markup) }}</span>

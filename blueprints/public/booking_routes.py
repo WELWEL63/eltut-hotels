@@ -303,15 +303,8 @@ def _activity_pricing(activity: Activity, adults: int, children: int) -> dict:
     per_person = adult_rate * adults + child_rate * children
     return {"adult_rate": adult_rate, "child_rate": child_rate, "nights": None, "per_night": None, "per_person": per_person, "total": per_person, "currency": row.currency or "GBP"}
 
-def _build_rooms_grouping(
-    *,
-    room_ids: list[int],
-    check_in: date | None,
-    check_out: date | None,
-    adults: int,
-    child_ages: list[int],
-    infants: int,
-) -> dict | None:
+
+def _build_rooms_grouping(*, room_ids, check_in, check_out, adults, child_ages, infants):
     if not room_ids or check_in is None or check_out is None or check_out <= check_in:
         return None
 
@@ -333,16 +326,13 @@ def _build_rooms_grouping(
 
     num_rooms = len(rooms)
     nights = (check_out - check_in).days
-    
-    # We need to fix the math: if there are 5 adults and 3 rooms, 
-    # we assume 2 adults per room. 
+
     a_per = 2
     c_per = 1
     if num_rooms == 1:
         a_per = adults
         c_per = len(child_ages)
 
-    # Price ONE room to get the base rate
     per_room = [{
         "room": rooms[0],
         "adults": a_per,
@@ -358,9 +348,8 @@ def _build_rooms_grouping(
     if not priced or not priced.get("rooms"):
         return None
 
-    # Extract the exact per-room price
     base_price = priced["rooms"][0]
-    
+
     out_rooms: list[dict] = []
     for room in rooms:
         out_rooms.append({
@@ -383,6 +372,7 @@ def _build_rooms_grouping(
         "nights": nights,
         "min_rooms": num_rooms,
     }
+
 
 # ─── Booking start (GET) ────────────────────────────────────────────
 @public_bp.route("/booking/start/<product_type>/<int:product_id>", methods=["GET"])
@@ -416,7 +406,7 @@ def booking_start(product_type: str, product_id: int):
 
     package_flight_id: int | None = None
     raw_pfid = (request.args.get("package_flight_id") or "").strip()
-    if product_type == "package" and raw_pfid:
+    if product_type == "package" and raw_pfid and raw_pfid.lower() != "none":
         try:
             package_flight_id = int(raw_pfid)
         except ValueError:
@@ -431,7 +421,7 @@ def booking_start(product_type: str, product_id: int):
                 option = card
         if option is None:
             raw_option_id = (request.args.get("option_id") or "").strip()
-            if raw_option_id:
+            if raw_option_id and raw_option_id.lower() != "none":
                 try:
                     legacy_opt_id = int(raw_option_id)
                 except ValueError:
@@ -634,14 +624,23 @@ def booking_create():
     package_flight_id: int | None = None
     if product_type == PRODUCT_TYPE_PACKAGE:
         raw_pfid = (request.form.get("package_flight_id") or "").strip()
-        if raw_pfid:
+        if raw_pfid and raw_pfid.lower() != "none":
             try:
                 package_flight_id = int(raw_pfid)
             except ValueError:
                 package_flight_id = None
+
+        # Land-only check: if no card was selected, verify the package
+        # can still be priced (which means it's land-only).
         if package_flight_id is None:
-            flash("Please select a departure on the package page before booking.", "warning")
-            return redirect(request.referrer or url_for("public.index"))
+            _test = _package_pricing(
+                product, adults, children,
+                package_flight_id=None,
+                check_in=check_in, check_out=check_out,
+            )
+            if _test.get("total") is None or _test.get("total") <= 0:
+                flash("Please select a departure on the package page before booking.", "warning")
+                return redirect(request.referrer or url_for("public.index"))
 
     rooms_selection: list[dict] | None = None
     rooms_grouping: dict | None = None
@@ -667,6 +666,17 @@ def booking_create():
     try:
         if rooms_grouping is not None:
             total = Decimal(str(rooms_grouping["grand_total"]))
+        elif product_type == PRODUCT_TYPE_PACKAGE:
+            # --- FIX: Use the exact same logic as the frontend ---
+            pkg_pricing = _package_pricing(
+                product, adults, children,
+                package_flight_id=package_flight_id,
+                check_in=check_in, check_out=check_out,
+            )
+            if pkg_pricing.get("total") is None:
+                flash(pkg_pricing.get("error") or "Could not calculate package price.", "danger")
+                return redirect(request.referrer or url_for("public.index"))
+            total = Decimal(str(pkg_pricing["total"]))
         else:
             total = pricing_service.compute_booking_total(
                 product_type=product_type, product_id=product_id, adults=adults, children=children,
@@ -753,7 +763,7 @@ def booking_create():
     db.session.commit()
     return redirect(url_for("public.booking_confirmation", reference=booking.reference))
 
-
+ 
 # ─── PayPal return ──────────────────────────────────────────────────
 @public_bp.route("/booking/paypal/return")
 def booking_paypal_return():
@@ -897,7 +907,7 @@ def booking_confirmation(reference: str):
                 destination = db.session.get(Destination, hotel_obj.destination_id)
             if not images and hotel_images:
                 images = hotel_images
-        
+
         for br in db.session.scalars(select(_BR).where(_BR.booking_id == booking.id).order_by(_BR.room_index)):
             br_room = db.session.get(Room, br.room_id)
             booking_rooms_detail.append({
