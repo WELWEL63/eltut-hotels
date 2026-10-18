@@ -1,4 +1,4 @@
-﻿"""
+"""
 retheme_fonts.py
 ────────────────
 Switches the whole site to Playfair Display (headings) + Inter (body).

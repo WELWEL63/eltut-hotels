@@ -1,4 +1,4 @@
-﻿"""add multi-room support
+"""add multi-room support
 
 Adds:
   - rooms.max_adults / rooms.max_children (nullable; split occupancy)

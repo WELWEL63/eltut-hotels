@@ -398,6 +398,179 @@
 </script>
 
 
+
+
+<!-- ═══════════════ EGYPTIAN LOADING SCREEN ═══════════════ -->
+<div id="eltut-loader">
+    <div class="loader-overlay"></div>
+    <div class="loader-content">
+        <!-- Animated Scarab / Sun Ring -->
+        <div class="egypt-spinner">
+            <div class="sun-ring"></div>
+            <i class="bi bi-sun-fill sun-icon"></i>
+        </div>
+        <h2 class="loader-title">ElTut Tours</h2>
+        <p class="loader-text" id="loader-message">Preparing your journey...</p>
+        <div class="loader-progress"><div class="loader-progress-bar"></div></div>
+    </div>
+</div>
+
+<style>
+    #eltut-loader {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 99999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+    #eltut-loader.show {
+        display: flex;
+        opacity: 1;
+    }
+    .loader-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        /* Stunning Pyramids of Giza background with dark gradient */
+        background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), 
+                    url('https://images.unsplash.com/photo-1539667468225-eebb663053e6?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+        z-index: -1;
+    }
+    .loader-content {
+        text-align: center;
+        color: #fff;
+        animation: fadeIn 0.6s ease;
+        z-index: 1;
+    }
+    .egypt-spinner {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .sun-ring {
+        position: absolute;
+        width: 100%; height: 100%;
+        border: 3px solid rgba(255, 215, 0, 0.2);
+        border-top: 3px solid #ffd700;
+        border-radius: 50%;
+        animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+    .sun-icon {
+        font-size: 2.5rem;
+        color: #ffd700;
+        animation: pulse 2s infinite;
+    }
+    .loader-title {
+        font-weight: 800;
+        font-size: 2.2rem;
+        color: #ffd700;
+        margin-bottom: 8px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        text-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+    .loader-text {
+        color: #e2e8f0;
+        font-size: 1.1rem;
+        font-style: italic;
+        margin-bottom: 24px;
+        min-height: 25px;
+    }
+    .loader-progress {
+        width: 200px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+    .loader-progress-bar {
+        width: 40%;
+        height: 100%;
+        background: #ffd700;
+        border-radius: 2px;
+        animation: progress 1.5s ease-in-out infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes progress {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(250%); }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const loader = document.getElementById("eltut-loader");
+        const loaderMessage = document.getElementById("loader-message");
+        
+        document.body.addEventListener("click", function(e) {
+            const link = e.target.closest("a");
+            // Ignore empty links, anchors, and target="_blank"
+            if (link && link.href && !link.href.includes("#") && !link.href.startsWith("javascript:") && link.target !== "_blank") {
+                
+                e.preventDefault(); // Stop default navigation
+                
+                // Determine the message based on the URL
+                const url = link.href.toLowerCase();
+                let message = "Preparing your journey...";
+                
+                if (url.includes("/hotels")) {
+                    message = "Finding the best hotels for you...";
+                } else if (url.includes("/packages")) {
+                    message = "Searching for your perfect package...";
+                } else if (url.includes("/activities")) {
+                    message = "Preparing your Egyptian adventure...";
+                } else if (url.includes("/booking")) {
+                    message = "Securing your reservation...";
+                } else if (url.includes("/about") || url.includes("/contact")) {
+                    message = "Loading...";
+                }
+
+                loaderMessage.textContent = message;
+                loader.classList.add("show");
+                
+                // Wait 50ms to render the loader, then navigate
+                setTimeout(function() {
+                    window.location.href = link.href;
+                }, 50);
+            }
+        });
+
+        // Show loader on form submissions (e.g., search or booking)
+        document.body.addEventListener("submit", function(e) {
+            if (e.target.tagName === "FORM") {
+                loaderMessage.textContent = "Searching our database...";
+                loader.classList.add("show");
+            }
+        });
+
+        // Hide loader when using back/forward browser buttons
+        window.addEventListener("pageshow", function(e) {
+            if (e.persisted) {
+                loader.classList.remove("show");
+            }
+        });
+    });
+</script>
+<!-- ═══════════════ END EGYPTIAN LOADING SCREEN ═══════════════ -->
 </body>
 </html>
 

@@ -1,4 +1,4 @@
-﻿"""Manual migration: relax ck_room_rates_validity_check.
+"""Manual migration: relax ck_room_rates_validity_check.
 
 Alembic autogenerate does not detect CHECK constraint text changes, so
 this migration is written by hand.
