@@ -710,20 +710,41 @@ def booking_create():
         raw = (request.form.get(f"traveller_name_{idx}") or "").strip()
         travellers.append({"full_name": raw or f"Infant {k + 1}", "traveller_type": "infant"})
 
+    # --- FIX: Correctly multiply addon prices by party size ---
     addon_items: list[dict] = []
+    addon_total_for_booking = Decimal("0.00")
     for spec in addon_specs:
         try:
             a = db.session.get(Activity, spec["activity_id"])
             if a is None:
                 continue
             price_row = db.session.scalar(select(ActivityPrice).where(ActivityPrice.activity_id == a.id).order_by(ActivityPrice.id).limit(1))
-            unit = float(price_row.adult_price) if price_row else 0.0
+            
+            # Calculate total price for this addon based on adults & children
+            adult_price = Decimal(str(price_row.adult_price)) if price_row else Decimal("0.00")
+            child_price = Decimal(str(price_row.child_price)) if price_row else Decimal("0.00")
+            total_addon_price = (adult_price * adults) + (child_price * children)
+            
+            addon_total_for_booking += total_addon_price
+            
         except Exception:
-            unit = 0.0
+            total_addon_price = Decimal("0.00")
             a = None
         if a is None:
             continue
-        addon_items.append({"product_id": a.id, "quantity": spec["quantity"], "unit_price": unit, "name": a.name})
+            
+        # We add the line item as quantity=1, but the unit_price is the grand total of the addon
+        addon_items.append({
+            "product_id": a.id, 
+            "quantity": 1, 
+            "unit_price": float(total_addon_price), 
+            "name": a.name
+        })
+    # ---------------------------------------------------------
+
+    # --- ADD THE ADD-ONS TO THE FINAL BOOKING TOTAL ---
+    total = total + addon_total_for_booking
+    # --------------------------------------------------
 
     currency = "GBP"
     try:

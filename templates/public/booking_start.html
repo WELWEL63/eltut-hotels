@@ -96,6 +96,9 @@
                                 {% for a in addons %}
                                     <div class="col-md-6">
                                         <div class="addon-card">
+                                            <!-- HIDDEN INPUT FOR BACKEND TOTAL -->
+                                            <input type="hidden" name="addon_total_{{ a.id }}" id="addon_total_{{ a.id }}" value="0">
+                                            
                                             <input type="checkbox"
                                                    class="addon-checkbox form-check-input"
                                                    name="addon_{{ a.id }}"
@@ -627,6 +630,10 @@
                 const name = cb.dataset.name || 'Add-on';
                 const subtotal = aP * ADULTS + cP * CHILDREN;
 
+                // Send the calculated total to the hidden input for the backend
+                const hiddenInput = document.getElementById('addon_total_' + cb.dataset.addonId);
+                if (hiddenInput) hiddenInput.value = subtotal.toFixed(2);
+
                 addonTotal += subtotal;
                 addonCurrency = addonCurrency || cur;
                 selectedCount += 1;
@@ -642,6 +649,10 @@
                 if (contribRow) contribRow.style.display = 'block';
                 if (contribValue) contribValue.textContent = fmt(subtotal, cur);
             } else {
+                // Reset the hidden input to 0 if unchecked
+                const hiddenInput = document.getElementById('addon_total_' + cb.dataset.addonId);
+                if (hiddenInput) hiddenInput.value = "0";
+
                 if (card) card.classList.remove('is-selected');
                 if (contribRow) contribRow.style.display = 'none';
             }
