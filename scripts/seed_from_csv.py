@@ -764,7 +764,7 @@ def seed_hotels(session: Session, rows: list[dict[str, str]]) -> int:
             max_occ = _to_int(rate.get("MaxOccupancy")) or 2
             price = _to_decimal(rate.get("AdultPrice")) or Decimal("0.00")
             child_price = _to_decimal(rate.get("FirstChildPrice")) or Decimal("0.00")
-            currency = _clean(rate.get("Currency")) or "EUR"
+            currency = _clean(rate.get("Currency")) or "GBP"
 
             room = room_cache.get((hotel.id, rname))
             if room is None:
@@ -958,7 +958,7 @@ def seed_packages(session: Session, rows: list[dict[str, str]]) -> int:
                     package_id=package.id,
                     adult_price=adult,
                     child_price=child,
-                    currency="EUR",
+                    currency="GBP",
                 )
             )
 

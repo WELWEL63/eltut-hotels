@@ -363,7 +363,7 @@ def seed(dry_run: bool) -> int:
                             package_id=p.id,
                             adult_price=adult,
                             child_price=child,
-                            currency="EUR",
+                            currency="GBP",
                             valid_from=day,
                             valid_to=day + timedelta(days=nights),
                         ))

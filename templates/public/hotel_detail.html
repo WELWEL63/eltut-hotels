@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ hotel.name }} — {{ config.APP_NAME }}{% endblock %}
+{% block title %}{{ hotel.name }} â€” {{ config.APP_NAME }}{% endblock %}
 
 {% block content %}
 {% set _has_dates = request.args.get('check_in') and request.args.get('check_out') %}
@@ -15,7 +15,7 @@
 
         <div class="row g-4">
             <div class="col-lg-8">
-                {# ─── Gallery carousel ─── #}
+                {# â”€â”€â”€ Gallery carousel â”€â”€â”€ #}
                 {% set visible_images = [] %}
                 {% for img in images %}
                     {% if img.url and (img.url.startswith('http') or img.url.startswith('/static')) %}
@@ -42,7 +42,7 @@
                                             <source src="{{ img.url }}">
                                         </video>
                                     {% else %}
-                                        <img src="{{ img.url }}" class="d-block w-100" style="height: 480px; object-fit: cover;" alt="{{ hotel.name }} — photo {{ loop.index }}">
+                                        <img src="{{ img.url }}" class="d-block w-100" style="height: 480px; object-fit: cover;" alt="{{ hotel.name }} â€” photo {{ loop.index }}">
                                     {% endif %}
                                     {% if img.type %}
                                         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded"><small>{{ img.type|title }}</small></div>
@@ -74,7 +74,7 @@
                     <div class="rounded-3 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center mb-4" style="height: 400px;"><i class="bi bi-building text-secondary" style="font-size: 4rem;"></i></div>
                 {% endif %}
 
-                {# ─── Title block ─── #}
+                {# â”€â”€â”€ Title block â”€â”€â”€ #}
                 <h1 class="mb-2">{{ hotel.name }}</h1>
                 <div class="mb-3">
                     {% for _ in range(hotel.stars) %}<i class="bi bi-star-fill text-warning"></i>{% endfor %}
@@ -85,13 +85,13 @@
                     {% if hotel.address %}<div class="col-md-8"><i class="bi bi-house"></i> {{ hotel.address }}</div>{% endif %}
                 </div>
 
-                {# ─── Description ─── #}
+                {# â”€â”€â”€ Description â”€â”€â”€ #}
                 {% if hotel.description %}
                     <div class="section-header icon-ink"><span class="icon-box"><i class="bi bi-info-circle"></i></span><span class="title">About this hotel</span></div>
                     <p>{{ hotel.description }}</p>
                 {% endif %}
 
-                {# ─── Facilities ─── #}
+                {# â”€â”€â”€ Facilities â”€â”€â”€ #}
                 {% if facilities %}
                     <div class="section-header icon-nile"><span class="icon-box"><i class="bi bi-stars"></i></span><span class="title">Facilities</span></div>
                     <div class="d-flex flex-wrap gap-2 mb-4">
@@ -99,7 +99,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── Inclusions / Exclusions ─── #}
+                {# â”€â”€â”€ Inclusions / Exclusions â”€â”€â”€ #}
                 {% if inclusions or exclusions %}
                     <div class="row g-3 mt-4">
                         {% if inclusions %}
@@ -125,7 +125,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── House rules ─── #}
+                {# â”€â”€â”€ House rules â”€â”€â”€ #}
                 {% if hotel.house_rules or hotel.check_in_details %}
                     <div class="section-header icon-gold"><span class="icon-box"><i class="bi bi-lightbulb"></i></span><span class="title">Good to know</span></div>
                     <div class="row g-3">
@@ -147,7 +147,7 @@
                         {% endif %}
                     </div>
                 {% endif %}
-                                {# ─── Stay picker (dates + party) ─── #}
+                                {# â”€â”€â”€ Stay picker (dates + party) â”€â”€â”€ #}
                 <div class="section-header icon-ink mt-4" id="stay-picker-section">
                     <span class="icon-box"><i class="bi bi-calendar-range"></i></span>
                     <span class="title">Choose your stay <span class="subtitle">Prices update once dates are selected</span></span>
@@ -178,7 +178,7 @@
                     </div>
                 </form>
 
-                {# ─── Your stay (multi-room upgrade) ─── #}
+                {# â”€â”€â”€ Your stay (multi-room upgrade) â”€â”€â”€ #}
                 {% if _has_dates and best_grouping %}
                   {% if best_grouping.min_rooms >= 2 %}
                     <div class="ys-panel ys-panel--multi">
@@ -221,7 +221,7 @@
                   </div>
                 {% endif %}
 
-                {# ─── Rooms & rates ─── #}
+                {# â”€â”€â”€ Rooms & rates â”€â”€â”€ #}
                 {% if rooms_with_availability %}
                     <div class="section-header icon-ink" id="rooms-section">
                         <span class="icon-box"><i class="bi bi-door-open"></i></span>
@@ -259,21 +259,21 @@
                                     <div class="col-md-4 text-md-end">
                                         {% if _has_dates and item.pricing %}
                                             <div class="fw-bold mb-1">
-                                                &euro;{{ "%.2f"|format(item.pricing.total) }}
+                                                £{{ "%.2f"|format(item.pricing.total) }}
                                                 <small class="text-muted fw-normal">per room</small>
                                             </div>
                                             {% if min_rooms_needed >= 2 %}
                                                 <div class="small text-muted mb-2">
-                                                    Need {{ min_rooms_needed }} rooms: <strong>&euro;{{ "%.2f"|format(item.pricing.total * min_rooms_needed) }}</strong> total
+                                                    Need {{ min_rooms_needed }} rooms: <strong>£{{ "%.2f"|format(item.pricing.total * min_rooms_needed) }}</strong> total
                                                 </div>
                                             {% else %}
                                                 <div class="small text-muted mb-2">
-                                                    &euro;{{ "%.2f"|format(item.pricing.per_night) }} / night
+                                                    £{{ "%.2f"|format(item.pricing.per_night) }} / night
                                                     &middot; {{ nights }} night{{ "" if nights == 1 else "s" }}
                                                 </div>
                                             {% endif %}
                                         {% elif _has_dates %}
-                                            <div class="fw-bold mb-2">&euro;{{ "%.2f"|format(room.base_price_per_night) }} <small class="text-muted fw-normal">/ night</small></div>
+                                            <div class="fw-bold mb-2">£{{ "%.2f"|format(room.base_price_per_night) }} <small class="text-muted fw-normal">/ night</small></div>
                                         {% else %}
                                             <div class="small text-muted mb-2"><i class="bi bi-calendar3"></i> Select dates to see price</div>
                                         {% endif %}
@@ -315,12 +315,12 @@
                                     <div class="collapse" id="rates-room-{{ room.id }}">
                                         <div class="table-responsive">
                                             <table class="table table-sm table-borderless mb-0 align-middle">
-                                                <thead class="small text-muted"><tr><th>Valid from</th><th>Valid to</th><th>Adult £</th><th>Child £</th></tr></thead>
+                                                <thead class="small text-muted"><tr><th>Valid from</th><th>Valid to</th><th>Adult Â£</th><th>Child Â£</th></tr></thead>
                                                 <tbody class="small">
                                                     {% for r in item.rates %}
                                                         <tr>
-                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "—" }}</td>
-                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "—" }}</td>
+                                                            <td>{{ r.valid_from.strftime("%d %b %Y") if r.valid_from else "â€”" }}</td>
+                                                            <td>{{ r.valid_to.strftime("%d %b %Y") if r.valid_to else "â€”" }}</td>
                                                             <td>{{ "%.2f"|format(r.adult_price) }}</td>
                                                             <td>{{ "%.2f"|format(r.child_price) }}</td>
                                                         </tr>
@@ -336,7 +336,7 @@
                 {% else %}
                     <div class="alert alert-info mt-5">No rooms are currently available at this hotel.</div>
                 {% endif %}
-                                {# ─── Location & Tips ─── #}
+                                {# â”€â”€â”€ Location & Tips â”€â”€â”€ #}
                 {% if hotel.neighborhood_info %}
                     <div class="section-header icon-nile"><span class="icon-box"><i class="bi bi-geo-alt"></i></span><span class="title">The neighborhood</span></div>
                     <p>{{ hotel.neighborhood_info }}</p>
@@ -363,7 +363,7 @@
 
                 {% include "public/_egypt_guide.html" %}
 
-                {# ─── FAQs ─── #}
+                {# â”€â”€â”€ FAQs â”€â”€â”€ #}
                 {% if faqs %}
                     <div class="section-header icon-ink"><span class="icon-box"><i class="bi bi-question-circle"></i></span><span class="title">Frequently asked questions</span></div>
                     <div class="accordion" id="hotelFaqs">
@@ -373,14 +373,14 @@
                                     <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#faq-{{ faq.id }}">{{ faq.question }}</button>
                                 </h2>
                                 <div id="faq-{{ faq.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#hotelFaqs">
-                                    <div class="accordion-body" style="white-space: pre-wrap;">{{ faq.answer or "—" }}</div>
+                                    <div class="accordion-body" style="white-space: pre-wrap;">{{ faq.answer or "â€”" }}</div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% endif %}
 
-                {# ─── Reviews ─── #}
+                {# â”€â”€â”€ Reviews â”€â”€â”€ #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
                     <span class="title">Guest reviews {% if review_count and avg_rating %}<span class="subtitle">{{ "%.1f"|format(avg_rating) }} average from {{ review_count }} review{{ "" if review_count == 1 else "s" }}</span>{% endif %}</span>
@@ -426,7 +426,7 @@
                 {% endif %}
             </div>
 
-            {# ─── Sidebar ─── #}
+            {# â”€â”€â”€ Sidebar â”€â”€â”€ #}
             <aside class="col-lg-4">
                 <div class="card shadow-sm sticky-top" style="top: 1rem;">
                                       {% if _has_dates and cheapest_total is not none %}
@@ -453,12 +453,12 @@
                             </div>
                             <div class="text-muted small" id="sidebar-price-label">From</div>
                             <div class="fs-3 fw-bold text-eltut-terracotta">
-                                &euro;<span id="sidebar-total-value">{{ "%.2f"|format(cheapest_total) }}</span>
+                                £<span id="sidebar-total-value">{{ "%.2f"|format(cheapest_total) }}</span>
                                 <small class="text-muted fw-normal fs-6">total</small>
                             </div>
                             {% if cheapest_per_night %}
                                 <div class="small text-muted mt-1">
-                                    &euro;<span id="sidebar-per-night-value">{{ "%.2f"|format(cheapest_per_night) }}</span> / night
+                                    £<span id="sidebar-per-night-value">{{ "%.2f"|format(cheapest_per_night) }}</span> / night
                                 </div>
                             {% endif %}
                         </div>
@@ -506,7 +506,7 @@
                         </p>
                     </div>
 
-        {# ─── Related hotels ─── #}
+        {# â”€â”€â”€ Related hotels â”€â”€â”€ #}
         {% if related %}
             <hr class="my-5">
             <div class="section-header icon-ink mb-4"><span class="icon-box"><i class="bi bi-buildings"></i></span><span class="title">Other hotels in {{ destination.name if destination else "this destination" }}<span class="subtitle">Handpicked stays you might also like</span></span></div>
@@ -531,7 +531,7 @@
                                 {% if rel.stars %}<div class="related-card-stars">{% for _ in range(rel.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}</div>{% endif %}
                                 {% if rel.address %}<div class="related-card-meta"><i class="bi bi-house"></i> {{ rel.address|truncate(50, true) }}</div>{% endif %}
                                 {% set rel_price = rel.rooms[0].base_price_per_night if rel.rooms else None %}
-                                {% if rel_price %}<div class="related-card-price"><span class="related-price-label">from</span><span class="related-price">£{{ "%.0f"|format(rel_price) }}</span><span class="related-price-unit">/ night</span></div>{% endif %}
+                                {% if rel_price %}<div class="related-card-price"><span class="related-price-label">from</span><span class="related-price">Â£{{ "%.0f"|format(rel_price) }}</span><span class="related-price-unit">/ night</span></div>{% endif %}
                                 <div class="related-card-cta">View hotel <i class="bi bi-arrow-right"></i></div>
                             </div>
                         </a>
@@ -542,7 +542,7 @@
         {% endif %}
 </section>
 
-{# ─── Write-review modal ─── #}
+{# â”€â”€â”€ Write-review modal â”€â”€â”€ #}
 {% if current_user.is_authenticated and not user_has_reviewed %}
 <div class="modal fade" id="writeReviewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -551,7 +551,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="product_type" value="hotel">
                 <input type="hidden" name="product_id" value="{{ hotel.id }}">
-                <div                {# ─── Location & Tips ─── #}
+                <div                {# â”€â”€â”€ Location & Tips â”€â”€â”€ #}
                 {% if hotel.neighborhood_info %}
                     <div class="section-header icon-nile"><span class="icon-box"><i class="bi bi-geo-alt"></i></span><span class="title">The neighborhood</span></div>
                     <p>{{ hotel.neighborhood_info }}</p>
@@ -578,7 +578,7 @@
 
                 {% include "public/_egypt_guide.html" %}
 
-                {# ─── FAQs ─── #}
+                {# â”€â”€â”€ FAQs â”€â”€â”€ #}
                 {% if faqs %}
                     <div class="section-header icon-ink"><span class="icon-box"><i class="bi bi-question-circle"></i></span><span class="title">Frequently asked questions</span></div>
                     <div class="accordion" id="hotelFaqs">
@@ -588,14 +588,14 @@
                                     <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#faq-{{ faq.id }}">{{ faq.question }}</button>
                                 </h2>
                                 <div id="faq-{{ faq.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#hotelFaqs">
-                                    <div class="accordion-body" style="white-space: pre-wrap;">{{ faq.answer or "—" }}</div>
+                                    <div class="accordion-body" style="white-space: pre-wrap;">{{ faq.answer or "â€”" }}</div>
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 {% endif %}
 
-                {# ─── Reviews ─── #}
+                {# â”€â”€â”€ Reviews â”€â”€â”€ #}
                 <div class="section-header icon-gold mt-5" id="reviews">
                     <span class="icon-box"><i class="bi bi-star-fill"></i></span>
                     <span class="title">Guest reviews {% if review_count and avg_rating %}<span class="subtitle">{{ "%.1f"|format(avg_rating) }} average from {{ review_count }} review{{ "" if review_count == 1 else "s" }}</span>{% endif %}</span>
@@ -641,7 +641,7 @@
                 {% endif %}
             </div>
 
-                       {# ─── Sidebar ─── #}
+                       {# â”€â”€â”€ Sidebar â”€â”€â”€ #}
             <aside class="col-lg-4">
                 <div class="card shadow-sm sticky-top overflow-hidden" style="top: 1rem;">
 
@@ -670,7 +670,7 @@
                         {% if destination %}
                             <div class="small text-muted mb-1">
                                 <i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i> {{ destination.name }}
-                                {% if hotel.address %} — {{ hotel.address }}{% endif %}
+                                {% if hotel.address %} â€” {{ hotel.address }}{% endif %}
                             </div>
                         {% endif %}
                     </div>
@@ -701,10 +701,10 @@
                         <div class="card-body border-bottom pb-3">
                             <div class="small">
                                 <i class="bi bi-calendar-range text-eltut-terracotta"></i>
-                                <strong>{{ check_in.strftime("%d %b %Y") }}</strong> → <strong>{{ check_out.strftime("%d %b %Y") }}</strong>
+                                <strong>{{ check_in.strftime("%d %b %Y") }}</strong> â†’ <strong>{{ check_out.strftime("%d %b %Y") }}</strong>
                             </div>
                             <div class="small text-muted mt-1">
-                                <i class="bi bi-moon-stars"></i> {{ nights }} nights · <i class="bi bi-people"></i> {{ adults }} adults {% if children %}+ {{ children }} children{% endif %}
+                                <i class="bi bi-moon-stars"></i> {{ nights }} nights Â· <i class="bi bi-people"></i> {{ adults }} adults {% if children %}+ {{ children }} children{% endif %}
                             </div>
                             
                         </div>
@@ -719,9 +719,9 @@
                             <div class="d-flex justify-content-between small mb-2">
                                 <span class="text-muted">
                                     {% if rooms_grouping %}
-                                        {{ rooms_grouping.min_rooms }} Rooms × {{ nights }} nights
+                                        {{ rooms_grouping.min_rooms }} Rooms Ã— {{ nights }} nights
                                     {% else %}
-                                        Room × {{ nights }} nights
+                                        Room Ã— {{ nights }} nights
                                     {% endif %}
                                 </span>
                                 <strong>{{ sidebar_currency }} {{ "%.2f"|format(cheapest_total) }}</strong>
@@ -790,7 +790,7 @@
                 </div>
             </aside>
 
-                {# ─── Related hotels ─── #}
+                {# â”€â”€â”€ Related hotels â”€â”€â”€ #}
         {% if related %}
             <hr class="my-5">
             <div class="section-header icon-ink mb-4">
@@ -834,7 +834,7 @@
                                 {% if rel_price %}
                                     <div class="related-card-price">
                                         <span class="related-price-label">from</span>
-                                        <span class="related-price">£{{ "%.0f"|format(rel_price) }}</span>
+                                        <span class="related-price">Â£{{ "%.0f"|format(rel_price) }}</span>
                                         <span class="related-price-unit">/ night</span>
                                     </div>
                                 {% endif %}
@@ -853,7 +853,7 @@
            
 
 
-{# ─── Write-review modal ─── #}
+{# â”€â”€â”€ Write-review modal â”€â”€â”€ #}
 {% if current_user.is_authenticated and not user_has_reviewed %}
 <div class="modal fade" id="writeReviewModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -959,7 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set this button to selected
             this.classList.remove('btn-eltut-primary');
             this.classList.add('btn-success');
-            this.innerHTML = '✓ Selected';
+            this.innerHTML = 'âœ“ Selected';
 
             // Update sidebar
             const roomId = this.getAttribute('data-room-id');

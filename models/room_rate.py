@@ -66,7 +66,7 @@ class RoomRate(Base, TimestampMixin):
         Numeric(10, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
     )
     currency: Mapped[str] = mapped_column(
-        String(3), nullable=False, default="EUR", server_default="EUR"
+        String(3), nullable=False, default="GBP", server_default="GBP"
     )
 
     valid_from: Mapped[date | None] = mapped_column(Date, nullable=True)
