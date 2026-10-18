@@ -22,6 +22,21 @@ DESIGN NOTES
       booked contract can legitimately be zero).
     - `base_price_per_night` is a base price only; seasonal / date-based
       pricing lives in the booking/pricing layer.
+    - `max_adults` / `max_children` (multi-room upgrade):
+        * `max_children` is the explicit child cap when set.
+        * `max_adults` is the explicit adult cap when set.
+        * When unset (or when the migration auto-backfilled
+          max_adults = max_occupancy AND max_children is still NULL —
+          which we treat as "no explicit override yet"), we DERIVE the
+          caps so existing inventory is family-capable out of the box:
+
+              max_occupancy <= 2          -> adults = occ,         children = 0
+              max_occupancy >= 3          -> adults = occ - 1,     children = 1
+
+          An admin can override per room by setting max_adults to a
+          value != max_occupancy, or by setting max_children
+          explicitly. Explicit values always win.
+    - Infants do NOT count toward either cap — they sleep in a cot.
     - Child table room_images cascades with the room, at the DB level
       (ondelete="CASCADE") and at the ORM level (delete-orphan +
       passive_deletes).
@@ -80,6 +95,8 @@ class Room(Base, TimestampMixin):
     type                  : marketing name ("Deluxe Sea View")
     meal_plan             : CHECK room_only|breakfast|half_board|full_board|all_inclusive
     max_occupancy         : people who sleep in the room (> 0)
+    max_adults            : explicit adult cap (NULL -> derived)
+    max_children          : explicit child cap (NULL -> derived)
     capacity              : number of these rooms the hotel has (>= 0)
     base_price_per_night  : base nightly price (>= 0)
     description           : long-form marketing copy
@@ -123,6 +140,10 @@ class Room(Base, TimestampMixin):
     max_occupancy: Mapped[int] = mapped_column(
         Integer, nullable=False, default=1, server_default="1"
     )
+
+    # Adult / child cap overrides (multi-room upgrade).
+    max_adults: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_children: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     capacity: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
@@ -176,7 +197,53 @@ class Room(Base, TimestampMixin):
         kwargs.setdefault("base_price_per_night", Decimal("0.00"))
         kwargs.setdefault("is_active", True)
 
+        # Leave max_adults / max_children NULL unless the caller
+        # explicitly set them — the properties below decide whether to
+        # use the explicit value or the derived policy.
         super().__init__(**kwargs)
+
+    # ── Explicit-override detection ───────────────────────────────
+    @property
+    def _has_explicit_adult_cap(self) -> bool:
+        """
+        True when max_adults looks like an admin override, not the
+        migration's auto-backfill.
+
+        The migration backfilled max_adults = max_occupancy while
+        leaving max_children NULL. We treat that specific pattern as
+        "not explicit" so the derivation applies. An admin override
+        either sets max_adults != max_occupancy, or sets max_children
+        at the same time.
+        """
+        if self.max_adults is None:
+            return False
+        if self.max_children is not None:
+            return True
+        return int(self.max_adults) != int(self.max_occupancy or 0)
+
+    # ── Effective caps ────────────────────────────────────────────
+    @property
+    def effective_max_adults(self) -> int:
+        """
+        max_adults if explicit, else derive from max_occupancy:
+            occ <= 2  -> occ        (e.g. a 2-bed room is 2 adults)
+            occ >= 3  -> occ - 1    (reserve 1 bed for a child)
+        """
+        if self._has_explicit_adult_cap:
+            return int(self.max_adults)  # type: ignore[arg-type]
+        occ = int(self.max_occupancy or 1)
+        return occ if occ <= 2 else occ - 1
+
+    @property
+    def effective_max_children(self) -> int:
+        """
+        max_children if explicit, else derive from the remaining beds:
+            max(0, max_occupancy - effective_max_adults)
+        """
+        if self.max_children is not None:
+            return int(self.max_children)
+        derived = int(self.max_occupancy or 0) - self.effective_max_adults
+        return derived if derived > 0 else 0
 
     def __repr__(self) -> str:  # pragma: no cover
         return (

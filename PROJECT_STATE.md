@@ -250,3 +250,67 @@ For activities:
 - The `.env.example` file documents every required variable
 - The `.env` file must never be committed (already in `.gitignore`)
 - All Alembic revisions live in `migrations/versions/`; current head: `b1a2c3d4e5f6`
+
+
+
+---
+---
+
+## Multi-room hotel booking upgrade (2026-10-18)
+
+**Business rules locked:**
+- Age bands: infant `< 2`, child `2 ≤ age < 13`, adult `≥ 13` (config: `INFANT_MAX_AGE=2`, `ADULT_MIN_AGE=13`).
+- Infants do not count toward room occupancy (cot, not a bed) but are priced via `RoomRate.infant_price`.
+- Max 3 rooms per booking (`MAX_ROOMS_PER_BOOKING=3`).
+- Child ages required whenever children > 0. Default age 6 if missing.
+- `Booking.product_id` stays = first room id (backward compat). `Booking.rooms` (BookingRoom) is the source of truth.
+
+**Schema:**
+- `Room.max_adults` / `Room.max_children` (nullable, derived when NULL: `eff_a = occ ≤ 2 ? occ : occ-1`, `eff_c = max(0, occ - eff_a)`).
+- `RoomRate.infant_price` (default 0.00).
+- `Booking.travellers_infants` (default 0).
+- `BookingRoom` table (booking_id, room_id, rate_id, room_index 1..3, adults, children, infants, child_ages JSON, line_total, currency).
+- Migration head: `add_multi_room_support` (down from `b1a2c3d4e5f6`).
+
+**Services:**
+- `services/hotel_pricing_service.py` — `classify_age`, `split_child_ages`, `select_rate_window`, `room_stay_pricing`, `booking_pricing`.
+- `services/hotel_capacity_service.py` — `min_rooms_needed`, `rooms_that_fit`, `best_room_grouping` (bin-packing, deterministic).
+- `services/availability_service.py` — counts `BookingRoom` where present, falls back to `BookingItem` (no double-count).
+- `services/booking_service.py` — `create_booking(rooms=…, travellers_infants=…)` writes `BookingRoom` in the same transaction.
+
+**Routes touched:**
+- `/search/results?type=hotel` — `_search_hotels` now uses `min_rooms_needed` (was `max_occupancy >= party_size`). Cards gain `min_rooms` + `rooms_note`.
+- `/hotels` — sidebar party widget; card `rooms_note` badge; `/hotels?adults=…&children=…` returns `min_rooms` per card.
+- `/hotels/<slug>` — "Your stay" panel via `best_room_grouping`; "Book these N rooms" CTA.
+- `/booking/start/hotel/<id>?rooms=<ids>` — multi-room selection; `booking_start.html` shows "Your rooms (N)" + hidden `rooms` JSON.
+- `POST /booking/create` — accepts `rooms` JSON; server re-validates + re-prices.
+- `/booking/confirmation/<ref>`, `/account/bookings/<ref>`, `/admin/bookings/<ref>` — render "Your rooms (N)" / "Rooms (N)".
+
+**Templates touched:**
+- `public/_party_widget.html`, `public/_party_widget_room.html` (new)
+- `public/_filters_sidebar.html` (hotel party block)
+- `public/hotel_detail.html` (Your stay panel)
+- `public/hotel_list.html` (rooms_note badge)
+- `public/search_results.html` (rooms_note chip)
+- `public/booking_start.html` (Your rooms (N))
+- `public/booking_confirmation.html` (Your rooms (N))
+- `account/booking_detail.html` (Your rooms (N), infants)
+- `account/bookings.html` (N rooms hint)
+- `admin/booking_detail.html` (Rooms (N), infants, payment method, how heard)
+
+**Config additions:** `BaseConfig.MAX_ROOMS_PER_BOOKING`, `INFANT_MAX_AGE`, `ADULT_MIN_AGE`.
+
+**Health check additions:** `BIZ006` (BookingRoom integrity), `BIZ007` (rooms with NULL max_adults — informational).
+
+**Tested end-to-end:**
+- Search returns 136 hotels for 2A+2C (was 0 before the fix).
+- Availability: multi-room decrements each room by 1 (no double-count).
+- Booking create: server re-prices from real `RoomRate` (client JSON line_total ignored).
+- Confirmation / account / admin templates render per-room breakdown.
+- Legacy single-room path unchanged (14 pre-existing bookings).
+
+**Pre-existing warnings still present (unrelated):**
+- `CODE002` `models/airline.py:15` raw SQL.
+- `BIZ001` 2 active packages with 0 PackagePrice.
+- `BIZ003` 15/632 rooms with no price.
+

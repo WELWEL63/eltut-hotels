@@ -1,0 +1,23 @@
+<div class="party-widget__room" data-room-index="{{ r }}">
+  <div class="party-widget__room-head">
+    <strong>Room {{ r }}</strong>
+  </div>
+  <div class="party-widget__row">
+    <div class="party-widget__num">
+      <label>Adults</label>
+      <input type="number" min="1" max="8" value="{{ adults or 2 }}"
+             name="room{{ r }}_adults" data-adults>
+    </div>
+    <div class="party-widget__num">
+      <label>Children (2-12)</label>
+      <input type="number" min="0" max="8" value="{{ children or 0 }}"
+             name="room{{ r }}_children" data-children>
+    </div>
+    <div class="party-widget__num">
+      <label>Infants (under 2)</label>
+      <input type="number" min="0" max="8" value="{{ infants or 0 }}"
+             name="room{{ r }}_infants" data-infants>
+    </div>
+  </div>
+  <div class="party-widget__ages" data-ages></div>
+</div>

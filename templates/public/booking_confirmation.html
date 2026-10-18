@@ -266,7 +266,35 @@
               <p class="text-muted mb-0" style="font-size:0.95rem;">{{ hotel_obj.description[:300] }}{% if hotel_obj.description|length > 300 %}…{% endif %}</p>
             {% endif %}
 
-            {% if hotel_room_obj %}
+                       {% if booking_rooms_detail %}
+            <div class="mt-3 pt-3" style="border-top:1px dashed rgba(0,0,0,0.1);">
+              <div class="text-muted small text-uppercase mb-2" style="letter-spacing:.06em;">
+                <i class="bi bi-door-open"></i> Your rooms ({{ booking_rooms_detail|length }})
+              </div>
+              {% for br in booking_rooms_detail %}
+                <div class="mb-2 p-2 rounded" style="background:#fdfbf8; border:1px solid #f0e6dc;">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold small">
+                        Room {{ br.room_index }}{% if br.room %} &middot; {{ br.room.type }}{% endif %}
+                      </div>
+                      <div class="small text-muted">
+                        {{ br.adults }} adult{{ "" if br.adults == 1 else "s" }}
+                        {% if br.children %} + {{ br.children }} child{{ "" if br.children == 1 else "ren" }}{% if br.child_ages %} ({{ br.child_ages|join(", ") }}){% endif %}{% endif %}
+                        {% if br.infants %} + {{ br.infants }} infant{{ "" if br.infants == 1 else "s" }}{% endif %}
+                      </div>
+                      {% if br.room and br.room.meal_plan %}
+                        <div class="small text-muted"><i class="bi bi-egg-fried"></i> {{ br.room.meal_plan|replace("_", " ")|title }}</div>
+                      {% endif %}
+                    </div>
+                    <div class="fw-bold small text-nowrap" style="color:#c85a3e;">
+                      {{ br.currency }} {{ "%.2f"|format(br.line_total) }}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            {% elif hotel_room_obj %}
             <div class="mt-3 pt-3" style="border-top:1px dashed rgba(0,0,0,0.1);">
               <div class="text-muted small text-uppercase mb-1" style="letter-spacing:.06em;">Your room</div>
               <div class="fw-semibold">{{ hotel_room_obj.type }}</div>
@@ -278,8 +306,6 @@
               {% endif %}
             </div>
             {% endif %}
-          </div>
-        </div>
 
         {% if hotel_facilities %}
         <div class="card shadow-sm border-0 mb-4" style="border-radius:14px;">
@@ -509,7 +535,11 @@
               <div class="d-flex justify-content-between small mb-2">
                 <span class="text-muted">
                   <i class="bi bi-building"></i> {{ hotel_obj.name }}
-                  {% if hotel_room_obj %}<br><span class="ms-3">{{ hotel_room_obj.type }}</span>{% endif %}
+                                    {% if booking_rooms_detail %}
+                    <br><span class="ms-3">{{ booking_rooms_detail|length }} room{{ "" if booking_rooms_detail|length == 1 else "s" }}</span>
+                  {% elif hotel_room_obj %}
+                    <br><span class="ms-3">{{ hotel_room_obj.type }}</span>
+                  {% endif %}
                 </span>
                 <span>{{ booking.currency }} {{ "%.2f"|format(booking.total_amount - addon_total) }}</span>
               </div>

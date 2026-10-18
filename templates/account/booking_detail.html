@@ -48,7 +48,7 @@
                     <div class="card-body">
                         <h5>Summary</h5>
                         <table class="table table-borderless mb-0">
-                            <tr><th>Travellers</th><td>{{ booking.travellers_adults }} adults, {{ booking.travellers_children }} children</td></tr>
+                            <tr><th>Travellers</th><td>{{ booking.travellers_adults }} adult{{ "" if booking.travellers_adults == 1 else "s" }}{% if booking.travellers_children %}, {{ booking.travellers_children }} child{{ "" if booking.travellers_children == 1 else "ren" }}{% endif %}{% if booking.travellers_infants %}, {{ booking.travellers_infants }} infant{{ "" if booking.travellers_infants == 1 else "s" }}{% endif %}</td></tr>
                             {% if booking.check_in_date %}
                                 <tr><th>Check-in</th><td>{{ booking.check_in_date }}</td></tr>
                                 <tr><th>Check-out</th><td>{{ booking.check_out_date }}</td></tr>
@@ -68,6 +68,37 @@
                         </table>
                     </div>
                 </div>
+                {% if booking.product_type == 'hotel' and booking.rooms %}
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5>Your rooms ({{ booking.rooms|length }})</h5>
+                            {% for br in booking.rooms %}
+                                <div class="mb-3 p-3 rounded" style="background:#fdfbf8; border:1px solid #f0e6dc;">
+                                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-semibold">
+                                                Room {{ br.room_index }}{% if br.room %} · {{ br.room.type }}{% endif %}
+                                            </div>
+                                            {% if br.room and br.room.meal_plan %}
+                                                <div class="small text-muted">
+                                                    <i class="bi bi-egg-fried"></i> {{ br.room.meal_plan|replace("_", " ")|title }}
+                                                </div>
+                                            {% endif %}
+                                            <div class="small text-muted">
+                                                {{ br.adults }} adult{{ "" if br.adults == 1 else "s" }}
+                                                {% if br.children %} + {{ br.children }} child{{ "" if br.children == 1 else "ren" }}{% if br.child_ages %} (ages {{ br.child_ages|join(", ") }}){% endif %}{% endif %}
+                                                {% if br.infants %} + {{ br.infants }} infant{{ "" if br.infants == 1 else "s" }}{% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="fw-bold" style="color:#c85a3e;">
+                                            {{ br.currency }} {{ "%.2f"|format(br.line_total or 0) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
 
                 {% if items %}
                     <div class="card shadow-sm mb-4">

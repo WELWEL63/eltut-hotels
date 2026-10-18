@@ -83,6 +83,18 @@ class BaseConfig:
     MAX_CONTENT_LENGTH: int = _int("MAX_CONTENT_LENGTH", 64 * 1024 * 1024)
     ITEMS_PER_PAGE: int = _int("ITEMS_PER_PAGE", 12)
 
+    # ── Multi-room hotel booking ─────────────────────────────────
+    # Hard ceiling on rooms per booking (Room 1/2/3 only).
+    MAX_ROOMS_PER_BOOKING: int = _int("MAX_ROOMS_PER_BOOKING", 3)
+
+    # ── Age bands (single source of truth) ───────────────────────
+    # infant: age < INFANT_MAX_AGE
+    # child : INFANT_MAX_AGE <= age < ADULT_MIN_AGE
+    # adult : age >= ADULT_MIN_AGE
+    # Infants do NOT count toward room occupancy (cot, not a bed).
+    INFANT_MAX_AGE: int = _int("INFANT_MAX_AGE", 2)
+    ADULT_MIN_AGE: int = _int("ADULT_MIN_AGE", 13)
+
 
 class DevelopmentConfig(BaseConfig):
     DEBUG: bool = True

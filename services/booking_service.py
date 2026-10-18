@@ -1,21 +1,29 @@
 """
 services/booking_service.py
-â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
-Create, cancel, complete, and refund bookings â£” the transactional core
+───────────────────────────
+Create, cancel, complete, and refund bookings — the transactional core
 of the platform.
 
-A single call to create_booking() touches five tables in one
+A single call to create_booking() touches up to six tables in one
 transaction:
 
     bookings               parent row
     booking_items          primary + add-on activities
+    booking_rooms          per-room detail (hotel multi-room, Step 5c)
     booking_travellers     named travellers (optional)
     payments               initial 'created' placeholder
     booking_status_history 'created -> pending' audit row
 
-If any step fails, the whole transaction rolls back. Callers (the public
-booking blueprint, the admin panel) are expected to wrap this in their
-own try/except and map BookingError subclasses to user-facing messages.
+If any step fails, the whole transaction rolls back.
+
+MULTI-ROOM (Step 5c)
+    When `rooms` is passed and product_type='hotel':
+      - One BookingRoom row per entry (room_index 1..N).
+      - BookingItem.primary.product_id = FIRST room id (backward compat).
+      - BookingItem.primary.line_total  = total_amount (grand total).
+      - Booking.travellers_adults/children/infants = sums across rooms
+        (overrides caller's totals — one source of truth).
+    When `rooms` is None, behaviour is unchanged.
 
 PUBLIC API
     generate_reference() -> str
@@ -29,7 +37,7 @@ PUBLIC API
 
 DESIGN NOTES
     - Amounts and IDs come from the CALLER. This service never reads
-      from Flask's request object â£” it is fully testable.
+      from Flask's request object — it is fully testable.
     - Availability is verified via services.availability_service (imported
       lazily to avoid a circular import at package load).
     - Totals are computed via services.pricing_service.
@@ -37,8 +45,7 @@ DESIGN NOTES
       collision up to 10 times.
     - The initial Payment row is 'created' (not 'completed'). The PayPal
       flow will update it via payment_service.
-    - Status history is written on every state change (created,
-      cancelled, completed, refunded).
+    - Status history is written on every state change.
 """
 
 from __future__ import annotations
@@ -48,6 +55,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Any, Iterable, Optional
 
+from flask import current_app
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -55,9 +63,11 @@ from extensions import db
 from models import (
     Booking,
     BookingItem,
+    BookingRoom,
     BookingStatusHistory,
     BookingTraveller,
     Payment,
+    Room,
     PRODUCT_TYPE_ACTIVITY,
     PRODUCT_TYPE_HOTEL,
     PRODUCT_TYPE_PACKAGE,
@@ -73,7 +83,7 @@ from models import (
 )
 
 
-# â”£â”£â”£ Domain exceptions â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# ─── Domain exceptions ─────────────────────────────────────────────
 class BookingError(Exception):
     """Base class for booking-domain errors."""
 
@@ -94,23 +104,26 @@ class InvalidStatusTransition(BookingError):
     """Attempt to move to a status that is not allowed from the current one."""
 
 
-# â”£â”£â”£ Constants â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# ─── Constants ─────────────────────────────────────────────────────
 REFERENCE_PREFIX = "ELT"
 REFERENCE_RETRY_LIMIT = 10
 
 ROLE_GUEST = "guest"
 ROLE_SYSTEM = "system"
 
+_DEFAULT_MAX_ROOMS = 3
 
-# â”£â”£â”£ Reference generation â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+
+def _max_rooms_per_booking() -> int:
+    try:
+        return int(current_app.config.get("MAX_ROOMS_PER_BOOKING", _DEFAULT_MAX_ROOMS))
+    except (TypeError, ValueError, RuntimeError):
+        return _DEFAULT_MAX_ROOMS
+
+
+# ─── Reference generation ──────────────────────────────────────────
 def generate_reference(year: int | None = None) -> str:
-    """
-    Return a unique booking reference of the form ELT-YYYY-NNNNN.
-
-    Retries up to REFERENCE_RETRY_LIMIT times if a collision occurs.
-    Raises BookingError if no unique value can be found (extremely
-    unlikely at coursework scale).
-    """
+    """Return a unique booking reference of the form ELT-YYYY-NNNNN."""
     y = year or datetime.now(timezone.utc).year
     for _ in range(REFERENCE_RETRY_LIMIT):
         n = secrets.randbelow(90000) + 10000  # 10000..99999
@@ -123,7 +136,7 @@ def generate_reference(year: int | None = None) -> str:
     raise BookingError("could not generate a unique booking reference")
 
 
-# â”£â”£â”£ Validation helpers â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# ─── Validation helpers ────────────────────────────────────────────
 def _validate_product_type(product_type: str) -> None:
     if product_type not in VALID_PRODUCT_TYPES:
         raise InvalidBookingInput(
@@ -145,11 +158,7 @@ def _validate_amount(value: Decimal | float | int | str | None) -> Decimal:
 
 
 def _caller_role(user, explicit_role: str | None) -> str:
-    """
-    Determine the role string to store in booking_status_history.
-
-    Priority: explicit_role > user.role > 'guest'.
-    """
+    """Determine the role string to store in booking_status_history."""
     if explicit_role:
         return explicit_role
     if user is not None and getattr(user, "role", None):
@@ -157,7 +166,93 @@ def _caller_role(user, explicit_role: str | None) -> str:
     return ROLE_GUEST
 
 
-# â”£â”£â”£ Status history helper â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+def _normalise_rooms_payload(
+    raw_rooms: Iterable[dict[str, Any]] | None,
+    *,
+    fallback_currency: str,
+) -> list[dict[str, Any]] | None:
+    """
+    Validate + normalise the `rooms` argument for create_booking.
+
+    Returns None if raw_rooms is None or empty.
+    Raises InvalidBookingInput on malformed entries.
+    """
+    if raw_rooms is None:
+        return None
+    rooms_list = list(raw_rooms)
+    if not rooms_list:
+        return None
+
+    max_rooms = _max_rooms_per_booking()
+    if len(rooms_list) > max_rooms:
+        raise InvalidBookingInput(
+            f"at most {max_rooms} rooms per booking; got {len(rooms_list)}"
+        )
+
+    normalised: list[dict[str, Any]] = []
+    for idx, entry in enumerate(rooms_list, start=1):
+        try:
+            room_id = int(entry["room_id"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise InvalidBookingInput(
+                f"rooms[{idx}] missing or invalid room_id: {entry!r}"
+            ) from exc
+        if room_id <= 0:
+            raise InvalidBookingInput(f"rooms[{idx}] room_id must be positive")
+
+        try:
+            adults = int(entry.get("adults") or 0)
+            children = int(entry.get("children") or 0)
+            infants = int(entry.get("infants") or 0)
+        except (TypeError, ValueError) as exc:
+            raise InvalidBookingInput(
+                f"rooms[{idx}] invalid guest counts: {entry!r}"
+            ) from exc
+        if adults < 0 or children < 0 or infants < 0:
+            raise InvalidBookingInput(f"rooms[{idx}] guest counts must be >= 0")
+
+        child_ages_raw = entry.get("child_ages") or []
+        if not isinstance(child_ages_raw, list):
+            child_ages_raw = list(child_ages_raw) if child_ages_raw else []
+        child_ages: list[int] = []
+        for raw_age in child_ages_raw:
+            try:
+                child_ages.append(int(raw_age))
+            except (TypeError, ValueError):
+                continue
+
+        try:
+            line_total = Decimal(str(entry.get("line_total") or "0.00"))
+        except Exception:  # noqa: BLE001
+            line_total = Decimal("0.00")
+        if line_total < 0:
+            line_total = Decimal("0.00")
+
+        currency = (entry.get("currency") or fallback_currency or "GBP").strip().upper()
+        if len(currency) != 3:
+            currency = (fallback_currency or "GBP").upper()
+
+        rate_id = entry.get("rate_id")
+        try:
+            rate_id = int(rate_id) if rate_id is not None else None
+        except (TypeError, ValueError):
+            rate_id = None
+
+        normalised.append({
+            "room_index": idx,
+            "room_id": room_id,
+            "rate_id": rate_id,
+            "adults": adults,
+            "children": children,
+            "infants": infants,
+            "child_ages": child_ages,
+            "line_total": line_total,
+            "currency": currency,
+        })
+    return normalised
+
+
+# ─── Status history helper ─────────────────────────────────────────
 def add_status_history(
     booking: Booking,
     *,
@@ -169,11 +264,7 @@ def add_status_history(
     ip: str | None = None,
     user_agent: str | None = None,
 ) -> BookingStatusHistory:
-    """
-    Write one booking_status_history row.
-
-    This is the ONLY place the history table should be written from.
-    """
+    """Write one booking_status_history row."""
     row = BookingStatusHistory(
         booking_id=booking.id,
         from_status=from_status,
@@ -188,7 +279,7 @@ def add_status_history(
     return row
 
 
-# â”£â”£â”£ Create â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# ─── Create ────────────────────────────────────────────────────────
 def create_booking(
     *,
     product_type: str,
@@ -209,6 +300,8 @@ def create_booking(
     payment_method: str | None = None,
     addon_items: Optional[Iterable[dict[str, Any]]] = None,
     travellers: Optional[Iterable[dict[str, Any]]] = None,
+    travellers_infants: int = 0,
+    rooms: Optional[Iterable[dict[str, Any]]] = None,
     ip: str | None = None,
     user_agent: str | None = None,
     role: str | None = None,
@@ -221,26 +314,48 @@ def create_booking(
     product_type : "activity" | "hotel" | "package"
     product_id   : int
     travellers_adults, travellers_children : int >= 0
-    total_amount : Decimal â£” caller is expected to have computed this via
-                   pricing_service, but any non-negative value is accepted.
-    user         : User | None â£” pass None for a guest checkout.
-    addon_items  : iterable of dicts, each:
-                    {product_id, quantity, unit_price, name}
-    travellers   : iterable of dicts, each:
-                    {full_name, date_of_birth?, age_at_booking?,
-                     traveller_type?, passport_number?, nationality?,
-                     special_needs?}
+    travellers_infants : int >= 0 (added in Step 5c)
+    total_amount : Decimal — caller is expected to have computed this
+    user         : User | None — pass None for a guest checkout
+    rooms        : iterable of dicts (hotel multi-room only). Each entry:
+                    {room_id, rate_id?, adults, children,
+                     child_ages?, infants?, line_total, currency?}
+                  When provided:
+                    - BookingItem.primary.product_id = first room id
+                    - BookingItem.primary.line_total  = total_amount
+                    - Booking.travellers_adults/children/infants become
+                      the sum across rooms (overriding the caller's values)
+                    - One BookingRoom row per entry.
 
     Returns
     -------
-    Booking â£” flushed and with all children attached.
+    Booking — flushed and with all children attached.
     """
     _validate_product_type(product_type)
     if not isinstance(product_id, int) or product_id <= 0:
         raise InvalidBookingInput("product_id must be a positive integer")
+
     if travellers_adults < 0 or travellers_children < 0:
         raise InvalidBookingInput("traveller counts must not be negative")
-    if travellers_adults == 0 and travellers_children == 0:
+    if travellers_infants < 0:
+        raise InvalidBookingInput("travellers_infants must not be negative")
+
+    # Normalise the rooms payload (raises on malformed entries)
+    normalised_rooms = _normalise_rooms_payload(rooms, fallback_currency=currency)
+    if normalised_rooms is not None:
+        if product_type != PRODUCT_TYPE_HOTEL:
+            raise InvalidBookingInput(
+                "rooms is only valid for hotel bookings; "
+                f"got product_type={product_type!r}"
+            )
+        # Recompute totals from rooms
+        travellers_adults = sum(r["adults"] for r in normalised_rooms)
+        travellers_children = sum(r["children"] for r in normalised_rooms)
+        travellers_infants = sum(r["infants"] for r in normalised_rooms)
+        # Backward-compat: primary product_id becomes the first room id
+        product_id = normalised_rooms[0]["room_id"]
+
+    if travellers_adults == 0 and travellers_children == 0 and travellers_infants == 0:
         raise InvalidBookingInput("at least one traveller is required")
 
     # Guest identity checks
@@ -269,6 +384,7 @@ def create_booking(
         activity_date=activity_date,
         travellers_adults=travellers_adults,
         travellers_children=travellers_children,
+        travellers_infants=travellers_infants,
         total_amount=amount,
         currency=currency.upper(),
         special_requests=(special_requests or "").strip() or None,
@@ -278,7 +394,7 @@ def create_booking(
     db.session.add(booking)
     db.session.flush()
 
-    # â”£â”£â”£ Primary booking item â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+    # ─── Primary booking item ─────────────────────────────────────
     primary = BookingItem(
         booking_id=booking.id,
         item_type="primary",
@@ -292,7 +408,29 @@ def create_booking(
     )
     db.session.add(primary)
 
-    # â”£â”£â”£ Add-on items (upsell) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+    # ─── BookingRoom rows (multi-room only) ───────────────────────
+    if normalised_rooms:
+        for r in normalised_rooms:
+            # Sanity: room must exist
+            if db.session.get(Room, r["room_id"]) is None:
+                raise InvalidBookingInput(
+                    f"room_id {r['room_id']} does not exist"
+                )
+            booking_room = BookingRoom(
+                booking_id=booking.id,
+                room_id=r["room_id"],
+                rate_id=r["rate_id"],
+                room_index=r["room_index"],
+                adults=r["adults"],
+                children=r["children"],
+                infants=r["infants"],
+                child_ages=r["child_ages"] or None,
+                line_total=r["line_total"],
+                currency=r["currency"],
+            )
+            db.session.add(booking_room)
+
+    # ─── Add-on items (upsell) ────────────────────────────────────
     if addon_items:
         for raw in addon_items:
             try:
@@ -320,7 +458,7 @@ def create_booking(
             )
             db.session.add(item)
 
-    # â”£â”£â”£ Travellers (optional) â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+    # ─── Travellers (optional) ────────────────────────────────────
     if travellers:
         first = True
         for idx, raw in enumerate(travellers):
@@ -349,7 +487,7 @@ def create_booking(
             db.session.add(traveller)
             first = False
 
-    # â”£â”£â”£ Initial payment placeholder â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+    # ─── Initial payment placeholder ──────────────────────────────
     payment = Payment(
         booking_id=booking.id,
         provider="paypal",
@@ -360,7 +498,7 @@ def create_booking(
     )
     db.session.add(payment)
 
-    # â”£â”£â”£ Status history â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+    # ─── Status history ───────────────────────────────────────────
     add_status_history(
         booking,
         from_status=None,
@@ -376,7 +514,7 @@ def create_booking(
     return booking
 
 
-# â”£â”£â”£ State transitions â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# ─── State transitions ─────────────────────────────────────────────
 def cancel_booking(
     booking: Booking,
     *,
@@ -494,7 +632,7 @@ def mark_refunded(
     return booking
 
 
-# â”£â”£â”£ Lookups â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£â”£
+# ─── Lookups ───────────────────────────────────────────────────────
 def get_booking_by_reference(reference: str) -> Optional[Booking]:
     """Return a Booking by its human-friendly reference, or None."""
     if not reference:
@@ -513,5 +651,3 @@ def list_bookings_for_user(user) -> list[Booking]:
         .where(Booking.user_id == user.id)
         .order_by(Booking.created_at.desc())
     ))
-
-

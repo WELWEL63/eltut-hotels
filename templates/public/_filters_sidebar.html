@@ -2,6 +2,15 @@
    Shared filter sidebar for search / hotels / packages / activities.
    Unique class prefix: .eltut-filters- to avoid any clash with
    search_results.css or eltut.css.
+
+   Multi-room upgrade (Step 4b):
+     - Hotel + compact=False (/hotels list page): the sidebar is the ONLY
+       party editor on the page, so it embeds the full _party_widget.html
+       (per-room blocks + per-child ages + Add Room, up to 3 rooms).
+     - Hotel + compact=True (/search/results): the hero search widget
+       above is the party editor; the sidebar keeps a compact totals
+       block (adults / children / infants) for refinement.
+     - Packages / activities: keep the existing steppers unchanged.
 #}
 
 {% set _pt = product_type %}
@@ -221,40 +230,103 @@
           {% endif %}
         {% endif %}
 
-        {# ── Travellers (hidden when widget at top handles it) ───── #}
-        {% if not compact %}
-        <div class="eltut-filters-group">
-          <label class="eltut-filters-label">
-            <i class="bi bi-people-fill"></i> Travellers
-          </label>
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="eltut-filters-stepper">
-                <span class="eltut-filters-step-label">Adults</span>
-                <div class="eltut-filters-step-controls">
-                  <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-adults">−</button>
-                  <input type="number" name="adults" id="ef-adults" class="eltut-filters-step-input"
-                         value="{{ _qs.adults or 1 }}" min="1" max="8">
-                  <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-adults">+</button>
+        {# ── Travellers (multi-room upgrade, Step 4b) ────────────── #}
+        {% if _pt == 'hotel' %}
+          {% if compact %}
+            {# Search-results page: hero widget above owns the party; keep totals only. #}
+            <div class="eltut-filters-group">
+              <label class="eltut-filters-label">
+                <i class="bi bi-people-fill"></i> Travellers
+              </label>
+              <div class="row g-2">
+                <div class="col-4">
+                  <div class="eltut-filters-stepper">
+                    <span class="eltut-filters-step-label">Adults</span>
+                    <div class="eltut-filters-step-controls">
+                      <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-adults">−</button>
+                      <input type="number" name="adults" id="ef-adults" class="eltut-filters-step-input"
+                             value="{{ _qs.adults or 1 }}" min="1" max="8">
+                      <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-adults">+</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="eltut-filters-stepper">
+                    <span class="eltut-filters-step-label">Children</span>
+                    <div class="eltut-filters-step-controls">
+                      <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-children">−</button>
+                      <input type="number" name="children" id="ef-children" class="eltut-filters-step-input"
+                             value="{{ _qs.children or 0 }}" min="0" max="8">
+                      <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-children">+</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="eltut-filters-stepper">
+                    <span class="eltut-filters-step-label">Infants</span>
+                    <div class="eltut-filters-step-controls">
+                      <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-infants">−</button>
+                      <input type="number" name="infants" id="ef-infants" class="eltut-filters-step-input"
+                             value="{{ _qs.infants or 0 }}" min="0" max="8">
+                      <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-infants">+</button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="col-6">
-              <div class="eltut-filters-stepper">
-                <span class="eltut-filters-step-label">Children</span>
-                <div class="eltut-filters-step-controls">
-                  <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-children">−</button>
-                  <input type="number" name="children" id="ef-children" class="eltut-filters-step-input"
-                         value="{{ _qs.children or 0 }}" min="0" max="8">
-                  <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-children">+</button>
-                </div>
+              <div class="eltut-filters-hint" style="font-size:.72rem;color:#9ca3af;margin-top:.5rem;">
+                Child ages are collected on the detail page.
               </div>
             </div>
-          </div>
-        </div>
+          {% else %}
+            {# /hotels list page: full per-room party editor. #}
+            <div class="eltut-filters-group">
+              <div class="eltut-filters-label">
+                <i class="bi bi-people-fill"></i> Rooms &amp; guests
+              </div>
+              {% set adults = _qs.adults or 2 %}
+              {% set children = _qs.children or 0 %}
+              {% set infants = _qs.infants or 0 %}
+              {% include "public/_party_widget.html" %}
+            </div>
+          {% endif %}
         {% else %}
-        <input type="hidden" name="adults" value="{{ _qs.adults or 1 }}">
-        <input type="hidden" name="children" value="{{ _qs.children or 0 }}">
+          {# Packages & activities: keep the simple steppers. #}
+          {% if not compact %}
+          <div class="eltut-filters-group">
+            <label class="eltut-filters-label">
+              <i class="bi bi-people-fill"></i> Travellers
+            </label>
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="eltut-filters-stepper">
+                  <span class="eltut-filters-step-label">Adults</span>
+                  <div class="eltut-filters-step-controls">
+                    <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-adults">−</button>
+                    <input type="number" name="adults" id="ef-adults" class="eltut-filters-step-input"
+                           value="{{ _qs.adults or 1 }}" min="1" max="8">
+                    <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-adults">+</button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="eltut-filters-stepper">
+                  <span class="eltut-filters-step-label">Children</span>
+                  <div class="eltut-filters-step-controls">
+                    <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-children">−</button>
+                    <input type="number" name="children" id="ef-children" class="eltut-filters-step-input"
+                           value="{{ _qs.children or 0 }}" min="0" max="8">
+                    <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-children">+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" name="infants" value="{{ _qs.infants or 0 }}">
+          </div>
+          {% else %}
+          <input type="hidden" name="adults" value="{{ _qs.adults or 1 }}">
+          <input type="hidden" name="children" value="{{ _qs.children or 0 }}">
+          <input type="hidden" name="infants" value="{{ _qs.infants or 0 }}">
+          {% endif %}
         {% endif %}
 
         {# ── Search text ─────────────────────────────────────────── #}
@@ -400,7 +472,6 @@
   padding: .45rem .75rem .5rem;
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
-  /* bookmark shape: square with a nib on the top-right */
   border-radius: 6px 6px 6px 6px;
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
   font-size: .8rem;
@@ -515,6 +586,7 @@
         if (!v) continue;
         if (k === 'sort' && v === 'newest') continue;
         if ((k === 'adults' && v === '1') || (k === 'children' && v === '0')) continue;
+        if (k === 'infants' && v === '0') continue;
         if (seen.has(k)) continue;
         seen.add(k);
         n += 1;
@@ -526,4 +598,135 @@
     countActive();
   }
 })();
+
 </script>
+<style>
+/* ─── Party Widget (Multi-room) ─── */
+.party-widget {
+    background: #fdfbf8;
+    border: 1px solid #f0e6dc;
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 8px;
+}
+.party-widget__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+}
+.party-widget__label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #374151;
+    margin: 0;
+}
+.party-widget__add-room {
+    background: #fff;
+    border: 1px solid #c85a3e;
+    color: #c85a3e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.party-widget__add-room:hover {
+    background: #c85a3e;
+    color: #fff;
+}
+.party-widget__room {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+.party-widget__room-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+.party-widget__remove {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+.party-widget__row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.party-widget__num {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.party-widget__num label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: #9ca3af;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+.party-widget__num input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #1f2937;
+    text-align: center;
+}
+.party-widget__num input:focus {
+    outline: none;
+    border-color: #c85a3e;
+    box-shadow: 0 0 0 2px rgba(200,90,62,0.1);
+}
+.party-widget__ages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.party-widget__age {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 70px;
+}
+.party-widget__age label {
+    font-size: 0.65rem;
+    color: #9ca3af;
+    margin: 0;
+}
+.party-widget__age select {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #1f2937;
+}
+.party-widget__summary {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 600;
+}
+</style>

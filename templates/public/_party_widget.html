@@ -1,0 +1,312 @@
+<style>
+/* ─── Party Widget (Self-contained styles) ─── */
+.party-widget {
+    background: #fdfbf8;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: inherit;
+}
+.party-widget__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.party-widget__label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #374151;
+    margin: 0;
+}
+.party-widget__add-room {
+    background: #fff;
+    border: 1px solid #c85a3e;
+    color: #c85a3e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.party-widget__add-room:hover {
+    background: #c85a3e;
+    color: #fff;
+}
+.party-widget__room {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    position: relative;
+}
+.party-widget__room-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #374151;
+    margin-bottom: 8px;
+}
+.party-widget__remove {
+    background: none;
+    border: none;
+    color: #dc2626;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+}
+.party-widget__row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.party-widget__num {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.party-widget__num label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    font-weight: 600;
+    margin: 0;
+}
+.party-widget__num input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #1f2937;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+.party-widget__num input::-webkit-outer-spin-button,
+.party-widget__num input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.party-widget__num input:focus {
+    outline: none;
+    border-color: #c85a3e;
+    box-shadow: 0 0 0 2px rgba(200,90,62,0.15);
+}
+.party-widget__ages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.party-widget__age {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 70px;
+}
+.party-widget__age label {
+    font-size: 0.65rem;
+    color: #6b7280;
+    margin: 0;
+}
+.party-widget__age select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #1f2937;
+}
+.party-widget__summary {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 600;
+}
+</style>
+
+<div class="party-widget" data-party-widget>
+  <div class="party-widget__head">
+    <label class="party-widget__label">Guests</label>
+    <button type="button" class="party-widget__add-room" data-add-room>
+      + Add room
+    </button>
+  </div>
+
+  <div class="party-widget__rooms" data-rooms>
+    {% set r = 1 %}
+    {% include "public/_party_widget_room.html" %}
+  </div>
+
+  <input type="hidden" name="adults" value="{{ adults or 2 }}" data-total-adults>
+  <input type="hidden" name="children" value="{{ children or 0 }}" data-total-children>
+  <input type="hidden" name="infants" value="{{ infants or 0 }}" data-total-infants>
+  <input type="hidden" name="rooms" value="1" data-total-rooms>
+
+  <div class="party-widget__summary" data-summary></div>
+</div>
+
+<script>
+(function () {
+  // Use a custom data attribute so we can find it reliably
+  const root = document.querySelector('.search-widget-hero [data-party-widget]') || document.querySelector('[data-party-widget]');
+  if (!root || root.hasAttribute('data-initialized')) return;
+  root.setAttribute('data-initialized', 'true');
+
+  const roomsEl = root.querySelector('[data-rooms]');
+  const addBtn = root.querySelector('[data-add-room]');
+  const summaryEl = root.querySelector('[data-summary]');
+  const totalAdults = root.querySelector('[data-total-adults]');
+  const totalChildren = root.querySelector('[data-total-children]');
+  const totalInfants = root.querySelector('[data-total-infants]');
+  const totalRooms = root.querySelector('[data-total-rooms]');
+  const MAX_ROOMS = 3;
+
+  function ageSelectHTML(n, i, chosen) {
+    let opts = '';
+    for (let a = 0; a <= 12; a++) {
+      const label = a === 0 ? 'Under 2' : String(a);
+      opts += `<option value="${a}"${a === chosen ? ' selected' : ''}>${label}</option>`;
+    }
+    return `
+      <div class="party-widget__age">
+        <label>Child ${i + 1} age</label>
+        <select name="room${n}_child_ages" data-child-age>${opts}</select>
+      </div>`;
+  }
+
+  function roomBlockHTML(n, adults, children, childAges, infants) {
+    let ageSelects = '';
+    for (let i = 0; i < children; i++) {
+      const chosen = childAges && childAges[i] != null ? childAges[i] : 6;
+      ageSelects += ageSelectHTML(n, i, chosen);
+    }
+    return `
+      <div class="party-widget__room" data-room-index="${n}">
+        <div class="party-widget__room-head">
+          <strong>Room ${n}</strong>
+          ${n > 1 ? `<button type="button" class="party-widget__remove" data-remove-room>Remove</button>` : ''}
+        </div>
+        <div class="party-widget__row">
+          <div class="party-widget__num">
+            <label>Adults</label>
+            <input type="number" min="1" max="8" value="${adults}"
+                   name="room${n}_adults" data-adults>
+          </div>
+          <div class="party-widget__num">
+            <label>Children (2-12)</label>
+            <input type="number" min="0" max="8" value="${children}"
+                   name="room${n}_children" data-children>
+          </div>
+          <div class="party-widget__num">
+            <label>Infants (under 2)</label>
+            <input type="number" min="0" max="8" value="${infants}"
+                   name="room${n}_infants" data-infants>
+          </div>
+        </div>
+        <div class="party-widget__ages" data-ages>${ageSelects}</div>
+      </div>`;
+  }
+
+  function recalcSummary() {
+    let a = 0, c = 0, inf = 0;
+    roomsEl.querySelectorAll('[data-room-index]').forEach(room => {
+      a += parseInt(room.querySelector('[data-adults]').value || '0', 10);
+      c += parseInt(room.querySelector('[data-children]').value || '0', 10);
+      inf += parseInt(room.querySelector('[data-infants]').value || '0', 10);
+    });
+    totalAdults.value = a;
+    totalChildren.value = c;
+    totalInfants.value = inf;
+    totalRooms.value = roomsEl.querySelectorAll('[data-room-index]').length;
+    summaryEl.textContent =
+      `${a} adult${a === 1 ? '' : 's'}, ${c} child${c === 1 ? '' : 'ren'}, ${inf} infant${inf === 1 ? '' : 's'}`;
+  }
+
+  function refreshAgeInputs(roomEl) {
+    const children = parseInt(roomEl.querySelector('[data-children]').value || '0', 10);
+    const existing = Array.from(roomEl.querySelectorAll('[data-ages] [data-child-age]'))
+      .map(s => parseInt(s.value, 10));
+    const n = roomEl.getAttribute('data-room-index');
+    let html = '';
+    for (let i = 0; i < children; i++) {
+      const chosen = existing[i] != null ? existing[i] : 6;
+      html += ageSelectHTML(n, i, chosen);
+    }
+    roomEl.querySelector('[data-ages]').innerHTML = html;
+  }
+
+  function renumberRooms() {
+    const rooms = Array.from(roomsEl.querySelectorAll('[data-room-index]'));
+    rooms.forEach((room, idx) => {
+      const n = idx + 1;
+      room.setAttribute('data-room-index', n);
+      room.querySelector('strong').textContent = `Room ${n}`;
+      room.querySelectorAll('[name]').forEach(el => {
+        el.name = el.name.replace(/^room\d+_/, `room${n}_`);
+      });
+      const head = room.querySelector('.party-widget__room-head');
+      const oldBtn = head.querySelector('[data-remove-room]');
+      if (n === 1 && oldBtn) oldBtn.remove();
+      if (n > 1 && !head.querySelector('[data-remove-room]')) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'party-widget__remove';
+        btn.setAttribute('data-remove-room', '');
+        btn.textContent = 'Remove';
+        head.appendChild(btn);
+      }
+    });
+  }
+
+  if (!roomsEl.querySelector('[data-room-index]')) {
+    roomsEl.innerHTML = roomBlockHTML(1, 2, 0, [], 0);
+  }
+
+  roomsEl.addEventListener('input', e => {
+    const roomEl = e.target.closest('[data-room-index]');
+    if (!roomEl) return;
+    if (e.target.matches('[data-children]')) {
+      refreshAgeInputs(roomEl);
+    }
+    recalcSummary();
+  });
+  roomsEl.addEventListener('change', e => {
+    if (e.target.matches('[data-child-age]') && e.target.value === '0') {
+      const roomEl = e.target.closest('[data-room-index]');
+      const childrenInput = roomEl.querySelector('[data-children]');
+      const infantsInput = roomEl.querySelector('[data-infants]');
+      childrenInput.value = Math.max(0, parseInt(childrenInput.value || '0', 10) - 1);
+      infantsInput.value = parseInt(infantsInput.value || '0', 10) + 1;
+      refreshAgeInputs(roomEl);
+      recalcSummary();
+    }
+  });
+  roomsEl.addEventListener('click', e => {
+    if (e.target.matches('[data-remove-room]')) {
+      const roomEl = e.target.closest('[data-room-index]');
+      if (roomEl) {
+        roomEl.remove();
+        renumberRooms();
+        recalcSummary();
+      }
+    }
+  });
+  addBtn.addEventListener('click', () => {
+    const count = roomsEl.querySelectorAll('[data-room-index]').length;
+    if (count >= MAX_ROOMS) return;
+    roomsEl.insertAdjacentHTML('beforeend', roomBlockHTML(count + 1, 2, 0, [], 0));
+    recalcSummary();
+  });
+
+  recalcSummary();
+})();
+</script>

@@ -222,6 +222,11 @@
                                 {{ (item.extra.category or 'Activity')|title }}
                             {% endif %}
                         </span>
+                        {% if result['product_type'] == 'hotel' and item.min_rooms and item.min_rooms >= 2 %}
+                            <span class="sr-row-type-chip" style="background:#fff2ea; color:#b14a2f; border-color:#f0c8b3;">
+                                <i class="bi bi-door-open"></i> {{ item.rooms_note }}
+                            </span>
+                        {% endif %}
                         {% if item.destination_name %}
                             <span class="sr-row-dest-chip">
                                 <i class="bi bi-geo-alt-fill"></i> {{ item.destination_name }}
@@ -376,20 +381,23 @@
                 {# ── RIGHT: price + CTA ── #}
                 <div class="sr-row-price">
 
-                    {% if item.total_price is not none and item.total_price > 0 %}
+                                                           {% if item.total_price is not none and item.total_price > 0 %}
                         <div class="sr-row-price-total">
                             {{ item.currency }} {{ "%.2f"|format(item.total_price) }}
                         </div>
                         <div class="sr-row-price-label">
-                            total for
-                            {% if item.nights %}{{ item.nights }}N · {% endif %}
-                            {{ item.adults }} adult{{ "" if item.adults == 1 else "s" }}
+                            total for 
+                            {% if item.nights %}{{ item.nights }}N{% endif %}
                         </div>
                         {% if item.price_per_night %}
                             <div class="sr-row-price-sub">
-                                {{ item.currency }} {{ "%.2f"|format(item.price_per_night) }} / night
+                                {{ item.currency }} {{ "%.2f"|format(item.price_per_night) }} / night <br>
+                                {% if item.meal_plan %}
+                                    <small class="text-muted">({{ item.meal_plan|replace("_", " ")|title }})</small>
+                                {% endif %}
                             </div>
-                        {% endif %}
+                        
+                                                {% endif %}
                     {% elif item.price_adult is not none %}
                         <div class="sr-row-price-total">
                             {{ item.currency }} {{ "%.2f"|format(item.price_adult) }}

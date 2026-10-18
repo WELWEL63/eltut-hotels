@@ -6,12 +6,23 @@ left?" service used by the public booking flow and the admin panel.
 
 CAPACITY RULES
     activity   capacity - sum of active booking quantities on that date
-    hotel      room.capacity - sum of active room bookings that overlap
+    hotel      room.capacity - sum of active room claims overlapping
                                 the requested date range
     package    capacity - sum of active booking quantities on that date
 
 "Active" means status IN ('pending', 'confirmed'). Cancelled, completed,
 and refunded bookings are excluded.
+
+MULTI-ROOM (Step 5e)
+    A hotel booking that has any BookingRoom rows is a MULTI-ROOM booking:
+    its primary BookingItem is a header, not a room claim. For those
+    bookings, only BookingRoom rows count toward a room's occupancy.
+    A booking with no BookingRoom rows is a LEGACY single-room booking:
+    its primary BookingItem (product_id = room id) counts.
+
+    This avoids double-counting the first room in multi-room bookings
+    and preserves correct occupancy for the existing 14 single-room
+    bookings.
 
 PUBLIC API
     activity_availability(activity_id, target_date) -> int
@@ -24,14 +35,8 @@ PUBLIC API
 
 DESIGN NOTES
     - Reads only. Never writes.
-    - Counts come from BookingItem.quantity so multi-seat bookings work.
     - Overlap test for hotels: existing.check_in < new.check_out AND
-      existing.check_out > new.check_in (the classic half-open-interval
-      overlap predicate).
-    - Packages without a specific date use the whole active set — this
-      is looser but appropriate for the coursework scale.
-    - Filters to item_type='primary' so add-on activities don't count
-      toward the parent product's capacity.
+      existing.check_out > new.check_in (half-open interval predicate).
     - No Flask request imports — pure business logic.
 """
 
@@ -49,6 +54,7 @@ from models import (
     Activity,
     Booking,
     BookingItem,
+    BookingRoom,
     Package,
     Room,
     PRODUCT_TYPE_ACTIVITY,
@@ -151,9 +157,14 @@ def _sum_rooms_for_range(
     check_out: date,
 ) -> int:
     """
-    Sum rooms booked in the given date range. Uses the half-open overlap
-    predicate: existing.check_in < new.check_out AND existing.check_out
-    > new.check_in.
+    Sum rooms occupied for room_id in the given date range.
+
+    Multi-room bookings (those with any BookingRoom rows) contribute via
+    their BookingRoom rows only. Legacy single-room bookings contribute
+    via their primary BookingItem only. Never both.
+
+    Overlap predicate: existing.check_in < new.check_out AND
+    existing.check_out > new.check_in.
     """
     overlap = and_(
         Booking.check_in_date.is_not(None),
@@ -161,7 +172,29 @@ def _sum_rooms_for_range(
         Booking.check_in_date < check_out,
         Booking.check_out_date > check_in,
     )
-    stmt = (
+
+    # Subquery: bookings that have at least one BookingRoom row.
+    # Correlated to the outer Booking.
+    has_rooms_subq = (
+        select(BookingRoom.booking_id)
+        .where(BookingRoom.booking_id == Booking.id)
+        .correlate(Booking)
+        .exists()
+    )
+
+    # 1) Count multi-room allocations for this room.
+    multi_total = session.scalar(
+        select(func.coalesce(func.count(BookingRoom.id), 0))
+        .join(Booking, Booking.id == BookingRoom.booking_id)
+        .where(
+            BookingRoom.room_id == room_id,
+            Booking.status.in_(ACTIVE_STATUSES),
+            overlap,
+        )
+    ) or 0
+
+    # 2) Count legacy single-room bookings for this room.
+    legacy_total = session.scalar(
         select(func.coalesce(func.sum(BookingItem.quantity), 0))
         .join(Booking, Booking.id == BookingItem.booking_id)
         .where(
@@ -170,9 +203,11 @@ def _sum_rooms_for_range(
             BookingItem.product_id == room_id,
             Booking.status.in_(ACTIVE_STATUSES),
             overlap,
+            ~has_rooms_subq,
         )
-    )
-    return int(session.scalar(stmt) or 0)
+    ) or 0
+
+    return int(multi_total) + int(legacy_total)
 
 
 # ─── Public API ────────────────────────────────────────────────────
@@ -232,13 +267,7 @@ def check_availability(
     check_out: Optional[date] = None,
     target_date: Optional[date] = None,
 ) -> AvailabilityResult:
-    """
-    Structured availability check used by the booking flow before it
-    calls create_booking().
-
-    Returns an AvailabilityResult. Callers check .available before
-    proceeding; if False, .reason explains why.
-    """
+    """Structured availability check used by the booking flow."""
     if product_type not in VALID_PRODUCT_TYPES:
         raise InvalidAvailabilityInput(
             f"product_type must be one of {VALID_PRODUCT_TYPES}, "
@@ -303,7 +332,6 @@ def check_availability(
             ),
         )
 
-    # Should be unreachable due to the VALID_PRODUCT_TYPES guard above.
     raise InvalidAvailabilityInput(f"unsupported product_type {product_type!r}")
 
 

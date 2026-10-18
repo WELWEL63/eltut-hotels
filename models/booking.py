@@ -43,7 +43,17 @@ DEFAULT_BOOKING_STATUS = STATUS_PENDING
 
 
 class Booking(Base, TimestampMixin):
-    """A single reservation of a product."""
+    """A single reservation of a product.
+
+    MULTI-ROOM UPGRADE (hotel bookings only)
+        `travellers_infants` records the infant count (age < 2) so the
+        booking headline matches the new age-band rules. Infants do NOT
+        count toward room occupancy.
+        `rooms` exposes the BookingRoom child rows (max 3 per booking).
+        For hotel bookings, `product_id` continues to hold the FIRST
+        room id for backward compatibility; `booking.rooms` is the
+        source of truth when present.
+    """
 
     __tablename__ = "bookings"
 
@@ -70,6 +80,9 @@ class Booking(Base, TimestampMixin):
 
     travellers_adults: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     travellers_children: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    travellers_infants: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
 
     total_amount: Mapped[Decimal] = mapped_column(
         Numeric(12, 2), nullable=False, default=Decimal("0.00")
@@ -94,9 +107,11 @@ class Booking(Base, TimestampMixin):
         "BookingTraveller", backref="booking",
         cascade="all, delete-orphan", order_by="BookingTraveller.sort_order",
     )
+    rooms: Mapped[list["BookingRoom"]] = relationship(  # noqa: F821
+        "BookingRoom", backref="booking",
+        cascade="all, delete-orphan", order_by="BookingRoom.room_index",
+    )
     status_history: Mapped[list["BookingStatusHistory"]] = relationship(  # noqa: F821
         "BookingStatusHistory", backref="booking",
         cascade="all, delete-orphan", order_by="BookingStatusHistory.created_at",
     )
-
-

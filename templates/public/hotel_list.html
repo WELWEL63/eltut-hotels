@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Hotels — {{ config.APP_NAME }}{% endblock %}
 
@@ -105,6 +105,14 @@
                                         {% if is_best_value %}
                                             <span class="htl-card-ribbon">
                                                 <i class="bi bi-award-fill"></i> Best value
+                                            </span>
+                                        {% endif %}
+
+                                        {# Multi-room hint badge (Step 4d) #}
+                                        {% if item.rooms_note and item.min_rooms and item.min_rooms >= 2 %}
+                                            <span class="htl-card-badge--rooms">
+                                                <i class="bi bi-door-open"></i>
+                                                {{ item.rooms_note }}
                                             </span>
                                         {% endif %}
                                     </div>
@@ -309,4 +317,17 @@
     </div>
 </section>
 
+
+<style>
+.htl-card-badge--rooms {
+  position: absolute; left: .5rem; bottom: .5rem;
+  background: rgba(200, 90, 62, 0.92); color: #fff;
+  font-size: .72rem; font-weight: 700; letter-spacing: .02em;
+  padding: .3rem .55rem; border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  display: inline-flex; align-items: center; gap: .3rem;
+  z-index: 2;
+}
+.htl-card-badge--rooms i { font-size: .8rem; }
+</style>
 {% endblock %}

@@ -1,0 +1,312 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Hotels — {{ config.APP_NAME }}{% endblock %}
+
+{% block content %}
+
+{# ═══════════════════════════════════════════════════════════════════
+   HOTEL LIST — 'Playfair Display' header, .htl-card grid, BLUE price, per-night
+   ═══════════════════════════════════════════════════════════════════ #}
+
+<section class="htl-list-header">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb small mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('public.index') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Hotels</li>
+            </ol>
+        </nav>
+        <div class="htl-list-header-row">
+            <div>
+                <span class="htl-list-eyebrow">
+                    <i class="bi bi-building"></i> Browse hotels
+                </span>
+                <h1 class="htl-list-title">
+                    Hotels{% if selected_destination %} in {{ selected_destination.name }}{% endif %}
+                </h1>
+                <p class="htl-list-sub">
+                    <strong>{{ total }}</strong> hotel{{ "" if total == 1 else "s" }} found
+                    {% if selected_stars %} · {{ selected_stars }}-star{% endif %}
+                    {% if selected_meal_plan %} · {{ selected_meal_plan|replace("_", " ")|title }}{% endif %}
+                    {% if query_text %} · matching "{{ query_text }}"{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ─── Filters + results ─── #}
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+
+            {# ─── Shared filter sidebar ─── #}
+            {% set qs = {
+                "destination": selected_destination.slug if selected_destination else "",
+                "check_in": request.args.get("check_in") or "",
+                "check_out": request.args.get("check_out") or "",
+                "adults": request.args.get("adults") or 2,
+                "children": request.args.get("children") or 0,
+                "q": query_text or "",
+            } %}
+            {% set product_type = "hotel" %}
+            {% set url_for_endpoint = "public.hotel_list" %}
+            {% set clear_url = url_for("public.hotel_list") %}
+            {% include "public/_filters_sidebar.html" %}
+
+            {# ─── Results ─── #}
+            <div class="col-lg-9">
+                {% if items %}
+
+                    {# Find cheapest price for Best value ribbon #}
+                    {% set _prices = items|map(attribute='price')|select('number')|list %}
+                    {% set _min_price = _prices|min if _prices else None %}
+
+                    <div class="row g-4">
+                        {% for item in items %}
+                            {% set h = item.hotel %}
+                            {% set img = item.image_url %}
+                            {% set is_best_value = item.price and item.price == _min_price %}
+
+                            <div class="col-md-6 col-xxl-4">
+                                <article class="htl-card">
+                                    <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}"
+                                       class="htl-card-link"
+                                       aria-label="{{ h.name }}"></a>
+
+                                    {# ── Image + top badges ── #}
+                                    <div class="htl-card-media">
+
+                                        {% if img and (img.startswith('http') or img.startswith('/static')) %}
+                                            <img src="{{ img }}" alt="{{ h.name }}"
+                                                 loading="lazy"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="htl-card-placeholder" style="display:none;">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="htl-card-placeholder">
+                                                <i class="bi bi-building"></i>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="htl-card-scrim"></div>
+
+                                        {# Destination badge (top-left, image overlay) — moved here to
+                                           replace the star overlay we removed below #}
+                                        {% if item.destination_name %}
+                                            <span class="htl-card-badge htl-card-badge--dest">
+                                                <i class="bi bi-geo-alt-fill"></i>
+                                                {{ item.destination_name }}
+                                            </span>
+                                        {% endif %}
+
+                                        {# Best value ribbon #}
+                                        {% if is_best_value %}
+                                            <span class="htl-card-ribbon">
+                                                <i class="bi bi-award-fill"></i> Best value
+                                            </span>
+                                        {% endif %}
+                                    </div>
+
+                                    {# ── Body ── #}
+                                    <div class="htl-card-body">
+
+                                        <h3 class="htl-card-name">{{ h.name }}</h3>
+
+                                        {# Stars — MOVED here from image overlay #}
+                                        {% if h.stars %}
+                                            <div class="htl-card-stars-inline"
+                                                 style="color:var(--eltut-gold-bright,#f2c964);
+                                                        display:inline-flex;
+                                                        gap:0.1rem;
+                                                        font-size:0.9rem;
+                                                        margin:-0.15rem 0 0.4rem 0;">
+                                                {% for _ in range(h.stars) %}
+                                                    <i class="bi bi-star-fill"
+                                                       style="color:var(--eltut-gold-bright,#f2c964);"></i>
+                                                {% endfor %}
+                                                <span style="color:var(--eltut-muted,#78716c);
+                                                             margin-left:0.35rem;
+                                                             font-size:0.78rem;">
+                                                    {{ h.stars }}-star
+                                                </span>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if h.address %}
+                                            <div class="htl-card-address">
+                                                <i class="bi bi-house"></i>
+                                                <span>{{ h.address|truncate(64, true) }}</span>
+                                            </div>
+                                        {% endif %}
+
+                                        {% if h.description %}
+                                            <p class="htl-card-desc">{{ h.description|truncate(155, true) }}</p>
+                                        {% endif %}
+
+                                        {# Meta row: rooms #}
+                                        <div class="htl-card-meta">
+                                            {% if h.rooms %}
+                                                <span>
+                                                    <i class="bi bi-door-open"></i>
+                                                    {{ h.rooms|length }} rooms
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        {# Facility icons — deduped by icon, capped at 6 #}
+                                        {% if h.facilities %}
+                                            {% set _icons_seen = [] %}
+                                            {% set _icons_out = [] %}
+                                            {% for fac in h.facilities %}
+                                                {% set fname = fac.name|lower %}
+                                                {% if 'wifi' in fname or 'wi-fi' in fname or 'internet' in fname %}
+                                                    {% set _ik = 'wifi' %}
+                                                {% elif 'pool' in fname or 'swimming' in fname %}
+                                                    {% set _ik = 'pool' %}
+                                                {% elif 'beach' in fname %}
+                                                    {% set _ik = 'beach' %}
+                                                {% elif 'restaurant' in fname or 'dining' in fname or 'food' in fname %}
+                                                    {% set _ik = 'dining' %}
+                                                {% elif 'spa' in fname or 'massage' in fname %}
+                                                    {% set _ik = 'spa' %}
+                                                {% elif 'gym' in fname or 'fitness' in fname %}
+                                                    {% set _ik = 'gym' %}
+                                                {% elif 'bar' in fname or 'lounge' in fname %}
+                                                    {% set _ik = 'bar' %}
+                                                {% elif 'kids' in fname or 'child' in fname or 'playground' in fname %}
+                                                    {% set _ik = 'kids' %}
+                                                {% elif 'concierge' in fname or 'reception' in fname %}
+                                                    {% set _ik = 'concierge' %}
+                                                {% elif 'air condition' in fname %}
+                                                    {% set _ik = 'ac' %}
+                                                {% elif 'parking' in fname %}
+                                                    {% set _ik = 'parking' %}
+                                                {% elif 'garden' in fname %}
+                                                    {% set _ik = 'garden' %}
+                                                {% elif 'airport' in fname or 'transfer' in fname or 'shuttle' in fname %}
+                                                    {% set _ik = 'transfer' %}
+                                                {% elif 'atm' in fname or 'bank' in fname %}
+                                                    {% set _ik = 'bank' %}
+                                                {% elif 'security' in fname or 'cctv' in fname %}
+                                                    {% set _ik = 'security' %}
+                                                {% else %}
+                                                    {% set _ik = '' %}
+                                                {% endif %}
+                                                {% if _ik and _ik not in _icons_seen and _icons_out|length < 6 %}
+                                                    {% set _ = _icons_seen.append(_ik) %}
+                                                    {% set _ = _icons_out.append(_ik) %}
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            <div class="htl-card-facilities">
+                                                {% for _ik in _icons_out %}
+                                                    <span class="htl-facility-icon" aria-hidden="true">
+                                                        {% if _ik == 'wifi' %}<i class="bi bi-wifi"></i>
+                                                        {% elif _ik == 'pool' %}<i class="bi bi-water"></i>
+                                                        {% elif _ik == 'beach' %}<i class="bi bi-umbrella"></i>
+                                                        {% elif _ik == 'dining' %}<i class="bi bi-cup-hot"></i>
+                                                        {% elif _ik == 'spa' %}<i class="bi bi-flower1"></i>
+                                                        {% elif _ik == 'gym' %}<i class="bi bi-heart-pulse"></i>
+                                                        {% elif _ik == 'bar' %}<i class="bi bi-cup-straw"></i>
+                                                        {% elif _ik == 'kids' %}<i class="bi bi-emoji-smile"></i>
+                                                        {% elif _ik == 'concierge' %}<i class="bi bi-bell"></i>
+                                                        {% elif _ik == 'ac' %}<i class="bi bi-snow"></i>
+                                                        {% elif _ik == 'parking' %}<i class="bi bi-p-circle"></i>
+                                                        {% elif _ik == 'garden' %}<i class="bi bi-tree"></i>
+                                                        {% elif _ik == 'transfer' %}<i class="bi bi-bus-front"></i>
+                                                        {% elif _ik == 'bank' %}<i class="bi bi-bank"></i>
+                                                        {% elif _ik == 'security' %}<i class="bi bi-shield-check"></i>
+                                                        {% else %}<i class="bi bi-check-circle"></i>
+                                                        {% endif %}
+                                                    </span>
+                                                {% endfor %}
+                                                {% if h.facilities|length > _icons_out|length %}
+                                                    <span class="htl-facility-icon htl-facility-icon--more"
+                                                          title="{{ h.facilities|length - _icons_out|length }} more">
+                                                        +{{ h.facilities|length - _icons_out|length }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+
+                                        {# ── Price + CTA ── #}
+                                        <div class="htl-card-footer">
+                                            {% if item.price %}
+                                                <div class="htl-card-price">
+                                                    <span class="htl-price-label">from</span>
+                                                    <span class="htl-price-amount">
+                                                        {{ item.currency or "£" }}{{ "%.0f"|format(item.price) }}
+                                                    </span>
+                                                    <span class="htl-price-unit">/ night</span>
+                                                </div>
+                                            {% else %}
+                                                <div class="htl-card-price htl-card-price--empty">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    <span>Price on request</span>
+                                                </div>
+                                            {% endif %}
+
+                                            <span class="htl-card-cta">
+                                                View
+                                                <i class="bi bi-arrow-right"></i>
+                                            </span>
+                                        </div>
+
+                                    </div>
+                                </article>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {# ─── Pagination (preserves filters) ─── #}
+                    {% if total_pages > 1 %}
+                        {% set qs = {} %}
+                        {% if selected_destination %}{% set _ = qs.update({"destination": selected_destination.slug}) %}{% endif %}
+                        {% if selected_stars %}{% set _ = qs.update({"stars": selected_stars}) %}{% endif %}
+                        {% if selected_meal_plan %}{% set _ = qs.update({"meal_plan": selected_meal_plan}) %}{% endif %}
+                        {% if query_text %}{% set _ = qs.update({"q": query_text}) %}{% endif %}
+                        {% if sort %}{% set _ = qs.update({"sort": sort}) %}{% endif %}
+
+                        <nav class="mt-5" aria-label="Hotel list pagination">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{{ url_for('public.hotel_list', page=page-1, **qs) }}">
+                                        <i class="bi bi-chevron-left"></i> Previous
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">Page {{ page }} of {{ total_pages }}</span>
+                                </li>
+                                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                                    <a class="page-link"
+                                       href="{{ url_for('public.hotel_list', page=page+1, **qs) }}">
+                                        Next <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+                    <div class="sr-empty">
+                        <div class="sr-empty-icon"><i class="bi bi-binoculars"></i></div>
+                        <h3 class="sr-empty-title">No hotels found</h3>
+                        <p class="sr-empty-text">
+                            Try widening your search, changing the star rating,
+                            or clearing the destination.
+                        </p>
+                        <a href="{{ url_for('public.hotel_list') }}" class="btn btn-eltut-primary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear filters
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -38,7 +38,14 @@
                                 {% for b in items %}
                                     <tr>
                                         <td class="fw-bold">{{ b.reference }}</td>
-                                        <td>{{ b.product_type|title }}</td>
+                                        <td>
+                                            {{ b.product_type|title }}
+                                            {% if b.product_type == 'hotel' and b.rooms %}
+                                                <div class="small text-muted">
+                                                    <i class="bi bi-door-open"></i> {{ b.rooms|length }} room{{ "" if b.rooms|length == 1 else "s" }}
+                                                </div>
+                                            {% endif %}
+                                        </td>
                                         <td>
                                             {% if b.check_in_date %}
                                                 {{ b.check_in_date }} → {{ b.check_out_date }}

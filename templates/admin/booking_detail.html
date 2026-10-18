@@ -102,7 +102,20 @@
                     <dt class="col-5 text-muted">Adults</dt>
                     <dd class="col-7">{{ booking.travellers_adults }}</dd>
                     <dt class="col-5 text-muted">Children</dt>
+                                       <dt class="col-5 text-muted">Children</dt>
                     <dd class="col-7">{{ booking.travellers_children }}</dd>
+                    {% if booking.travellers_infants %}
+                        <dt class="col-5 text-muted">Infants (&lt;2)</dt>
+                        <dd class="col-7">{{ booking.travellers_infants }}</dd>
+                    {% endif %}
+                    {% if booking.payment_method %}
+                        <dt class="col-5 text-muted">Payment method</dt>
+                        <dd class="col-7">{{ booking.payment_method|replace("_", " ")|title }}</dd>
+                    {% endif %}
+                    {% if booking.how_heard %}
+                        <dt class="col-5 text-muted">How heard</dt>
+                        <dd class="col-7">{{ booking.how_heard|replace("_", " ")|title }}</dd>
+                    {% endif %}
                     {% if booking.special_requests %}
                         <dt class="col-5 text-muted">Requests</dt>
                         <dd class="col-7">{{ booking.special_requests }}</dd>
@@ -147,6 +160,90 @@
         </table>
     </div>
 </div>
+{# ─── Rooms (multi-room hotel bookings, Step 5f) ─── #}
+{% if booking.product_type == 'hotel' and booking.rooms %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white">
+        <strong>Rooms ({{ booking.rooms|length }})</strong>
+        <span class="text-muted small ms-2">booked via multi-room flow</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Room</th>
+                    <th>Meal plan</th>
+                    <th>Adults</th>
+                    <th>Children</th>
+                    <th>Child ages</th>
+                    <th>Infants</th>
+                    <th>Rate ID</th>
+                    <th class="text-end">Line total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for br in booking.rooms %}
+                    <tr>
+                        <td>{{ br.room_index }}</td>
+                        <td>
+                            {% if br.room %}
+                                {{ br.room.type }}
+                                <div class="small text-muted">Room #{{ br.room_id }}</div>
+                            {% else %}
+                                <code>room_id={{ br.room_id }}</code> <span class="badge bg-danger">missing</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if br.room and br.room.meal_plan %}
+                                {{ br.room.meal_plan|replace("_", " ")|title }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ br.adults }}</td>
+                        <td>{{ br.children }}</td>
+                        <td>
+                            {% if br.child_ages %}{{ br.child_ages|join(", ") }}{% else %}—{% endif %}
+                        </td>
+                        <td>{{ br.infants }}</td>
+                        <td>
+                            {% if br.rate_id %}<code>{{ br.rate_id }}</code>{% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                        <td class="text-end fw-semibold">
+                            {{ br.currency }} {{ "%.2f"|format(br.line_total or 0) }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <td colspan="8" class="text-end fw-semibold">Sum of rooms</td>
+                    <td class="text-end fw-bold">
+                        {% set ns = namespace(total=0, currency=booking.currency) %}
+                        {% for br in booking.rooms %}
+                            {% set ns.total = ns.total + (br.line_total or 0) %}
+                            {% set ns.currency = br.currency or ns.currency %}
+                        {% endfor %}
+                        {{ ns.currency }} {{ "%.2f"|format(ns.total) }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% elif booking.product_type == 'hotel' %}
+<div class="card shadow-sm mb-3">
+    <div class="card-header bg-white"><strong>Room</strong></div>
+    <div class="card-body small text-muted">
+        <i class="bi bi-info-circle"></i>
+        Single-room booking (legacy). Room #{{ booking.product_id }}
+        {% if items and items|selectattr("item_type", "equalto", "primary")|list %}
+            — line total
+            {{ booking.currency }}
+            {{ "%.2f"|format(items|selectattr("item_type", "equalto", "primary")|first|attr("line_total") or 0) }}
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
 {# ─── Travellers ─── #}
 <div class="card shadow-sm mb-3">

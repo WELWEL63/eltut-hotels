@@ -1,18 +1,12 @@
 ﻿{#
-   Search widget V2 â£” designed to sit centered on the hero.
+   Search widget V2 — designed to sit centered on the hero.
    Include with: {% include "public/_search_widget.html" %}
-
-   Three tabs (Hotels | Packages | Activities).
-   Auto-advances through tabs until the user interacts with one.
-
-   Each tab is a separate <form> so the browser submits only the
-   fields for that product type â£” no JS required for switching.
 #}
 
 {% set _dests = search_destinations() %}
 {% set _pkg_dests = search_package_destinations() %}
-
 {% set _widget_active_type = (request.args.get('type') or 'hotel')|lower %}
+
 <div class="search-widget search-widget-hero" id="eltutSearchWidget">
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -48,14 +42,22 @@
     </ul>
 
     <div class="tab-content">
-        {# â”£â”£â”£ Hotels â”£â”£â”£ #}
+        {# ─── Hotels ─── #}
         <div class="tab-pane fade {% if _widget_active_type == 'hotel' %}show active{% endif %}" id="sw-hotel" role="tabpanel">
-            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
+            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form position-relative">
                 <input type="hidden" name="type" value="hotel">
+                
+                {# Hidden inputs to hold the popover values #}
+                <input type="hidden" name="adults" id="form-hotel-adults" value="2">
+                <input type="hidden" name="children" id="form-hotel-children" value="0">
+                <input type="hidden" name="infants" id="form-hotel-infants" value="0">
+                <input type="hidden" name="rooms" id="form-hotel-rooms" value="1">
+                <input type="hidden" name="child_ages" id="form-hotel-child_ages" value="">
+
                 <div class="row g-2 g-md-3 align-items-end">
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                         <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
-                        <select name="destination" class="form-select form-select-lg">
+                        <select name="destination" class="form-select form-select-lg" required>
                             <option value="">Where would you like to go?</option>
                             {% for d in _dests %}
                                 <option value="{{ d.slug }}">{{ d.name }}</option>
@@ -66,24 +68,36 @@
                         <label class="form-label"><i class="bi bi-calendar-check"></i> Check-in</label>
                         <input type="date" name="check_in" id="sw-hotel-in"
                                class="form-control form-control-lg"
-                               min="{{ today().isoformat() }}">
+                               min="{{ today().isoformat() }}" required>
                     </div>
                     <div class="col-6 col-md-2">
                         <label class="form-label"><i class="bi bi-calendar-x"></i> Check-out</label>
                         <input type="date" name="check_out" id="sw-hotel-out"
                                class="form-control form-control-lg"
-                               min="{{ today().isoformat() }}">
+                               min="{{ today().isoformat() }}" required>
                     </div>
-                    <div class="col-6 col-md-2">
+                    
+                    {# Guests Button (Custom Dropdown) #}
+                    <div class="col-12 col-md-3 position-relative">
                         <label class="form-label"><i class="bi bi-people-fill"></i> Guests</label>
-                        <div class="input-group input-group-lg">
-                            <input type="number" name="adults" class="form-control" value="2" min="1" max="8" title="Adults" placeholder="A">
-                            <span class="input-group-text">+</span>
-                            <input type="number" name="children" class="form-control" value="0" min="0" max="8" title="Children" placeholder="C">
+                        <button type="button" class="form-control form-control-lg text-start d-flex justify-content-between align-items-center bg-white" 
+                                id="heroGuestsBtn" style="height: auto; padding: 0.6rem 1rem;">
+                            <span id="heroGuestsLabel" class="text-truncate">2 adults, 0 children</span>
+                            <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+                        </button>
+                        
+                        {# Absolute Dropdown Panel #}
+                                              <div id="heroGuestsPanel" class="shadow-lg border-0" 
+                             style="display: none; position: absolute; bottom: 100%; right: 0; z-index: 9999; width: 380px; margin-bottom: 0.5rem; background: #fff; border-radius: 12px; padding: 1.25rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.15) !important;">
+                            {% set adults = 2 %}
+                            {% set children = 0 %}
+                            {% set infants = 0 %}
+                            {% include "public/_party_widget.html" %}
                         </div>
                     </div>
+
                     <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
+                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100" style="height: auto; padding: 0.6rem 1rem;">
                             <i class="bi bi-search"></i> Search
                         </button>
                     </div>
@@ -91,7 +105,7 @@
             </form>
         </div>
 
-        {# â”£â”£â”£ Tour Packages â”£â”£â”£ #}
+        {# ─── Tour Packages ─── #}
         <div class="tab-pane fade {% if _widget_active_type == 'package' %}show active{% endif %}" id="sw-package" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
                 <input type="hidden" name="type" value="package">
@@ -134,7 +148,7 @@
             </form>
         </div>
 
-        {# â”£â”£â”£ Activities â”£â”£â”£ #}
+        {# ─── Activities ─── #}
         <div class="tab-pane fade {% if _widget_active_type == 'activity' %}show active{% endif %}" id="sw-activity" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
                 <input type="hidden" name="type" value="activity">
@@ -172,9 +186,15 @@
     </div>
 </div>
 
+<style>
+/* Fix hero overflow so dropdown can show */
+.search-widget-hero { overflow: visible !important; }
+</style>
+
 <script>
 (function() {
-    // Keep check-out >= check-in for each form
+    'use strict';
+
     [['sw-hotel-in', 'sw-hotel-out'], ['sw-pkg-in', 'sw-pkg-out']].forEach(function(pair) {
         const start = document.getElementById(pair[0]);
         const end = document.getElementById(pair[1]);
@@ -185,6 +205,51 @@
         });
     });
 
+    // Toggle Dropdown
+    const guestsBtn = document.getElementById('heroGuestsBtn');
+    const guestsPanel = document.getElementById('heroGuestsPanel');
+    
+    if (guestsBtn && guestsPanel) {
+        guestsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isOpen = guestsPanel.style.display === 'block';
+            guestsPanel.style.display = isOpen ? 'none' : 'block';
+        });
 
+        // Close when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!guestsBtn.contains(e.target) && !guestsPanel.contains(e.target)) {
+                guestsPanel.style.display = 'none';
+            }
+        });
+
+        // Update label when summary changes
+        document.addEventListener('input', function(e) {
+            if (guestsPanel.contains(e.target)) {
+                const summary = guestsPanel.querySelector('.party-widget__summary');
+                const label = document.getElementById('heroGuestsLabel');
+                if (summary && label) {
+                    label.textContent = summary.textContent;
+                }
+
+                // Sync hidden inputs
+                const a = guestsPanel.querySelector('[data-total-adults]').value;
+                const c = guestsPanel.querySelector('[data-total-children]').value;
+                const inf = guestsPanel.querySelector('[data-total-infants]').value;
+                const rooms = guestsPanel.querySelector('[data-total-rooms]').value;
+
+                document.getElementById('form-hotel-adults').value = a;
+                document.getElementById('form-hotel-children').value = c;
+                document.getElementById('form-hotel-infants').value = inf;
+                document.getElementById('form-hotel-rooms').value = rooms;
+
+                let ages = [];
+                guestsPanel.querySelectorAll('[data-child-age]').forEach(sel => {
+                    if (sel.value) ages.push(sel.value);
+                });
+                document.getElementById('form-hotel-child_ages').value = ages.join(',');
+            }
+        });
+    }
 })();
 </script>

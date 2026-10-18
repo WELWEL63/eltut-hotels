@@ -7,6 +7,15 @@ The source CSV (Egypt.csv) lists multiple price rows per room, each
 valid over a date range. This table preserves that: one row per
 (room, valid_from, valid_to) window, so the pricing service can pick
 the correct price for any requested date.
+
+MULTI-ROOM UPGRADE
+    `infant_price` was added alongside adult/child so the pricing
+    service can distinguish:
+        infant (age < 2)       -> infant_price
+        child  (2 <= age < 13) -> child_price
+        adult  (age >= 13)     -> adult_price
+    Infants do not count toward room occupancy (cot, not a bed).
+    No CHECK on the new column (SQLite-safe ADD COLUMN).
 """
 
 from __future__ import annotations
@@ -29,8 +38,8 @@ class RoomRate(Base, TimestampMixin):
         CheckConstraint("child_price >= 0", name="child_price_check"),
         # Accept either a normal window (valid_to >= valid_from) or a
         # year-end wrap of up to ~180 days. The source CSV has
-        # Christmas → New Year rates that cross the year boundary,
-        # e.g. 2027-12-24 → 2027-01-03, which are legitimate.
+        # Christmas -> New Year rates that cross the year boundary,
+        # e.g. 2027-12-24 -> 2027-01-03, which are legitimate.
         CheckConstraint(
             "valid_to IS NULL OR valid_from IS NULL "
             "OR valid_to >= valid_from "
@@ -51,6 +60,9 @@ class RoomRate(Base, TimestampMixin):
         Numeric(10, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
     )
     child_price: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
+    )
+    infant_price: Mapped[Decimal] = mapped_column(
         Numeric(10, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
     )
     currency: Mapped[str] = mapped_column(

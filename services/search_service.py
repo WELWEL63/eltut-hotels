@@ -3,16 +3,23 @@ services/search_service.py
 ───────────────────────────
 Cross-product search for activities, hotels, and packages.
 
-v4 changes (packages only):
+v5 changes (multi-room upgrade):
+  - _search_hotels uses hotel_capacity_service.min_rooms_needed to
+    include hotels that can host the party across 1..MAX_ROOMS rooms.
+    Previously the filter required a SINGLE room to hold the whole
+    party, which hid every multi-room option.
+  - Hotel cards gain `min_rooms` (int) and `rooms_note` (str) so the
+    template can say "Needs 2 rooms".
+  - Paginated fill-up loop keeps `per_page` items even after filtering.
+  - Packages / activities are UNCHANGED in behaviour.
+
+Earlier v4 changes (packages only):
   - Package cards now priced from PackageFlight cards via
     services.package_options_service.options_for_package
     (the same source used by /packages/<slug>).
   - Destinations with is_bookable=False are excluded.
   - total is computed AFTER the per-row price filter — pagination
     matches the returned items count.
-  - _package_pricing and _package_price_tier are kept for the
-    activity/hotel-adjacent callers but no longer used by
-    _search_packages.
 """
 
 from __future__ import annotations
@@ -221,33 +228,106 @@ def search(
     }
 
 
+# ═══════════════════════════════════════════════════════════════════
+#  Hotels — multi-room aware
+# ═══════════════════════════════════════════════════════════════════
+def _rooms_note(min_rooms: int | None) -> str:
+    if min_rooms is None:
+        return ""
+    if min_rooms == 1:
+        return "Fits in 1 room"
+    if min_rooms == 2:
+        return "Needs 2 rooms"
+    if min_rooms == 3:
+        return "Needs 3 rooms"
+    return f"Needs {min_rooms} rooms"
+
+
 def _search_hotels(
     *, destination_id: int | None, check_in: date | None, check_out: date | None,
     adults: int, children: int,
     page: int, per_page: int, sort: str,
     query_text: str | None, ignored: list[str],
 ) -> tuple[list[dict], int]:
-    stmt = select(Hotel).where(Hotel.is_active.is_(True))
-    if destination_id:
-        stmt = stmt.where(Hotel.destination_id == destination_id)
-    if query_text:
-        stmt = stmt.where(Hotel.name.ilike(f"%{query_text}%"))
+    """
+    Hotel search with multi-room capacity.
 
-    party_size = adults + children
-    if party_size > 0:
-        stmt = stmt.where(
+    Party is (adults, children). Children here are counted, not aged —
+    the search widget has no per-child age yet (arrives in Step 4). At
+    this layer we treat every child as 2..12 for capacity purposes.
+
+    Strategy
+    --------
+      1. SQL pre-filter: hotel must have >=1 active room.
+      2. Cheap party pre-filter: if children > 0, at least one active
+         room in the hotel must derive max_children >= 1 (drops
+         adults-only hotels early).
+      3. Sort + paginate at the DB level.
+      4. For each hotel on the page, call min_rooms_needed. If None,
+         drop it. If a page ends up short, top it up by fetching more
+         pages (up to MAX_SCAN_PAGES).
+      5. total = count of hotels that pass min_rooms_needed, computed
+         by scanning the full filtered set in batches.
+
+    This keeps the SQL simple and pushes the non-trivial bin-packing
+    into Python where it is testable and cache-friendly.
+    """
+    from services.hotel_capacity_service import min_rooms_needed
+
+    # ─── 1. Base filtered query ────────────────────────────────
+    base = select(Hotel).where(Hotel.is_active.is_(True))
+    if destination_id:
+        base = base.where(Hotel.destination_id == destination_id)
+    if query_text:
+        base = base.where(Hotel.name.ilike(f"%{query_text}%"))
+
+    # Require at least one active room
+    base = base.where(
+        select(Room.id)
+        .where(Room.hotel_id == Hotel.id)
+        .where(Room.is_active.is_(True))
+        .correlate(Hotel)
+        .exists()
+    )
+
+    # If any children, require at least one active room with
+    # effective child capacity. Derivation is in Python, but the raw
+    # signal we can rely on in SQL is:
+    #   (max_children IS NOT NULL AND max_children > 0) OR
+    #   (max_children IS NULL AND max_occupancy - COALESCE(max_adults, max_occupancy) > 0)
+    # We also accept the B2 case where max_adults == max_occupancy and
+    # max_children IS NULL — derivation gives occ >= 3 -> children >= 1,
+    # so require max_occupancy >= 3 in that case.
+    if children > 0:
+        child_cap_expr = (
+            (Room.max_children.is_not(None) & (Room.max_children > 0))
+            | (
+                Room.max_children.is_(None)
+                & (
+                    (Room.max_adults.is_(None) & (Room.max_occupancy >= 3))
+                    | (
+                        (Room.max_adults.is_not(None))
+                        & (Room.max_adults == Room.max_occupancy)
+                        & (Room.max_occupancy >= 3)
+                    )
+                    | (
+                        (Room.max_adults.is_not(None))
+                        & (Room.max_adults != Room.max_occupancy)
+                        & ((Room.max_occupancy - Room.max_adults) > 0)
+                    )
+                )
+            )
+        )
+        base = base.where(
             select(Room.id)
             .where(Room.hotel_id == Hotel.id)
             .where(Room.is_active.is_(True))
-            .where(Room.max_occupancy >= party_size)
+            .where(child_cap_expr)
             .correlate(Hotel)
             .exists()
         )
 
-    total = int(db.session.scalar(
-        select(func.count()).select_from(stmt.subquery())
-    ) or 0)
-
+    # ─── 2. Sorting ────────────────────────────────────────────
     min_price_subq = (
         select(func.min(Room.base_price_per_night))
         .where(Room.hotel_id == Hotel.id)
@@ -259,81 +339,144 @@ def _search_hotels(
     )
 
     if sort == "name":
-        stmt = stmt.order_by(Hotel.name.asc())
+        base = base.order_by(Hotel.name.asc())
     elif sort == "stars_desc":
-        stmt = stmt.order_by(Hotel.stars.desc().nullslast(), Hotel.name.asc())
+        base = base.order_by(Hotel.stars.desc().nullslast(), Hotel.name.asc())
     elif sort == "price_asc":
-        stmt = stmt.order_by(min_price_subq.asc().nullslast(), Hotel.name.asc())
+        base = base.order_by(min_price_subq.asc().nullslast(), Hotel.name.asc())
     elif sort == "price_desc":
-        stmt = stmt.order_by(min_price_subq.desc().nullslast(), Hotel.name.asc())
+        base = base.order_by(min_price_subq.desc().nullslast(), Hotel.name.asc())
     else:
-        stmt = stmt.order_by(Hotel.id.desc())
+        base = base.order_by(Hotel.id.desc())
 
-    offset = (page - 1) * per_page
-    rows = db.session.scalars(stmt.limit(per_page).offset(offset)).all()
+    # ─── 3. Scan + filter, fill pages ──────────────────────────
+    # Total: scan in batches so we don't blow memory on 180 hotels.
+    # 180 rows is trivial; the batch loop just keeps the code honest if
+    # the catalogue grows.
+    BATCH = 100
+    MAX_SCAN_PAGES = 20  # safety cap; ~2000 hotels max scan
 
+    # 3a. Compute total by streaming the full filtered set once.
+    total = 0
+    offset = 0
+    scanned_pages = 0
+    while True:
+        batch_rows = list(db.session.scalars(base.limit(BATCH).offset(offset)).all())
+        if not batch_rows:
+            break
+        for h in batch_rows:
+            m = min_rooms_needed(
+                h.id, adults=adults,
+                child_ages=[10] * children,  # placeholder ages (child class)
+                infants=0,
+            )
+            if m is not None:
+                total += 1
+        if len(batch_rows) < BATCH:
+            break
+        offset += BATCH
+        scanned_pages += 1
+        if scanned_pages >= MAX_SCAN_PAGES:
+            break
+
+    total_pages = max(1, (total + per_page - 1) // per_page)
+    if page > total_pages:
+        page = total_pages
+
+    # 3b. Page fill: walk the filtered set, skip hotels that don't fit,
+    # stop when we have per_page items or we run out.
+    needed = per_page
+    skip_until = (page - 1) * per_page  # how many valid hotels to skip first
     items: list[dict] = []
-    for h in rows:
-        dest = db.session.get(Destination, h.destination_id) if h.destination_id else None
-        pricing = _hotel_pricing_for_dates(
-            hotel_id=h.id,
-            check_in=check_in,
-            check_out=check_out,
-            adults=adults,
-            children=children,
-        )
+    offset = 0
+    seen_valid = 0
+    while needed > 0 and offset < 5000:  # hard safety cap on scan
+        batch_rows = list(db.session.scalars(base.limit(BATCH).offset(offset)).all())
+        if not batch_rows:
+            break
+        for h in batch_rows:
+            m = min_rooms_needed(
+                h.id, adults=adults,
+                child_ages=[10] * children,
+                infants=0,
+            )
+            if m is None:
+                continue
+            if seen_valid < skip_until:
+                seen_valid += 1
+                continue
+            seen_valid += 1
 
-        rich = _hotel_display_data(h.id)
-        image_url = _first_image_url(getattr(h, "images", None)) or rich["cover_image"]
+            # Build the item
+            dest = db.session.get(Destination, h.destination_id) if h.destination_id else None
+            pricing = _hotel_pricing_for_dates(
+                hotel_id=h.id,
+                check_in=check_in,
+                check_out=check_out,
+                adults=adults,
+                children=children,
+            )
+            rich = _hotel_display_data(h.id)
+            image_url = _first_image_url(getattr(h, "images", None)) or rich["cover_image"]
 
-        items.append({
-            "id": h.id,
-            "name": h.name,
-            "slug": h.slug,
-            "destination_id": h.destination_id,
-            "destination_name": dest.name if dest else None,
-            "price_adult": (
-                float(pricing["adult_rate"])
-                if pricing["adult_rate"] is not None else None
-            ),
-            "currency": pricing["currency"],
-            "image_url": image_url,
-            "extra": {
+            items.append({
+                "id": h.id,
+                "name": h.name,
+                "slug": h.slug,
+                "destination_id": h.destination_id,
+                "destination_name": dest.name if dest else None,
+                "price_adult": (
+                    float(pricing["adult_rate"])
+                    if pricing["adult_rate"] is not None else None
+                ),
+                "currency": pricing["currency"],
+                "image_url": image_url,
+                "extra": {
+                    "stars": h.stars,
+                    "check_in_time": h.check_in_time,
+                    "check_out_time": h.check_out_time,
+                },
+                "price_child": (
+                    float(pricing["child_rate"])
+                    if pricing["child_rate"] is not None else None
+                ),
+                "nights": pricing["nights"],
+                "price_per_night": (
+                    float(pricing["per_night"])
+                    if pricing["per_night"] is not None else None
+                ),
+                "total_price": (
+                    float(pricing["total"])
+                    if pricing["total"] is not None else None
+                ),
+                "meal_plan": pricing.get("meal_plan"), 
+                "adults": adults,
+                "children": children,
+                "check_in": check_in.isoformat() if check_in else None,
+                "check_out": check_out.isoformat() if check_out else None,
+                "price_basis": "per_night",
+                
                 "stars": h.stars,
+                "address": h.address,
                 "check_in_time": h.check_in_time,
                 "check_out_time": h.check_out_time,
-            },
-            "price_child": (
-                float(pricing["child_rate"])
-                if pricing["child_rate"] is not None else None
-            ),
-            "nights": pricing["nights"],
-            "price_per_night": (
-                float(pricing["per_night"])
-                if pricing["per_night"] is not None else None
-            ),
-            "total_price": (
-                float(pricing["total"])
-                if pricing["total"] is not None else None
-            ),
-            "adults": adults,
-            "children": children,
-            "check_in": check_in.isoformat() if check_in else None,
-            "check_out": check_out.isoformat() if check_out else None,
-            "price_basis": "per_night",
-            "stars": h.stars,
-            "address": h.address,
-            "check_in_time": h.check_in_time,
-            "check_out_time": h.check_out_time,
-            "google_maps_url": h.google_maps_url,
-            "description_snippet": (
-                (h.description or "")[:140].rsplit(" ", 1)[0] + "..."
-                if h.description and len(h.description) > 140
-                else (h.description or "")
-            ),
-            "facilities": rich["facilities"],
-            "room_count": rich["room_count"],
-        })
+                "google_maps_url": h.google_maps_url,
+                "description_snippet": (
+                    (h.description or "")[:140].rsplit(" ", 1)[0] + "..."
+                    if h.description and len(h.description) > 140
+                    else (h.description or "")
+                ),
+                "facilities": rich["facilities"],
+                "room_count": rich["room_count"],
+                "min_rooms": m,
+                "rooms_note": _rooms_note(m),
+            })
+            needed -= 1
+            if needed <= 0:
+                break
+        if len(batch_rows) < BATCH:
+            break
+        offset += BATCH
 
     return items, total
 
@@ -378,7 +521,6 @@ def _hotel_display_data(hotel_id: int) -> dict[str, Any]:
         "room_count": room_count,
     }
 
-
 def _hotel_pricing_for_dates(
     *, hotel_id: int,
     check_in: date | None, check_out: date | None,
@@ -387,8 +529,23 @@ def _hotel_pricing_for_dates(
     empty = {
         "adult_rate": None, "child_rate": None, "nights": None,
         "per_night": None, "total": None, "currency": "GBP",
+        "meal_plan": None,
     }
 
+    from services import hotel_capacity_service
+    child_ages = [6] * children
+    
+    try:
+        grouping = hotel_capacity_service.best_room_grouping(
+            hotel_id, adults=adults, child_ages=child_ages, infants=0,
+            check_in=check_in, check_out=check_out
+        )
+    except Exception:
+        grouping = None
+
+    min_rooms = grouping.get("min_rooms", 1) if grouping else 1
+
+    # Get the exact cheapest room
     room = db.session.scalars(
         select(Room)
         .where(Room.hotel_id == hotel_id)
@@ -406,40 +563,34 @@ def _hotel_pricing_for_dates(
     if check_in is not None and check_out is not None:
         nights = max(0, (check_out - check_in).days)
 
-    adult_rate: Decimal | None = None
-    child_rate: Decimal | None = None
+    adult_rate = Decimal("0")
+    child_rate = Decimal("0")
     currency = "GBP"
 
     if check_in is not None:
         rate = db.session.scalars(
             select(RoomRate)
             .where(RoomRate.room_id == room.id)
-            .where(
-                (RoomRate.valid_from.is_(None))
-                | (RoomRate.valid_from <= check_in)
-            )
-            .where(
-                (RoomRate.valid_to.is_(None))
-                | (RoomRate.valid_to >= check_in)
-            )
-            .order_by(RoomRate.id.asc())
-            .limit(1)
+            .where((RoomRate.valid_from.is_(None)) | (RoomRate.valid_from <= check_in))
+            .where((RoomRate.valid_to.is_(None)) | (RoomRate.valid_to >= check_in))
+            .order_by(RoomRate.id.asc()).limit(1)
         ).first()
+        
         if rate is not None:
             adult_rate = rate.adult_price
             child_rate = rate.child_price
             currency = rate.currency or "GBP"
-
-    if adult_rate is None:
+        else:
+            adult_rate = room.base_price_per_night
+            child_rate = Decimal("0.00")
+    else:
         adult_rate = room.base_price_per_night
         child_rate = Decimal("0.00")
 
-    try:
-        per_night = (adult_rate * adults) + ((child_rate or Decimal("0")) * children)
-        total = per_night * nights if nights else None
-    except Exception:
-        per_night = None
-        total = None
+    # Price for 1 room (2 adults, 1 child)
+    per_night_one_room = (adult_rate * 2) + child_rate
+    per_night = per_night_one_room * min_rooms
+    total = per_night * nights
 
     return {
         "adult_rate": adult_rate,
@@ -448,8 +599,8 @@ def _hotel_pricing_for_dates(
         "per_night": per_night,
         "total": total,
         "currency": currency,
+        "meal_plan": room.meal_plan,
     }
-
 
 def _search_packages(
     *, destination_id: int | None, check_in: date | None, check_out: date | None,

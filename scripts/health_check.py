@@ -24,6 +24,9 @@ Database
  12. Rooms with no price and no RoomRate
  13. Destinations with 0 active packages that appear in search
  14. Bookings with total_amount = 0
+ 15. Multi-room integrity: BookingRoom → Booking/Room present, room_index
+     in 1..3, per-room adult totals consistent with Booking.travellers_adults
+ 16. Rooms left behind by the multi-room migration (max_adults IS NULL)
 
 Output
 ──────
@@ -308,6 +311,97 @@ def check_rooms_priced() -> None:
         _add(WARN, "BIZ003", f"Could not verify room pricing: {e}")
 
 
+def check_rooms_split_caps() -> None:
+    """BIZ007 — rooms left behind by the multi-room migration.
+
+    After the add_multi_room_support migration, max_adults was backfilled
+    from max_occupancy, so every active room should have a non-NULL
+    max_adults. A NULL here means a row was inserted by a path that
+    bypassed the ORM __init__ and the migration UPDATE.
+    """
+    try:
+        from extensions import db
+        from models import Room
+        from sqlalchemy import select, func
+        null_count = int(db.session.scalar(
+            select(func.count(Room.id))
+            .where(Room.is_active.is_(True))
+            .where(Room.max_adults.is_(None))
+        ) or 0)
+        if null_count:
+            _add(WARN, "BIZ007",
+                 f"{null_count} active rooms have max_adults = NULL "
+                 f"(multi-room migration leftover)")
+        else:
+            _add(OK, "BIZ007", "All active rooms have max_adults set")
+    except Exception as e:
+        _add(WARN, "BIZ007", f"Could not verify room max_adults: {e}")
+
+
+def check_multi_room_integrity() -> None:
+    """BIZ006 — BookingRoom integrity after multi-room upgrade.
+
+    Verifies:
+      - every booking_rooms.booking_id points at a real booking
+      - every booking_rooms.room_id points at a real room
+      - room_index is 1..3
+      - for hotel bookings, sum(rooms.adults) <= booking.travellers_adults
+        (equal is the normal case; less is allowed for draft/incomplete)
+    A row with a missing booking or room is an orphan and indicates a
+    cascade failure.
+    """
+    try:
+        from extensions import db
+        from models import BookingRoom, Booking, Room
+        from sqlalchemy import select
+
+        rows = list(db.session.scalars(select(BookingRoom)))
+        total = len(rows)
+        if total == 0:
+            _add(OK, "BIZ006", "No BookingRoom rows yet (multi-room not used)")
+            return
+
+        bad_booking = 0
+        bad_room = 0
+        bad_index = 0
+        by_booking: dict[int, list] = {}
+        for br in rows:
+            if br.room_index is None or br.room_index < 1 or br.room_index > 3:
+                bad_index += 1
+            if db.session.get(Booking, br.booking_id) is None:
+                bad_booking += 1
+                continue
+            if db.session.get(Room, br.room_id) is None:
+                bad_room += 1
+            by_booking.setdefault(br.booking_id, []).append(br)
+
+        overcount = 0
+        for booking_id, brs in by_booking.items():
+            bk = db.session.get(Booking, booking_id)
+            if bk is None:
+                continue
+            if (bk.product_type or "").lower() != "hotel":
+                continue
+            assigned = sum(int(r.adults or 0) for r in brs)
+            headline = int(bk.travellers_adults or 0)
+            if assigned > headline:
+                overcount += 1
+
+        problems = []
+        if bad_booking: problems.append(f"{bad_booking} missing booking")
+        if bad_room:    problems.append(f"{bad_room} missing room")
+        if bad_index:   problems.append(f"{bad_index} room_index out of 1..3")
+        if overcount:   problems.append(f"{overcount} hotel bookings with per-room adults > headline")
+        if problems:
+            _add(WARN, "BIZ006",
+                 f"{total} BookingRoom rows; issues: {', '.join(problems)}")
+        else:
+            _add(OK, "BIZ006",
+                 f"{total} BookingRoom rows across {len(by_booking)} bookings — all resolve")
+    except Exception as e:
+        _add(WARN, "BIZ006", f"Could not verify BookingRoom integrity: {e}")
+
+
 def check_destinations_visible() -> None:
     try:
         from extensions import db
@@ -380,6 +474,8 @@ def main() -> int:
             check_package_flight_fks()
             check_packages_have_options()
             check_rooms_priced()
+            check_rooms_split_caps()
+            check_multi_room_integrity()
             check_destinations_visible()
             check_zero_total_bookings()
     finally:
