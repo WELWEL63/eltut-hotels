@@ -314,6 +314,24 @@ def create_app(config_name: str | None = None) -> Flask:
     _register_user_loader(app)
     _register_blueprints(app)
 
+    # ─── Security Headers ──────────────────────────────────────────
+    @app.after_request
+    def add_security_headers(response):
+        """Add standard security headers to every response."""
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        # Basic Content Security Policy
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "img-src 'self' data: https:; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "font-src 'self' https://cdn.jsdelivr.net;"
+        )
+        return response
+    # ───────────────────────────────────────────────────────────────
+
     # ─── Jinja global: content() ─────────────────────────────────────
     # WHY a Jinja global rather than a context processor: this helper
     # is called from every template, needs to be fast, and doesn't
@@ -416,4 +434,4 @@ if __name__ == "__main__":
     # Local dev only; Render uses gunicorn.
     if app is None:
         app = create_app()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(debug=app.config.get("FLASK_DEBUG", False))
