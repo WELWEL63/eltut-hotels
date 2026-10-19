@@ -96,9 +96,6 @@
                                 {% for a in addons %}
                                     <div class="col-md-6">
                                         <div class="addon-card">
-                                            <!-- HIDDEN INPUT FOR BACKEND TOTAL -->
-                                            <input type="hidden" name="addon_total_{{ a.id }}" id="addon_total_{{ a.id }}" value="0">
-                                            
                                             <input type="checkbox"
                                                    class="addon-checkbox form-check-input"
                                                    name="addon_{{ a.id }}"
@@ -346,7 +343,9 @@
                 </div>
 
                 {# ═══════════════ SIDEBAR ═══════════════ #}
-                <aside class="col-lg-4">
+                
+          
+<aside class="col-lg-4">
                     <div class="card shadow-sm sticky-top overflow-hidden" style="top: 1rem;">
 
                         <div class="sidebar-hero">
@@ -358,45 +357,49 @@
                             {% endif %}
                         </div>
 
+                        {# HOTEL DETAILS #}
                         <div class="card-body border-bottom pb-3">
+                            <div class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.05em; font-size:.7rem;">Your accommodation</div>
                             <div class="d-flex align-items-start gap-2 mb-2">
                                 <i class="bi bi-building text-eltut-terracotta" style="font-size:1.4rem;"></i>
                                 <div class="flex-grow-1">
-                                    {% if rooms_grouping %}
-                                        <div class="fw-bold">{{ meta.hotel or meta.name }}</div>
-                                        <div class="small" style="color:#f2c964;">{% for _ in range(meta.stars|int) %}<i class="bi bi-star-fill"></i>{% endfor %}</div>
-                                        <div class="small text-muted mt-1"><i class="bi bi-door-open"></i> {{ rooms_grouping.min_rooms }} rooms &middot; <i class="bi bi-moon-stars"></i> {{ rooms_grouping.nights }} nights</div>
-                                    {% else %}
-                                        <div class="fw-bold">{{ meta.hotel or meta.name }}</div>
-                                        <div class="small text-muted mt-1"><i class="bi bi-door-open"></i> {{ meta.room }}</div>
+                                    <div class="fw-bold">{{ pkg_details.hotel_name or meta.hotel or meta.name }}</div>
+                                    {% if pkg_details.stars or meta.get('stars') %}
+                                        <div class="small" style="color:#f2c964;">
+                                            {% for _ in range((pkg_details.stars or meta.get('stars') or 0)|int) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                            <span class="text-muted ms-1">{{ pkg_details.stars or meta.get('stars') }}-star</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if pkg_details.destination or meta.destination %}
+                                        <div class="small text-muted mt-1"><i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i> {{ pkg_details.destination or meta.destination }}</div>
                                     {% endif %}
                                 </div>
                             </div>
-                            {% if meta.destination %}
-                                <div class="small text-muted mb-1"><i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i> {{ meta.destination }}</div>
+                            {% if pkg_details.room_type %}
+                                <div class="mt-2 small">
+                                    <div class="fw-semibold">{{ pkg_details.room_type }}</div>
+                                    {% if pkg_details.meal_plan %}<div class="text-muted"><i class="bi bi-egg-fried"></i> {{ pkg_details.meal_plan|replace('_', ' ')|title }}</div>{% endif %}
+                                    {% if pkg_details.max_occupancy %}<div class="text-muted"><i class="bi bi-people"></i> Up to {{ pkg_details.max_occupancy }} guests</div>{% endif %}
+                                </div>
                             {% endif %}
                         </div>
 
-                        {% if rooms_grouping %}
+                        {# FLIGHT #}
+                        {% if option and option.airline_name %}
                         <div class="card-body border-bottom pb-3">
-                            <div class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.05em; font-size:.7rem;">
-                                <i class="bi bi-door-open text-eltut-terracotta"></i> Your rooms ({{ rooms_grouping.min_rooms }})
-                            </div>
-                            {% for r in rooms_grouping.rooms %}
-                                <div class="booking-room-card mb-2 p-2 rounded" style="background:#fdfbf8; border:1px solid #f0e6dc;">
-                                    <div class="d-flex justify-content-between align-items-start gap-2">
-                                        <div class="flex-grow-1">
-                                            <div class="fw-semibold small">Room {{ loop.index }} &middot; {{ r.room_type }}</div>
-                                            <div class="small text-muted">{{ r.adults }} adults {% if r.children %}+ {{ r.children }} children{% endif %}</div>
-                                            {% if r.meal_plan %}<div class="small text-muted"><i class="bi bi-egg-fried"></i> {{ r.meal_plan|replace("_", " ")|title }}</div>{% endif %}
-                                        </div>
-                                        <div class="fw-bold small text-eltut-terracotta text-nowrap">{{ r.currency }} {{ "%.2f"|format(r.line_total) }}</div>
-                                    </div>
+                            <div class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.05em; font-size:.7rem;">Your selected flight</div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                {% if option.airline_logo %}<img src="{{ option.airline_logo }}" alt="{{ option.airline_name }}" style="height:32px; max-width:70px; object-fit:contain;">{% endif %}
+                                <div>
+                                    <div class="fw-semibold">{{ option.airline_name }}</div>
+                                    <div class="small text-muted">{{ option.flight_from }} → {{ option.flight_to }}</div>
                                 </div>
-                            {% endfor %}
+                            </div>
+                            <div class="small text-muted">{{ option.departure_date }} → {{ option.return_date }}</div>
                         </div>
                         {% endif %}
 
+                        {# DATES #}
                         <div class="card-body border-bottom pb-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div>
@@ -405,31 +408,43 @@
                                         <strong>{{ form_defaults.check_in.strftime("%d %b %Y") if form_defaults.check_in else "—" }}</strong> → <strong>{{ form_defaults.check_out.strftime("%d %b %Y") if form_defaults.check_out else "—" }}</strong>
                                     </div>
                                     <div class="small text-muted mt-1">
-                                        <i class="bi bi-moon-stars"></i> {{ pricing.nights or 0 }} nights · <i class="bi bi-people"></i> {{ form_defaults.adults }} adults {% if form_defaults.children %}+ {{ form_defaults.children }} children{% endif %}
+                                        <i class="bi bi-moon-stars"></i> {{ pricing.nights or 0 }} nights &middot; <i class="bi bi-people"></i> {{ form_defaults.adults }} adults {% if form_defaults.children %}+ {{ form_defaults.children }} children{% endif %}
                                     </div>
                                 </div>
                                 <a href="javascript:history.back()" class="small text-decoration-none ms-2">Change</a>
                             </div>
                         </div>
 
+                        {# PRICE BREAKDOWN #}
                         <div class="card-body pb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="small fw-semibold text-uppercase text-muted" style="letter-spacing:.05em; font-size:.7rem;">Price breakdown</div>
-                                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 small" data-bs-toggle="collapse" data-bs-target="#price-breakdown" aria-expanded="true"><span class="collapse-label">Hide</span></button>
-                            </div>
-
-                            <div class="collapse show" id="price-breakdown">
-                                <div class="d-flex justify-content-between small mb-2">
-                                    <span class="text-muted">
-                                        {% if rooms_grouping %}
-                                            {{ rooms_grouping.min_rooms }} Rooms × {{ pricing.nights }} nights
-                                        {% else %}
-                                            {% if product_type == 'package' %}Package{% else %}Room{% endif %} × {{ pricing.nights }} nights
-                                        {% endif %}
-                                    </span>
-                                    <strong>{{ pricing.currency }} {{ "%.2f"|format(pricing.total or 0) }}</strong>
-                                </div>
-
+                            <div class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.05em; font-size:.7rem;">Price breakdown</div>
+                            <div>
+                                {% if product_type == 'package' and pkg_details.land_cost is defined %}
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted"><i class="bi bi-house"></i> Land cost ({{ pricing.nights }} nights)</span>
+                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.land_cost) }}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted"><i class="bi bi-airplane"></i> Flights</span>
+                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.flight_cost) }}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted"><i class="bi bi-percent"></i> Service fee</span>
+                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.service_fee) }}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted"><i class="bi bi-bus-front"></i> Transfers</span>
+                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.transfers) }}</strong>
+                                    </div>
+                                {% else %}
+                                    <div class="d-flex justify-content-between small mb-2">
+                                        <span class="text-muted">
+                                            {% if rooms_grouping %}{{ rooms_grouping.min_rooms }} Rooms × {{ pricing.nights }} nights{% else %}{{ product_type|title }} × {{ pricing.nights }} nights{% endif %}
+                                        </span>
+                                        <strong>{{ pricing.currency }} {{ "%.2f"|format(pricing.total or 0) }}</strong>
+                                    </div>
+                                {% endif %}
+                                
                                 <div id="addons-breakdown" style="display:none;">
                                     <div class="d-flex justify-content-between small mb-2 mt-1">
                                         <span class="text-muted">Add-ons subtotal</span>
@@ -630,10 +645,6 @@
                 const name = cb.dataset.name || 'Add-on';
                 const subtotal = aP * ADULTS + cP * CHILDREN;
 
-                // Send the calculated total to the hidden input for the backend
-                const hiddenInput = document.getElementById('addon_total_' + cb.dataset.addonId);
-                if (hiddenInput) hiddenInput.value = subtotal.toFixed(2);
-
                 addonTotal += subtotal;
                 addonCurrency = addonCurrency || cur;
                 selectedCount += 1;
@@ -649,10 +660,6 @@
                 if (contribRow) contribRow.style.display = 'block';
                 if (contribValue) contribValue.textContent = fmt(subtotal, cur);
             } else {
-                // Reset the hidden input to 0 if unchecked
-                const hiddenInput = document.getElementById('addon_total_' + cb.dataset.addonId);
-                if (hiddenInput) hiddenInput.value = "0";
-
                 if (card) card.classList.remove('is-selected');
                 if (contribRow) contribRow.style.display = 'none';
             }

@@ -549,7 +549,6 @@ def booking_start(product_type: str, product_id: int):
                 "price_adult": float(price.adult_price) if price else None, "price_child": float(price.child_price) if price else None,
                 "currency": price.currency if price else None,
             }
-
     if rooms_grouping is not None:
         pricing_for_template = dict(pricing)
         pricing_for_template["total"] = rooms_grouping["grand_total"]
@@ -558,11 +557,61 @@ def booking_start(product_type: str, product_id: int):
     else:
         pricing_for_template = pricing
 
+    # --- NEW: Fetch detailed package room and pricing breakdown ---
+       # --- NEW: Fetch detailed package room and pricing breakdown ---
+    pkg_details = {}
+    if product_type == PRODUCT_TYPE_PACKAGE:
+        from models import Room as _RoomModel, Hotel as _HotelModel, Destination as _DestModel
+        room = db.session.get(_RoomModel, product.room_id) if product.room_id else None
+        hotel = db.session.get(_HotelModel, product.hotel_id) if product.hotel_id else None
+        dest = db.session.get(_DestModel, product.destination_id) if product.destination_id else None
+        
+        pkg_details = {
+            "hotel_name": hotel.name if hotel else product.name,
+            "stars": hotel.stars if hotel else 0,
+            "destination": dest.name if dest else "",
+            "room_type": room.type if room else "",
+            "meal_plan": room.meal_plan if room else "",
+            "max_occupancy": room.max_occupancy if room else 0,
+        }
+        
+        if option is not None and getattr(option, "outbound_flight", None):
+            nights = (check_out - check_in).days if check_in and check_out else product.duration_nights
+            land_total = 0.0
+            if room:
+                rate = db.session.scalars(
+                    select(RoomRate)
+                    .where(RoomRate.room_id == room.id)
+                    .where((RoomRate.valid_from.is_(None)) | (RoomRate.valid_from <= check_in))
+                    .where((RoomRate.valid_to.is_(None)) | (RoomRate.valid_to >= check_in))
+                    .order_by(RoomRate.id.asc()).limit(1)
+                ).first()
+                rate_per_night = float(rate.adult_price) if rate else float(room.base_price_per_night or 0)
+                land_total = rate_per_night * nights
+            
+            flight_total = 0.0
+            if option.outbound_flight: flight_total += float(option.outbound_flight.price_gbp)
+            if option.inbound_flight: flight_total += float(option.inbound_flight.price_gbp)
+            
+            from services.package_pricing_service import compute_package_flight_card
+            calc = compute_package_flight_card(product, option)
+            
+            pkg_details.update({
+                "land_cost": round(land_total, 2),
+                "flight_cost": round(flight_total, 2),
+                "service_fee": round(float(calc.get("markup") or 0), 2),
+                "transfers": round(float(calc.get("transfer_fee") or 0), 2),
+                "currency": calc.get("currency") or "GBP",
+            })
+    # -------------------------------------------------------------
+    # -------------------------------------------------------------
+
     return render_template(
         "public/booking_start.html",
         product_type=product_type, product=product, meta=meta, addons=addons, option=option_summary,
         pricing=pricing_for_template, rooms_grouping=rooms_grouping, rooms_json=rooms_json,
         child_ages=child_ages, infants=infants,
+        pkg_details=pkg_details,  # <--- ADD THIS LINE
         form_defaults={"check_in": check_in, "check_out": check_out, "activity_date": activity_date, "adults": adults, "children": children, "infants": infants},
     )
 

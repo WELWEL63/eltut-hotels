@@ -202,7 +202,7 @@ h5{
 
 .navbar.navbar-dark.site-header,
 .site-header {
-    background:  linear-gradient(#043347, #013f63c2);
+    background:  linear-gradient(#011f2c, #00304cde);
      
     border-bottom: 2px solid #c9a227 !important;
     box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
@@ -264,7 +264,7 @@ h5{
    ═══════════════════════════════════════════════════════════════════════ */
 
 .footer {
-    background: linear-gradient(#043347, #013f63c2);
+     background:  linear-gradient(#011f2c, #00304cde);
     border-top: 2px solid #c9a227 !important;
     color: #e8d9b3 !important;
     padding: 2.25rem 0 !important;

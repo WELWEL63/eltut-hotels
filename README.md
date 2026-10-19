@@ -196,7 +196,18 @@ Proprietary — ElTut Tours.
 
 
 
-
+get report
+python scripts\generate_report.py
 
 python -m scripts.session_report > _session_context.txt
 Get-Content _session_context.txt
+
+
+for hurghada only link flights:
+python scripts\apply_flight_links.py
+
+for flights match run 
+python scripts\auto_match_all_flights.py
+
+
+
