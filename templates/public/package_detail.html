@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{ package.name }} — {{ config.APP_NAME }}{% endblock %}
+{% block title %}{{ package.name }} — {{ config.APP_NAME }}
+{% endblock %}
 
 {% block content %}
 {% set _has_dates = request.args.get('check_in') and request.args.get('check_out') %}
@@ -376,11 +377,10 @@
                                                         {{ opt.currency }} {{ "%.0f"|format(opt.price_child) }} / child
                                                     </div>
                                                 {% endif %}
-                                                <div class="btn btn-outline-primary w-100 select-hint">
+                                                <a href="?package_flight_id={{ opt.package_flight_id }}&check_in={{ opt.departure_date.isoformat() if opt.departure_date else '' }}&check_out={{ opt.return_date.isoformat() if opt.return_date else '' }}&adults={{ adults }}&children={{ children }}" class="btn btn-outline-primary w-100 select-hint" style="text-decoration:none;">
                                                     <i class="bi bi-circle"></i>
                                                     <span class="select-hint-idle">Click to select</span>
-                                                    <span class="select-hint-active"><i class="bi bi-check-circle-fill me-1"></i>Selected</span>
-                                                </div>
+                                                </a>
                                             </div>
                                         {% else %}
                                             <div class="mt-auto pt-3 border-top">
@@ -900,10 +900,7 @@
                         <div class="card-body border-bottom">
                             {% if check_in and check_out %}
                                 <div class="small mb-1">
-                                    <div id="sidebar-dates"><i class="bi bi-calendar-range text-eltut-terracotta"></i>
-                                    <strong>{{ check_in.strftime("%d %b %Y") }}</strong>
-                                    →
-                                    <strong>{{ check_out.strftime("%d %b %Y") }}</strong></div>
+                                    <div id="sidebar-dates"><i class="bi bi-calendar-range text-eltut-terracotta"></i> <strong>{{ check_in.strftime("%d %b %Y") if check_in else "—" }}</strong> → <strong>{{ check_out.strftime("%d %b %Y") if check_out else "—" }}</strong></div>
                                 </div>
                             {% endif %}
                             <div class="small text-muted mb-3">
@@ -1486,6 +1483,28 @@
             } else {
                 sfLogo.style.display = 'none';
                 sfFallback.style.display = 'inline-block';
+            }
+        }
+
+        // ─── Update sidebar dates & nights ───────────────────────
+        const sidebarDatesEl = document.getElementById('sidebar-dates');
+        const sidebarNightsEl = document.querySelector('#sidebar-dates + .small');
+        if (sidebarDatesEl && dep && ret) {
+            const fmtDate = (isoStr) => {
+                const parts = isoStr.split('-');
+                if (parts.length !== 3) return isoStr;
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            };
+            sidebarDatesEl.innerHTML = '<i class="bi bi-calendar-range text-eltut-terracotta"></i> <strong>' + fmtDate(dep) + '</strong> → <strong>' + fmtDate(ret) + '</strong>';
+            
+            // Update the nights line that comes right after
+            const nightsLine = sidebarDatesEl.parentElement.nextElementSibling;
+            if (nightsLine && nightsLine.classList.contains('small')) {
+                const d1 = new Date(dep);
+                const d2 = new Date(ret);
+                const nightsCount = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+                nightsLine.innerHTML = '<i class="bi bi-moon-stars"></i> ' + nightsCount + ' night' + (nightsCount === 1 ? '' : 's') + ' &middot; <i class="bi bi-people"></i> ' + ADULTS + ' adult' + (ADULTS === 1 ? '' : 's') + (CHILDREN > 0 ? ' + ' + CHILDREN + ' child' + (CHILDREN === 1 ? '' : 'ren') : '');
             }
         }
 

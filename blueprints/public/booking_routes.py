@@ -248,13 +248,41 @@ def _package_pricing(
         return empty
 
     chosen = None
+    # ─── FIX: Directly load the PackageFlight by ID (ignore filter) ───
+    from models import PackageFlight as _PFModel
     if package_flight_id:
+        pf = db.session.get(_PFModel, package_flight_id)
+        if pf and pf.package_id == package.id and pf.is_active:
+            # Convert the PackageFlight into an option dict
+            ob = pf.outbound_flight
+            ib = pf.inbound_flight
+            if ob and ib:
+                from services.package_pricing_service import compute_package_flight_card
+                card_calc = compute_package_flight_card(package, pf)
+                if card_calc.get("ok"):
+                    chosen = {
+                        "package_flight_id": pf.id,
+                        "grand_total": card_calc.get("per_person") * max(1, adults + children),
+                        "per_person": card_calc.get("per_person"),
+                        "land_total": card_calc.get("hotel_total"),
+                        "flight_total": card_calc.get("flight_total"),
+                        "markup": card_calc.get("markup"),
+                        "tax": card_calc.get("tax"),
+                        "transfer_fee": card_calc.get("transfer_fee"),
+                        "nights": card_calc.get("nights"),
+                        "departure_date": card_calc.get("check_in"),
+                        "return_date": card_calc.get("check_out"),
+                        "currency": card_calc.get("currency"),
+                    }
+
+    # Fallback to the old logic only if the direct load failed
+    if chosen is None and package_flight_id:
         for opt in options:
             if opt.get("package_flight_id") == package_flight_id:
                 chosen = opt
                 break
     if chosen is None:
-        chosen = options[0]
+        chosen = options[0] if options else None
 
     pax = max(1, int(adults) + int(children))
     grand_total = float(chosen.get("grand_total") or 0.0)
@@ -386,6 +414,22 @@ def booking_start(product_type: str, product_id: int):
 
     check_in = _parse_date(request.args.get("check_in"))
     check_out = _parse_date(request.args.get("check_out"))
+
+    # ─── FORCE FLIGHT DATES TO OVERRIDE URL DATES (in booking_start) ───
+    if product_type == PRODUCT_TYPE_PACKAGE:
+        raw_pfid = (request.args.get("package_flight_id") or "").strip()
+        if raw_pfid and raw_pfid.lower() not in ("none", ""):
+            try:
+                pf_id = int(raw_pfid)
+                from models import PackageFlight
+                pf = db.session.get(PackageFlight, pf_id)
+                if pf and pf.outbound_flight and pf.inbound_flight:
+                    check_in = pf.outbound_flight.departure_date
+                    check_out = pf.inbound_flight.departure_date
+            except (ValueError, TypeError) as e:
+                current_app.logger.warning("Flight date override in booking_start failed: %s", e)
+    # ────────────────────────────────────────────────────────────────
+
     activity_date = _parse_date(request.args.get("date")) or _parse_date(request.args.get("activity_date"))
     adults = _to_int(request.args.get("adults"), 2, 1, 8)
     children = _to_int(request.args.get("children"), 0, 0, 8)
@@ -644,6 +688,29 @@ def booking_create():
     check_in = _parse_date(request.form.get("check_in"))
     check_out = _parse_date(request.form.get("check_out"))
     activity_date = _parse_date(request.form.get("activity_date"))
+
+    # ─── BULLETPROOF FLIGHT DATE OVERRIDE ───
+    # This MUST run AFTER all URL dates are parsed.
+    # If a package_flight_id is selected, force check_in/check_out to match the flight.
+    if product_type == "package":
+        raw_pfid = (request.form.get("package_flight_id") or "").strip()
+        if raw_pfid and raw_pfid.lower() not in ("none", ""):
+            try:
+                pf_id = int(raw_pfid)
+                from models import PackageFlight
+                pf = db.session.get(PackageFlight, pf_id)
+                if pf:
+                    if pf.outbound_flight and pf.outbound_flight.departure_date:
+                        check_in = pf.outbound_flight.departure_date
+                    if pf.inbound_flight and pf.inbound_flight.departure_date:
+                        check_out = pf.inbound_flight.departure_date
+            except (ValueError, TypeError) as e:
+                current_app.logger.warning("Flight date override failed: %s", e)
+    # ───────────────────────────────────────
+
+
+    
+
 
     guest_email = (request.form.get("guest_email") or "").strip().lower()
     guest_name = (request.form.get("guest_name") or "").strip()

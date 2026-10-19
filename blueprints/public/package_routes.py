@@ -277,6 +277,19 @@ def package_detail(slug: str):
         check_in = _date.today() + _td(days=30)
         check_out = check_in + _td(days=package.duration_nights or 7)
 
+    # ─── FORCE FLIGHT DATES FROM SELECTED PACKAGE_FLIGHT_ID ───
+    _pfid_raw = (request.args.get("package_flight_id") or "").strip()
+    if _pfid_raw and _pfid_raw.lower() not in ("none", ""):
+        try:
+            from models import PackageFlight as _PF
+            _pf = db.session.get(_PF, int(_pfid_raw))
+            if _pf and _pf.outbound_flight and _pf.inbound_flight:
+                check_in = _pf.outbound_flight.departure_date
+                check_out = _pf.inbound_flight.departure_date
+        except (ValueError, TypeError) as _e:
+            current_app.logger.warning("package_detail flight date override failed: %s", _e)
+    # ────────────────────────────────────────────────────────────
+
     nights = (
         max(1, (check_out - check_in).days)
         if check_in and check_out

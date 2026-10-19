@@ -325,9 +325,11 @@ def create_app(config_name: str | None = None) -> Flask:
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
             "img-src 'self' data: https:; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
             "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-            "font-src 'self' https://cdn.jsdelivr.net;"
+            "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
+            "connect-src 'self' https://cdn.jsdelivr.net; "
+            "frame-src 'self' https://maps.google.com; "
         )
         return response
     # ───────────────────────────────────────────────────────────────
