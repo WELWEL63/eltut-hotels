@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 blueprints/admin/flight_admin.py
 Admin tab for flight CSV upload/download and browsing.
 """
 from __future__ import annotations
 
-from flask import (
-    flash, redirect, render_template, request, url_for, Response,
-)
+from flask import (flash, redirect, render_template, request, url_for, Response, jsonify, current_app)
 from sqlalchemy import select, func
 
 from blueprints.admin import admin_bp, admin_required
@@ -150,3 +148,41 @@ def flight_admin_delete_all():
         flash(f"Delete failed: {e}", "danger")
 
     return redirect(url_for("admin.flight_admin_index"))
+
+# ═══════════════════════════════════════════════════════════════════
+# AUTO-MATCH FLIGHTS TO PACKAGES
+# ═══════════════════════════════════════════════════════════════════
+
+@admin_bp.route("/flights/auto-match/preview")
+@admin_required
+def flight_auto_match_preview():
+    """Preview what auto-match would do (no DB changes)."""
+    from services.flight_matching_service import preview_matches
+    try:
+        preview = preview_matches()
+        return jsonify({
+            "ok": True,
+            "total_links": preview["total_links"],
+            "destinations": preview["destinations"],
+        })
+    except Exception as e:
+        current_app.logger.exception("Preview failed")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@admin_bp.route("/flights/auto-match/apply", methods=["POST"])
+@admin_required
+def flight_auto_match_apply():
+    """Actually create the PackageFlight links."""
+    from services.flight_matching_service import apply_matches
+    try:
+        result = apply_matches()
+        return jsonify({
+            "ok": True,
+            "created": result["created"],
+            "errors": result["errors"],
+        })
+    except Exception as e:
+        current_app.logger.exception("Apply failed")
+        db.session.rollback()
+        return jsonify({"ok": False, "error": str(e)}), 500

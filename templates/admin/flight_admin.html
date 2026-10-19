@@ -1,3 +1,4 @@
+﻿
 {% extends "admin/base.html" %}
 {% block title %}Flights — Admin
 {# ═══════════════════════════════════════════════════════════════════
@@ -68,6 +69,142 @@
         {% endif %}
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- AUTO-MATCH FLIGHTS TO PACKAGES -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="card shadow-sm mb-4 border-primary">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h5 class="mb-1">
+                    <i class="bi bi-link-45deg text-primary"></i> Auto-Match Flights to Packages
+                </h5>
+                <p class="text-muted small mb-0">
+                    After importing flight CSVs, click below to automatically link flights
+                    to matching packages across all destinations (HRG, SSH, LXR, RMF...).
+                </p>
+            </div>
+            <button type="button"
+                    class="btn btn-primary btn-lg"
+                    data-bs-toggle="modal"
+                    data-bs-target="#autoMatchModal"
+                    onclick="previewAutoMatch()">
+                <i class="bi bi-magic"></i> Run Auto-Match
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── AUTO-MATCH MODAL ─── -->
+<div class="modal fade" id="autoMatchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-magic"></i> Auto-Match Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="autoMatchPreview">
+                    <div class="text-center text-muted py-4">
+                        <div class="spinner-border"></div>
+                        <div class="mt-2">Scanning flights and packages...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="button"
+                        class="btn btn-success"
+                        id="autoMatchApplyBtn"
+                        onclick="applyAutoMatch()"
+                        disabled>
+                    <i class="bi bi-check-circle"></i> Apply Matches
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function previewAutoMatch() {
+    const previewDiv = document.getElementById('autoMatchPreview');
+    const applyBtn = document.getElementById('autoMatchApplyBtn');
+    applyBtn.disabled = true;
+
+    previewDiv.innerHTML = '<div class="text-center py-4"><div class="spinner-border"></div><div class="mt-2">Scanning...</div></div>';
+
+    try {
+        const res = await fetch('/admin/flights/auto-match/preview');
+        const data = await res.json();
+
+        if (!data.ok) {
+            previewDiv.innerHTML = '<div class="alert alert-danger">Error: ' + data.error + '</div>';
+            return;
+        }
+
+        if (data.total_links === 0) {
+            previewDiv.innerHTML = '<div class="alert alert-info"><i class="bi bi-info-circle"></i> No new links to create. All flights are already matched to packages.</div>';
+            return;
+        }
+
+        let html = '<h6>Found <strong>' + data.total_links + '</strong> new flight-package links to create:</h6>';
+        html += '<table class="table table-sm table-bordered mt-3">';
+        html += '<thead class="table-light"><tr><th>Destination</th><th>Packages</th><th>Combos</th><th>Links to Create</th></tr></thead>';
+        html += '<tbody>';
+
+        for (const [airport, info] of Object.entries(data.destinations)) {
+            const cls = info.skipped ? 'text-muted' : '';
+            html += '<tr class="' + cls + '">';
+            html += '<td><strong>' + airport + '</strong></td>';
+            html += '<td>' + info.packages + '</td>';
+            html += '<td>' + info.valid_combos + '</td>';
+            html += '<td><strong>' + info.links_to_create + '</strong></td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        html += '<div class="alert alert-warning mt-3"><i class="bi bi-exclamation-triangle"></i> This will create ' + data.total_links + ' PackageFlight records. Click <strong>Apply Matches</strong> to proceed.</div>';
+
+        previewDiv.innerHTML = html;
+        applyBtn.disabled = false;
+    } catch (e) {
+        previewDiv.innerHTML = '<div class="alert alert-danger">Network error: ' + e.message + '</div>';
+    }
+}
+
+async function applyAutoMatch() {
+    const previewDiv = document.getElementById('autoMatchPreview');
+    const applyBtn = document.getElementById('autoMatchApplyBtn');
+    applyBtn.disabled = true;
+    applyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Applying...';
+
+    try {
+        const res = await fetch('/admin/flights/auto-match/apply', { method: 'POST' });
+        const data = await res.json();
+
+        if (!data.ok) {
+            previewDiv.innerHTML = '<div class="alert alert-danger">Error: ' + data.error + '</div>';
+            applyBtn.disabled = false;
+            applyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Apply Matches';
+            return;
+        }
+
+        previewDiv.innerHTML = '<div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> <strong>Success!</strong><br>Created <strong>' + data.created + '</strong> flight-package links.<br><a href="/admin/packages" class="btn btn-sm btn-primary mt-2">View Packages &rarr;</a></div>';
+        applyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Done';
+    } catch (e) {
+        previewDiv.innerHTML = '<div class="alert alert-danger">Network error: ' + e.message + '</div>';
+        applyBtn.disabled = false;
+        applyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Apply Matches';
+    }
+}
+</script>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- END AUTO-MATCH -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 
 <form method="GET" class="card shadow-sm mb-3 border-0">
     <div class="card-body">
