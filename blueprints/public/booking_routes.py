@@ -990,13 +990,26 @@ def booking_confirmation(reference: str):
             tips = list(db.session.scalars(select(PackageTip).where(PackageTip.package_id == package.id).order_by(PackageTip.sort_order, PackageTip.id)))
 
             cards = list(db.session.scalars(select(PackageFlight).where(PackageFlight.package_id == package.id).where(PackageFlight.is_active.is_(True)).order_by(PackageFlight.sort_order, PackageFlight.id)))
+            # Match by BOTH check_in AND check_out to find the exact flight card the user selected
             for card in cards:
                 calc = compute_package_flight_card(package, card)
                 if not calc.get("ok"):
                     continue
-                if (booking.check_in_date and calc.get("check_in") == booking.check_in_date):
+                card_in = calc.get("check_in")
+                card_out = calc.get("check_out")
+                if (booking.check_in_date and booking.check_out_date and
+                    card_in == booking.check_in_date and
+                    card_out == booking.check_out_date):
                     package_flight = card
                     break
+            # Fallback: match by check_in date only
+            if package_flight is None and booking.check_in_date:
+                for card in cards:
+                    calc = compute_package_flight_card(package, card)
+                    if calc.get("ok") and calc.get("check_in") == booking.check_in_date:
+                        package_flight = card
+                        break
+            # Last resort: use the first card
             if package_flight is None and cards:
                 package_flight = cards[0]
 
