@@ -70,7 +70,8 @@
                             {% set is_best_value = item.price_adult and item.price_adult == _min_price %}
 
                             <div class="col-md-6 col-xxl-4">
-                                <article class="pkg-card">
+                                {# Clickable card — link is a relative-positioned overlay via ::after #}
+                                <article class="pkg-card position-relative">
 
                                     {# ── Media: image + badges + price overlay ── #}
                                     <div class="pkg-card-media">
@@ -155,10 +156,10 @@
                                             <div class="pkg-code">{{ p.code }}</div>
                                         {% endif %}
 
-                                        {# Title #}
+                                        {# Title — the ONLY link, and it does NOT use stretched-link #}
                                         <h3 class="pkg-card-title">
                                             <a href="{{ url_for('public.package_detail', slug=p.slug) }}"
-                                               class="stretched-link text-decoration-none"
+                                               class="pkg-card-link text-decoration-none"
                                                style="color:inherit;">
                                                 {{ p.name }}
                                             </a>

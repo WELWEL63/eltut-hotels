@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════════════════
    ElTut Tours — Design System
    ─────────────────────────────────────────────────────────────────────
    TABLE OF CONTENTS
@@ -65,7 +65,7 @@
 
     /* Gradients */
     --gradient-hero:          linear-gradient(135deg, #1c1917 0%, #44403c 45%, #0e7490 100%);
-    --gradient-warm:          linear-gradient(135deg, #c85a3e 0%, #d4a017 100%);
+    --gradient-warm:          linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
 
     /* Shadows */
     --shadow-sm:              0 1px 2px rgba(0, 0, 0, 0.05);
@@ -191,7 +191,7 @@ h5{
     color: #fff;
 }
 .btn-hero-glass:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
     color: #fff;
 }
 
@@ -202,7 +202,7 @@ h5{
 
 .navbar.navbar-dark.site-header,
 .site-header {
-    background:  linear-gradient(#011f2c, #00304cde);
+    background:  linear-gradient(#5c0118, #4c002fde);
      
     border-bottom: 2px solid #c9a227 !important;
     box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
@@ -264,7 +264,7 @@ h5{
    ═══════════════════════════════════════════════════════════════════════ */
 
 .footer {
-     background:  linear-gradient(#011f2c, #00304cde);
+      background:  linear-gradient(#5c0118, #4c002fde);
     border-top: 2px solid #c9a227 !important;
     color: #e8d9b3 !important;
     padding: 2.25rem 0 !important;
@@ -311,20 +311,20 @@ h5{
 
 /* Primary CTA — terracotta → gold */
 .btn-eltut-primary {
-    background: var(--gradient-warm);
+    background: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
     border: none;
     color: #fff;
-    box-shadow: 0 4px 14px rgba(200, 90, 62, 0.35);
+    box-shadow: 0 4px 14px rgba(122, 14, 46, 0.35);
 }
 .btn-eltut-primary:hover {
     color: #fff;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(200, 90, 62, 0.45);
+    box-shadow: 0 6px 20px rgba(122, 14, 46, 0.45);
 }
 
 /* Secondary CTA — Nile blue */
 .btn-eltut-nile {
-    background-color: var(--eltut-nile);
+    background-color: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
     border-color: var(--eltut-nile);
     color: #fff;
 }
@@ -636,12 +636,11 @@ h5{
     font-weight: 600;
 }
 .search-widget-hero .btn-eltut-primary {
-    background: linear-gradient(135deg, #215e9b 0%, #4492a5 100%);
+    background: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
     color: #fbf9f8;
     font-weight: 700;
     box-shadow:
-        0 8px 24px rgba(212, 160, 23, 0.35),
-        0 1px 0 rgba(255, 255, 255, 0.4) inset;
+        0 4px 14px rgba(122, 14, 46, 0.35);
 }
 .search-widget-hero .btn-eltut-primary:hover {
     color: #1c1917;
@@ -731,7 +730,7 @@ h5{
     height: 100%;
     border-top: 2px solid transparent;
     background-image:
-        linear-gradient(#033e57, #86cef8c2),
+        linear-gradient(135deg, #a84530 0%, #7a0e2e 100%);
         linear-gradient(90deg, #ecf1f3 0%, #f7f8fa 50%, #f8fdff 100%);
     background-origin: border-box;
     background-clip: padding-box, border-box;
