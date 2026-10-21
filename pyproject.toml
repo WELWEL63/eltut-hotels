@@ -1,0 +1,7 @@
+[project]
+name = "eltut-tours-platform"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+[tool.vercel]
+entrypoint = "app:app"
