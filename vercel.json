@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app.py": {
+      "excludeFiles": "{static/**,scripts/**,migrations/**,backups/**,_tmp/**,**/*.bak,**/__pycache__/**,**/*.pyc,data/**}"
+    }
+  }
+}
