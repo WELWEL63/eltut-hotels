@@ -324,12 +324,26 @@ def create_app(config_name: str | None = None) -> Flask:
         # Basic Content Security Policy
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "img-src 'self' data: https:; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
-            "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
-            "connect-src 'self' https://cdn.jsdelivr.net; "
-            "frame-src 'self' https://maps.google.com; "
+            "img-src 'self' data: https: blob:; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://weather-website-client.tomorrow.io; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
+                "https://www.tomorrow.io https://api.tomorrow.io https://widget.tomorrow.io https://cdn.tomorrow.io "
+                "https://weather-website-client.tomorrow.io "
+                "https://www.googletagmanager.com https://www.google-analytics.com "
+                "https://connect.facebook.net "
+                "https://static.klaviyo.com; "
+            "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com "
+                "https://weather-website-client.tomorrow.io https://cdn.tomorrow.io; "
+            "connect-src 'self' https://cdn.jsdelivr.net "
+                "https://api.tomorrow.io https://www.tomorrow.io https://widget.tomorrow.io "
+                "https://weather-website-client.tomorrow.io "
+                "https://api.wise.com https://wise.com https://www.wise.com "
+                "https://www.google-analytics.com https://www.googletagmanager.com "
+                "https://connect.facebook.net; "
+            "frame-src 'self' https://maps.google.com https://www.google.com "
+                "https://wise.com https://www.wise.com "
+                "https://www.tomorrow.io; "
+            "worker-src 'self' blob:; "
         )
         return response
     # ───────────────────────────────────────────────────────────────
