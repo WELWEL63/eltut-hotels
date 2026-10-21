@@ -2,6 +2,26 @@
 name = "eltut-tours-platform"
 version = "0.1.0"
 requires-python = ">=3.12"
+dependencies = [
+    "Flask==3.0.3",
+    "Werkzeug==3.0.3",
+    "Jinja2==3.1.4",
+    "MarkupSafe==2.1.5",
+    "itsdangerous==2.2.0",
+    "SQLAlchemy",
+    "Flask-SQLAlchemy",
+    "Flask-Migrate",
+    "Flask-Login",
+    "Flask-WTF",
+    "Flask-Mail",
+    "Flask-Limiter",
+    "python-dotenv",
+    "psycopg2-binary",
+    "pymongo",
+    "paypalrestsdk",
+    "gunicorn",
+    "email-validator"
+]
 
 [tool.vercel]
 entrypoint = "app:app"
