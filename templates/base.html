@@ -68,7 +68,7 @@
                     <a class="nav-link" href="{{ maybe_url('public.hotel_list') }}">Hotels</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ maybe_url('public.package_list') }}">Holiday/Tour Packages</a>
+                    <a class="nav-link" href="{{ maybe_url('public.package_list') }}">Tour Packages</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ maybe_url('public.activity_list') }}">Activities</a>
@@ -79,11 +79,15 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ maybe_url('public.contact') }}">Contact</a>
                 </li>
+ <li class="nav-item">
+                    <a class="nav-link" href="{{ maybe_url('public.quote_request') }}">Get a Quote</a>
+                </li>
+                
+                        </ul>
 
-                <a href="tel:0800124376" class="btn btn-eltut-primary btn-sm d-none d-lg-inline-flex me-2">
+                         <a href="tel:0800124376" class="btn btn-eltut-primary btn-sm d-none d-lg-inline-flex me-2">
     <i class="bi bi-telephone-fill me-1"></i> 0800 124 376
 </a>
-            </ul>
             <ul class="navbar-nav ms-auto">
                 {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
@@ -91,6 +95,7 @@
                            data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ current_user.full_name }}
                         </a>
+                        
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
                                 <a class="dropdown-item" href="{{ maybe_url('account.index') }}">

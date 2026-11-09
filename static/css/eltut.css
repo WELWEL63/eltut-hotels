@@ -191,7 +191,7 @@ h5{
     color: #fff;
 }
 .btn-hero-glass:hover {
-     background:  linear-gradient(#045eb7, #00064cde);
+      background:  linear-gradient(#015877, #002b4cde);
     color: #fff;
 }
 
@@ -202,7 +202,7 @@ h5{
 
 .navbar.navbar-dark.site-header,
 .site-header {
-    background:  linear-gradient(#045eb7, #00064cde);
+    background:  linear-gradient(#015877, #002b4cde);
      
     border-bottom: 2px solid #c9a227 !important;
     box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
@@ -264,7 +264,7 @@ h5{
    ═══════════════════════════════════════════════════════════════════════ */
 
 .footer {
-      background:  linear-gradient(#045eb7, #00064cde);
+     background:  linear-gradient(#015877, #002b4cde);
     border-top: 2px solid #c9a227 !important;
     color: #e8d9b3 !important;
     padding: 2.25rem 0 !important;
@@ -311,7 +311,7 @@ h5{
 
 /* Primary CTA — terracotta → gold */
 .btn-eltut-primary {
-    background:  linear-gradient(#045eb7, #00064cde);
+      background:  linear-gradient(#015877, #002b4cde);
     border: none;
     color: #fff;
     box-shadow: 0 4px 14px rgba(122, 14, 46, 0.35);
@@ -324,7 +324,7 @@ h5{
 
 /* Secondary CTA — Nile blue */
 .btn-eltut-nile {
-    background-color: linear-gradient(135deg, #045eb7 0%, #00064c 100%);
+      background-color: linear-gradient(135deg, #015877 0%, #002b4c 100%);
     border-color: var(--eltut-nile);
     color: #fff;
 }
@@ -716,6 +716,22 @@ h5{
 .card-img-top {
     border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
+.text-center .section-title {
+     font-family: 'Playfair Display', Georgia, serif!important;
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #014668;
+    
+}
+
+.text-center .section-sub {
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: #696968;
+    
+}
+
 
 /* Feature tiles — icon + label */
 .feature-tile {
@@ -730,7 +746,7 @@ h5{
     height: 100%;
     border-top: 2px solid transparent;
     background-image:
-        linear-gradient(135deg, #a84530 0%, #7a0e2e 100%);
+         linear-gradient(#015877, #002b4cde 100%);
         linear-gradient(90deg, #ecf1f3 0%, #f7f8fa 50%, #f8fdff 100%);
     background-origin: border-box;
     background-clip: padding-box, border-box;
@@ -751,6 +767,13 @@ h5{
     letter-spacing: -0.02em;
     line-height: 1.2;
     color: #fff!important;
+}
+.feature-tile .text-muted {
+    color: #fff !important;
+  
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
 }
 
 
@@ -777,7 +800,7 @@ h5{
     inset: 0;
     background: linear-gradient(to top,
         rgba(28, 25, 23, 0.8) 0%,
-        rgba(28, 25, 23, 0.2) 50%,
+        rgba(255, 253, 252, 0.2) 50%,
         transparent 100%);
 }
 .destination-tile:hover {
@@ -799,7 +822,7 @@ h5{
 .card .product-tag {
     display: inline-block;
     background: linear-gradient(135deg, #1e3a5f 0%, #2b4f7a 100%);
-    color: #f5ecd7;
+    color: #f5ecd7!important;
     font-weight: 700;
     letter-spacing: 0.06em;
     font-size: 0.68rem;
@@ -1051,10 +1074,10 @@ body.home-page {
 .home-page .bg-dark.section,
 .home-page .home-cta,
 .home-page .quote-strip {
-    background: #1e3a5f !important;
+    background:linear-gradient(#015877, #002b4cde 100%)!important;
     border-top: 2px solid #c9a227;
     border-bottom: 2px solid #c9a227;
-    color: #e8d9b3;
+    color: #f5ecd7 !important;
 }
 .home-page .cta-strip h1, .home-page .cta-strip h2, .home-page .cta-strip h3,
 .home-page .ready-strip h1, .home-page .ready-strip h2, .home-page .ready-strip h3,
@@ -3701,7 +3724,11 @@ body::-webkit-scrollbar-corner {
      LEFT:  photo, full-bleed, no animation
      RIGHT: text panel with solid theme background, WHITE text
    ═══════════════════════════════════════════════════════════════════ */
-
+.reviews-heading {
+    font-family: 'Playfair Display', Georgia, serif !important;
+    color: #1e3a5f;
+    font-size: 2.5rem;
+}
 .ad-carousel-section {
     padding: 3.5rem 0;
     background-color: #faf7f1;
