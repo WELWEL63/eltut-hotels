@@ -191,7 +191,7 @@ h5{
     color: #fff;
 }
 .btn-hero-glass:hover {
-    background: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
+     background:  linear-gradient(#045eb7, #00064cde);
     color: #fff;
 }
 
@@ -202,7 +202,7 @@ h5{
 
 .navbar.navbar-dark.site-header,
 .site-header {
-    background:  linear-gradient(#b70430, #4c002fde);
+    background:  linear-gradient(#045eb7, #00064cde);
      
     border-bottom: 2px solid #c9a227 !important;
     box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
@@ -264,7 +264,7 @@ h5{
    ═══════════════════════════════════════════════════════════════════════ */
 
 .footer {
-      background:  linear-gradient(#5c0118, #4c002fde);
+      background:  linear-gradient(#045eb7, #00064cde);
     border-top: 2px solid #c9a227 !important;
     color: #e8d9b3 !important;
     padding: 2.25rem 0 !important;
@@ -311,7 +311,7 @@ h5{
 
 /* Primary CTA — terracotta → gold */
 .btn-eltut-primary {
-    background: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
+    background:  linear-gradient(#045eb7, #00064cde);
     border: none;
     color: #fff;
     box-shadow: 0 4px 14px rgba(122, 14, 46, 0.35);
@@ -324,7 +324,7 @@ h5{
 
 /* Secondary CTA — Nile blue */
 .btn-eltut-nile {
-    background-color: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
+    background-color: linear-gradient(135deg, #045eb7 0%, #00064c 100%);
     border-color: var(--eltut-nile);
     color: #fff;
 }
@@ -636,7 +636,7 @@ h5{
     font-weight: 600;
 }
 .search-widget-hero .btn-eltut-primary {
-    background: linear-gradient(135deg, #7a0e2e 0%, #4c002f 100%);
+    background:  linear-gradient(#045eb7, #00064cde,100%);
     color: #fbf9f8;
     font-weight: 700;
     box-shadow:

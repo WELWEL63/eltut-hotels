@@ -1,0 +1,14 @@
+On the VPS (SSH):
+runuser -u luxorapp -- git -C /var/www/eltut-tours-platform pull --ff-only
+
+
+Then restart Flask:
+systemctl restart luxordahabiya.service
+
+
+Check that it is running:
+systemctl is-active luxordahabiya.service
+
+
+Expected result:
+active
