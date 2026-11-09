@@ -75,7 +75,14 @@
                 {% endif %}
 
                 {# â”€â”€â”€ Title block â”€â”€â”€ #}
-                <h1 class="mb-2">{{ hotel.name }}</h1>
+               <h1 class="mb-2" style="color: #012a5f; font-weight: 700;">{{ hotel.name }}</h1>
+                {% if hotel.rating %}
+                    <div class="mb-2">
+                        <span class="badge bg-success-subtle text-success-emphasis"><i class="bi bi-star-fill"></i> {{ "%.1f"|format(hotel.rating) }}</span>
+                        <span class="text-muted ms-2">{{ review_count or 0 }} review{{ "" if review_count == 1 else "s" }}</span>
+                    </div>
+                {% endif %}
+                {% if hotel.category %}<div class="mb-2"><span class="badge bg-secondary-subtle text-secondary-emphasis">{{ hotel.category|title }}</span></div>{% endif %}
                 <div class="mb-3">
                     {% for _ in range(hotel.stars) %}<i class="bi bi-star-fill text-warning"></i>{% endfor %}
                     <span class="text-muted ms-2">{{ hotel.stars }} star hotel</span>
@@ -91,11 +98,70 @@
                     <p>{{ hotel.description }}</p>
                 {% endif %}
 
-                {# â”€â”€â”€ Facilities â”€â”€â”€ #}
+                               {# ─── Facilities ─── #}
                 {% if facilities %}
-                    <div class="section-header icon-nile"><span class="icon-box"><i class="bi bi-stars"></i></span><span class="title">Facilities</span></div>
-                    <div class="d-flex flex-wrap gap-2 mb-4">
-                        {% for f in facilities %}<span class="badge bg-light text-dark border"><i class="bi bi-check2"></i> {{ f.name }}</span>{% endfor %}
+                    <div class="section-header icon-nile mt-4">
+                        <span class="icon-box"><i class="bi bi-stars"></i></span>
+                        <span class="title">Hotel Facilities</span>
+                    </div>
+                    
+                    <div class="facilities-grid mb-5">
+                        {% set icon_map = {
+                            '24-hour reception & concierge': 'bi-bell',
+                            '24/7 security & cctv': 'bi-shield-check',
+                            'atm on site': 'bi-cash-coin',
+                            'airport transfers (paid)': 'bi-taxi-front',
+                            'babysitting service (on request)': 'bi-person-hearts',
+                            'bank services available': 'bi-bank',
+                            'buffet breakfast included': 'bi-cup-hot',
+                            'business centre': 'bi-briefcase',
+                            'children\'s pool': 'bi-water',
+                            'currency exchange desk': 'bi-currency-exchange',
+                            'diving centre': 'bi-water',
+                            'family rooms available': 'bi-people',
+                            'fitness centre': 'bi-bicycle',
+                            'free wi-fi in public areas': 'bi-wifi',
+                            'free high-speed wi-fi': 'bi-wifi',
+                            'free parking': 'bi-p-circle',
+                            'free shuttle transfer': 'bi-bus-front',
+                            'gift shop': 'bi-bag',
+                            'jacuzzi': 'bi-water',
+                            'kids\' club (ages 4–12)': 'bi-emoji-smile',
+                            'laundry & dry-cleaning service': 'bi-basket',
+                            'massage & beauty treatments': 'bi-flower1',
+                            'meeting & conference rooms': 'bi-people-fill',
+                            'multilingual staff': 'bi-translate',
+                            'multiple restaurants & bars': 'bi-cup-straw',
+                            'non-smoking rooms': 'bi-slash-circle',
+                            'outdoor swimming pool': 'bi-water',
+                            'pet-friendly (on request)': 'bi-heart',
+                            'poolside snack bar': 'bi-cup-straw',
+                            'restaurant & bar': 'bi-shop',
+                            'room service (24 hours)': 'bi-bell-fill',
+                            'sauna & steam room': 'bi-thermometer-sun',
+                            'spa & wellness centre': 'bi-flower2',
+                            'sun terrace & loungers': 'bi-brightness-high',
+                            'table tennis': 'bi-circle',
+                            'tennis court': 'bi-dribbble',
+                            'tour & excursion desk': 'bi-map',
+                            'vegetarian & halal options': 'bi-egg-fried',
+                            'wake-up call service': 'bi-alarm',
+                            'water sports (on site)': 'bi-life-preserver',
+                            'wheelchair accessible': 'bi-person-wheelchair',
+                            'à la carte dining': 'bi-fork-knife'
+                        } %}
+                        
+                        {% for f in facilities %}
+                            {% set f_name = f.name|lower|trim %}
+                            {% set icon = icon_map.get(f_name, 'bi-check2-circle') %}
+                            
+                            <div class="facility-item">
+                                <div class="facility-icon">
+                                    <i class="bi {{ icon }}"></i>
+                                </div>
+                                <div class="facility-text">{{ f.name }}</div>
+                            </div>
+                        {% endfor %}
                     </div>
                 {% endif %}
 
@@ -907,6 +973,50 @@
 {% endif %}
 
 <style>
+    /* ─── Facilities Grid ─── */
+.facilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.facility-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.6rem 0.75rem;
+    background: #fdfbf8; /* Matches your light theme */
+    border: 1px solid #f0e6dc;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.facility-item:hover {
+    background: #fff;
+    border-color: #e6d5c3;
+    box-shadow: 0 4px 12px rgba(28, 25, 23, 0.05);
+    transform: translateY(-2px);
+}
+
+.facility-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(200, 90, 62, 0.1); /* Terracotta tint */
+    color: #c85a3e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.facility-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #374151;
+    line-height: 1.3;
+}
 .ys-panel { border-radius: 14px; padding: 1.1rem 1.25rem; margin: 0 0 1.25rem; box-shadow: 0 2px 10px rgba(15,23,42,0.06); }
 .ys-panel--multi { background: linear-gradient(135deg, #fff8e6 0%, #fffdf7 100%); border: 1px solid #f5d48a; }
 .ys-panel--none { background: linear-gradient(135deg, #fdecec 0%, #fff7f7 100%); border: 1px solid #f3b4b4; }
@@ -1005,4 +1115,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 {% endblock %}
+
+
+
 

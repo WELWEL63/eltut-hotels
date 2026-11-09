@@ -197,6 +197,15 @@
                     </div>
                 {% endif %}
 
+                {# ─── DESCRIPTION ─────────────────────────────────── #}
+                {% if package.description %}
+                    <div class="section-header icon-ink mt-4">
+                        <span class="icon-box"><i class="bi bi-info-circle"></i></span>
+                        <span class="title">About this package</span>
+                    </div>
+                    <p>{{ package.description }}</p>
+                {% endif %}
+
                 {# ─── TRIP PICKER (dates + party) ──────────────────── #}
                 <div class="section-header icon-ink mt-4" id="trip-picker-section">
                     <span class="icon-box"><i class="bi bi-calendar-range"></i></span>
@@ -447,14 +456,7 @@
                     </div>
                 {% endif %}
 
-                {# ─── DESCRIPTION ─────────────────────────────────── #}
-                {% if package.description %}
-                    <div class="section-header icon-ink mt-4">
-                        <span class="icon-box"><i class="bi bi-info-circle"></i></span>
-                        <span class="title">About this package</span>
-                    </div>
-                    <p>{{ package.description }}</p>
-                {% endif %}
+                
 
                 {# ─── DAY-BY-DAY ITINERARY ────────────────────────── #}
                 {% if itineraries %}
@@ -1407,11 +1409,9 @@
     const BOOK_URL = "{{ url_for('public.booking_start', product_type='package', product_id=package.id) }}";
 
     // ─── Airline logos by normalized name ────────────────────────
-    const AIRLINE_LOGOS = {
-        {% for name, data in airline_lookup.items() %}
-            "{{ name }}": "{{ data.logo_url or '' }}"{% if not loop.last %},{% endif %}
-        {% endfor %}
-    };
+    const AIRLINE_LOGOS = Object.fromEntries(
+        Object.entries(JSON.parse('{{ airline_lookup | tojson }}')).map(([name, data]) => [name, data.logo_url || ''])
+    );
 
     function fmt(v, currency) {
         return (currency || 'GBP') + ' ' + Number(v || 0).toFixed(2);

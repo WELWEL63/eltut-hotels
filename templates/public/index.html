@@ -16,15 +16,7 @@
 
         {% set _slides = slideshow_slides() %}
 
-        <div class="carousel-indicators">
-            {% for i in range(_slides|length if _slides else 4) %}
-                <button type="button"
-                        data-bs-target="#heroCarousel"
-                        data-bs-slide-to="{{ i }}"
-                        {% if i == 0 %}class="active"{% endif %}
-                        aria-label="Slide {{ i + 1 }}"></button>
-            {% endfor %}
-        </div>
+      
 
         <div class="carousel-inner">
             {% if _slides %}
@@ -37,13 +29,14 @@
                                     <div class="col-lg-10 text-center">
                                         {% if slide.eyebrow %}
                                             <span class="hero-eyebrow">
+               
                                                 <i class="bi bi-stars"></i>
                                                 {{ slide.eyebrow }}
                                             </span>
                                         {% endif %}
                                         {% if slide.title %}
                                             <h1 class="hero-headline"
-                                                style="{{ slide.title_style | css_style }}">
+                                                {% if slide.title_style | css_style %}style="{{ slide.title_style | css_style }}"{% endif %}>
                                                 {{ slide.title | safe }}
                                             </h1>
                                         {% else %}
@@ -54,7 +47,7 @@
                                         {% endif %}
                                         {% if slide.subtitle %}
                                             <p class="hero-subhead mx-auto"
-                                               style="{{ slide.subtitle_style | css_style }}">
+                                                {% if slide.subtitle_style | css_style %}style="{{ slide.subtitle_style | css_style | safe }}"{% endif %}>
                                                 {{ slide.subtitle | safe }}
                                             </p>
                                         {% else %}
@@ -449,6 +442,211 @@
    AD CAROUSEL — promo slides between hotels and packages
    ═══════════════════════════════════════════════════════════════════ #}
 {% include "public/_ad_carousel.html" %}
+
+
+{# ═══════════════════════════════════════════════════════════════════
+   TESTIMONIALS / REVIEWS SLIDER
+   ═══════════════════════════════════════════════════════════════════ #}
+<section class="reviews-section py-5">
+    <div class="container">
+        
+        <div class="text-center mb-5">
+            <span class="badge bg-terracotta mb-3 px-3 py-2 text-uppercase tracking-wide" style="border-radius: 50px;">
+                Real Travellers &middot; Real Experiences
+            </span>
+            <h2 class="fw-bold mb-3" style="color: #1e3a5f; font-size: 2.5rem;">What Our Holiday Makers Say</h2>
+            <div class="d-inline-flex align-items-center gap-2 bg-white px-4 py-2 rounded-pill shadow-sm border">
+                <div class="text-warning">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                </div>
+                <span class="fw-bold" style="color: #1e3a5f;">4.9/5</span>
+                <span class="text-muted small">&middot; 240+ verified reviews</span>
+            </div>
+        </div>
+
+        {# The Carousel #}
+        <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+            
+            {# Carousel Indicators (dots at the bottom) #}
+            <div class="carousel-indicators position-relative mt-4 mb-0" style="bottom: -50px;">
+                <button type="button" data-bs-target="#reviewsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#reviewsCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#reviewsCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                <button type="button" data-bs-target="#reviewsCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+            </div>
+
+            <div class="carousel-inner pb-5">
+                {# Slide 1 (Cards 1, 2, 3) #}
+                <div class="carousel-item active">
+                    <div class="row g-4 justify-content-center">
+                        
+                        {# Card 1 #}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="review-card h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="review-avatar">E</div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Emma Watson</h6>
+                                        <small class="text-muted">GB &middot; United Kingdom</small>
+                                    </div>
+                                </div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="review-text">"The trip exceeded all my expectations! Amazing guides and beautiful locations. Everything was perfectly organized from start to finish."</p>
+                                <div class="review-footer">
+                                    <span class="review-location"><i class="bi bi-geo-alt-fill"></i> Valley of the Kings</span>
+                                    <span class="review-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <span class="ms-auto text-muted small">June 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Card 2 #}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="review-card h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="review-avatar bg-navy">L</div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Lucas Müller</h6>
+                                        <small class="text-muted">DE &middot; Germany</small>
+                                    </div>
+                                </div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="review-text">"Well organized and informative. I loved every part of the experience. The local guides were friendly and knew their history inside out."</p>
+                                <div class="review-footer">
+                                    <span class="review-location"><i class="bi bi-geo-alt-fill"></i> Giza Pyramids Tour</span>
+                                    <span class="review-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <span class="ms-auto text-muted small">May 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Card 3 #}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="review-card h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="review-avatar bg-gold">S</div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Sophie Martin</h6>
+                                        <small class="text-muted">FR &middot; France</small>
+                                    </div>
+                                </div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="review-text">"Unforgettable trip! The guide was very friendly and knowledgeable. The Red Sea snorkeling was the highlight — crystal clear water and colorful reefs."</p>
+                                <div class="review-footer">
+                                    <span class="review-location"><i class="bi bi-geo-alt-fill"></i> Hurghada Snorkeling</span>
+                                    <span class="review-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <span class="ms-auto text-muted small">May 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {# Slide 2 (Cards 4, 5, 6) #}
+                <div class="carousel-item">
+                    <div class="row g-4 justify-content-center">
+                        
+                        {# Card 4 #}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="review-card h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="review-avatar bg-navy">J</div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">James Smith</h6>
+                                        <small class="text-muted">US &middot; United States</small>
+                                    </div>
+                                </div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="review-text">"Absolutely flawless. The Nile cruise was a dream come true. The food, the staff, the itinerary—I couldn't have asked for a better holiday."</p>
+                                <div class="review-footer">
+                                    <span class="review-location"><i class="bi bi-geo-alt-fill"></i> Nile Cruise</span>
+                                    <span class="review-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <span class="ms-auto text-muted small">April 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Card 5 #}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="review-card h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="review-avatar bg-gold">A</div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">Anna Rossi</h6>
+                                        <small class="text-muted">IT &middot; Italy</small>
+                                    </div>
+                                </div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="review-text">"The attention to detail was incredible. We felt safe and looked after the entire time. Highly recommend ElTut Tours for any Egypt trip!"</p>
+                                <div class="review-footer">
+                                    <span class="review-location"><i class="bi bi-geo-alt-fill"></i> Luxor &amp; Aswan</span>
+                                    <span class="review-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <span class="ms-auto text-muted small">April 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Card 6 #}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="review-card h-100">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div class="review-avatar">D</div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">David O'Connor</h6>
+                                        <small class="text-muted">IE &middot; Ireland</small>
+                                    </div>
+                                </div>
+                                <div class="text-warning mb-3">
+                                    <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                </div>
+                                <p class="review-text">"A truly magical experience. The hot air balloon ride over the Valley of the Kings at sunrise is something I will never forget."</p>
+                                <div class="review-footer">
+                                    <span class="review-location"><i class="bi bi-geo-alt-fill"></i> Hot Air Balloon</span>
+                                    <span class="review-badge"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                                    <span class="ms-auto text-muted small">March 2026</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            
+            {# Left/Right Controls #}
+            <button class="carousel-control-prev custom-carousel-btn" type="button" data-bs-target="#reviewsCarousel" data-bs-slide="prev">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="carousel-control-next custom-carousel-btn" type="button" data-bs-target="#reviewsCarousel" data-bs-slide="next">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+
+        {# CTA at the bottom #}
+        <div class="text-center mt-5 pt-4">
+            <h4 class="fw-bold mb-4" style="color: #1e3a5f;">Join 10,000+ happy travellers who explored Egypt with us.</h4>
+            <a href="{{ url_for('public.quote_request') }}" class="btn btn-eltut-primary btn-lg px-5 shadow-sm">
+                Get a Free Quote <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+
+    </div>
+</section>
 
 {# ═══════════════════════════════════════════════════════════════════
    AFFORDABLE PACKAGES — hero strip + rich cards
@@ -867,8 +1065,8 @@
                         {% else %}
                             <div style="width:100%; height:100%; position:absolute; inset:0;
                                         background: linear-gradient(135deg,
-                                            hsl({{ (loop.index * 37) % 360 }}, 45%, 40%),
-                                            hsl({{ (loop.index * 37 + 60) % 360 }}, 55%, 30%));">
+                                            #6688aa,
+                                            #345477);">
                             </div>
                         {% endif %}
                         <div class="tile-content">
@@ -1035,7 +1233,136 @@
     font-size: .78rem;
     color: #6b7280;
 }
+/* ═══════════════════════════════════════════════════════════════════
+   TESTIMONIALS SECTION & CAROUSEL
+   ═══════════════════════════════════════════════════════════════════ */
+.reviews-section {
+    background: #fdfbf8;
+    border-top: 1px solid #f0e6dc;
+    border-bottom: 1px solid #f0e6dc;
+    position: relative;
+    overflow: hidden;
+}
 
+.reviews-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(30, 58, 95, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+}
+
+.bg-terracotta { background-color: #c85a3e !important; color: white; }
+.tracking-wide { letter-spacing: 0.05em; }
+
+.review-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(30, 58, 95, 0.08);
+    box-shadow: 0 4px 15px rgba(28, 25, 23, 0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.review-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(200, 90, 62, 0.12);
+    border-color: rgba(200, 90, 62, 0.3);
+}
+
+.review-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #c85a3e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.bg-navy { background: #1e3a5f; }
+.bg-gold { background: #d4a017; }
+
+.review-text {
+    font-size: 0.95rem;
+    color: #4b5563;
+    line-height: 1.6;
+    font-style: italic;
+    flex-grow: 1;
+}
+
+.review-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px dashed #e5e7eb;
+    padding-top: 1rem;
+    margin-top: 1rem;
+    font-size: 0.75rem;
+}
+
+.review-location { color: #c85a3e; font-weight: 600; }
+.review-badge {
+    background: #fdfbf8;
+    border: 1px solid #f0e6dc;
+    color: #1e3a5f;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.review-badge i { color: #d4a017; }
+
+/* Custom Carousel Controls */
+.custom-carousel-btn {
+    width: 45px;
+    height: 45px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    color: #1e3a5f;
+    border: 1px solid #f0e6dc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    opacity: 1;
+    transition: all 0.2s;
+    top: 45%; /* Centers vertically on the cards */
+}
+
+.custom-carousel-btn:hover {
+    background: #c85a3e;
+    color: #ffffff;
+    border-color: #c85a3e;
+}
+
+/* Move buttons slightly outside the cards on large screens */
+@media (min-width: 1200px) {
+    .carousel-control-prev.custom-carousel-btn { left: -60px; }
+    .carousel-control-next.custom-carousel-btn { right: -60px; }
+}
+
+/* Style the dots */
+.carousel-indicators [data-bs-target] {
+    background-color: #c85a3e;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin: 0 4px;
+    opacity: 0.3;
+}
+.carousel-indicators .active {
+    opacity: 1;
+}
 
 </style>
 

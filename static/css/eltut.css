@@ -202,7 +202,7 @@ h5{
 
 .navbar.navbar-dark.site-header,
 .site-header {
-    background:  linear-gradient(#5c0118, #4c002fde);
+    background:  linear-gradient(#b70430, #4c002fde);
      
     border-bottom: 2px solid #c9a227 !important;
     box-shadow: 0 3px 14px rgba(30, 58, 95, 0.25);
@@ -3905,3 +3905,5 @@ nav.site-header,
     position: relative !important;
     z-index: 1050 !important;
 }
+
+
