@@ -28,6 +28,8 @@
 
     {% block head %}{% endblock %}
 
+    
+
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -559,14 +561,19 @@
             }
         });
 
-        // Show loader on form submissions (e.g., search or booking)
-        document.body.addEventListener("submit", function(e) {
-            if (e.target.tagName === "FORM") {
-                loaderMessage.textContent = "Searching our database...";
-                loader.classList.add("show");
-            }
-        });
-
+               // Show loader on form submissions (e.g., search or booking)
+               document.body.addEventListener("click", function(e) {
+            const link = e.target.closest("a");
+            // Ignore empty links, anchors, and target="_blank"
+            if (link && link.href && !link.href.includes("#") && !link.href.startsWith("javascript:") && link.target !== "_blank") {
+                
+                // IGNORE the Admin Chat page so it doesn't trigger the loader
+                if (window.location.pathname.includes('/admin/chat')) {
+                    return; 
+                }
+                
+                e.preventDefault(); // Stop default navigation
+                
         // Hide loader when using back/forward browser buttons
         window.addEventListener("pageshow", function(e) {
             if (e.persisted) {
@@ -575,7 +582,11 @@
         });
     });
 </script>
-<!-- ═══════════════ END EGYPTIAN LOADING SCREEN ═══════════════ -->
+ <!-- ═══════════════ END EGYPTIAN LOADING SCREEN ═══════════════ -->
+
+{% include "public/_chat_widget.html" %}
+
 </body>
 </html>
+
 

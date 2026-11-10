@@ -1,0 +1,458 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Live Chat Support — Admin{% endblock %}
+
+{% block head %}
+<style>
+    /* ── Balanced Chat Dashboard Layout ─────────────────────────── */
+    .chat-layout {
+        display: flex;
+        height: calc(100vh - 170px); /* Perfect fit above footer */
+        min-height: 500px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        overflow: hidden;
+        border: 1px solid #eaeaea;
+    }
+
+    /* ── Left Sidebar (Sessions List) ───────────────────────────── */
+    .chat-sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        border-right: 1px solid #eaeaea;
+        display: flex;
+        flex-direction: column;
+        background: #fafbfc;
+    }
+    .chat-sidebar-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid #eaeaea;
+        background: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .chat-sidebar-header h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e3a5f;
+    }
+    .chat-sidebar-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+    .chat-session-item {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #eaeaea;
+        display: block;
+        text-decoration: none;
+        color: #374151;
+        transition: background 0.15s;
+    }
+    .chat-session-item:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+    .chat-session-item.active {
+        background: #fff;
+        border-left: 4px solid #c85a3e;
+    }
+    .chat-session-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    .chat-session-name {
+        font-weight: 700;
+        font-size: 0.92rem;
+        color: #1e3a5f;
+    }
+    .chat-session-preview {
+        font-size: 0.8rem;
+        color: #6b7280;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* ── Right Main Area (Chat Thread) ─────────────────────────── */
+    .chat-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+    }
+    .chat-main-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+    }
+    .chat-main-header h5 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1e3a5f;
+    }
+    .chat-main-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        background: #f9fafb;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .chat-main-input {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #eaeaea;
+        background: #fff;
+        display: flex;
+        gap: 12px;
+    }
+    .chat-main-input input {
+        flex: 1;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border 0.2s;
+    }
+    .chat-main-input input:focus {
+        border-color: #c85a3e;
+    }
+    .chat-main-input button {
+        background: #c85a3e;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background 0.2s;
+    }
+    .chat-main-input button:hover {
+        background: #a84530;
+    }
+
+    /* ── Chat Bubbles ──────────────────────────────────────────── */
+    .msg-row {
+        display: flex;
+        flex-direction: column;
+        max-width: 75%;
+    }
+    .msg-row.customer { align-self: flex-start; }
+    .msg-row.bot, .msg-row.human { align-self: flex-end; align-items: flex-end; }
+    
+    .msg-bubble {
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        font-size: 0.92rem;
+        line-height: 1.5;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .msg-bubble.customer {
+        background: #fff;
+        color: #1f2937;
+        border: 1px solid #e5e7eb;
+        border-bottom-left-radius: 2px;
+    }
+    .msg-bubble.bot {
+        background: #1e3a5f;
+        color: #fff;
+        border-bottom-right-radius: 2px;
+    }
+    .msg-bubble.human {
+        background: #16a34a;
+        color: #fff;
+        border-bottom-right-radius: 2px;
+    }
+    .msg-meta {
+        font-size: 0.7rem;
+        color: #9ca3af;
+        margin-top: 4px;
+        margin-left: 4px;
+    }
+    .msg-row.human .msg-meta, .msg-row.bot .msg-meta {
+        margin-left: 0;
+        margin-right: 4px;
+    }
+    .system-note {
+        text-align: center;
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin: 1rem 0;
+        font-style: italic;
+    }
+
+    /* ── Status Badges ─────────────────────────────────────────── */
+    .badge-waiting { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .badge-active  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    
+    .empty-chat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #9ca3af;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1 text-gray-800">Live Chat Support</h1>
+        <p class="text-muted small mb-0">Reply to customer enquiries in real time.</p>
+    </div>
+</div>
+
+<div class="chat-layout">
+    
+    {# ─── LEFT SIDEBAR: Sessions ─── #}
+    <div class="chat-sidebar">
+        <div class="chat-sidebar-header">
+            <h5><i class="bi bi-inbox me-2"></i>Active Sessions</h5>
+            <span class="badge bg-light text-dark border">{{ waiting|length + active|length }}</span>
+        </div>
+        <div class="chat-sidebar-list">
+            {% if not waiting and not active %}
+                <div class="text-center text-muted p-5">
+                    <i class="bi bi-check-circle text-success fs-2 mb-2 d-block"></i>
+                    <p class="small mb-0">All caught up!<br>No active chats.</p>
+                </div>
+            {% endif %}
+
+            {# Waiting Sessions #}
+            {% for s in waiting %}
+                <a href="?session_id={{ s.id }}" class="chat-session-item {% if request.args.get('session_id') == s.id %}active{% endif %}">
+                    <div class="chat-session-header">
+                        <span class="chat-session-name">{{ s.guest_name }}</span>
+                        <span class="badge badge-waiting rounded-pill">Waiting</span>
+                    </div>
+                    <div class="chat-session-preview">{{ s.last_message_preview }}</div>
+                </a>
+            {% endfor %}
+
+            {# Active Sessions #}
+            {% for s in active %}
+                <a href="?session_id={{ s.id }}" class="chat-session-item {% if request.args.get('session_id') == s.id %}active{% endif %}">
+                    <div class="chat-session-header">
+                        <span class="chat-session-name">{{ s.guest_name }}</span>
+                        <span class="badge badge-active rounded-pill">Active</span>
+                    </div>
+                    <div class="chat-session-preview">{{ s.last_message_preview }}</div>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ─── RIGHT MAIN: Chat Thread ─── #}
+    <div class="chat-main">
+        {% if current_session %}
+            {# Header #}
+            <div class="chat-main-header">
+                <div>
+                    <h5>{{ current_session.guest_name }}</h5>
+                    <div class="small text-success fw-bold">
+                        <i class="bi bi-circle-fill" style="font-size: 0.5rem; vertical-align: middle;"></i>
+                        {% if current_session.status == 'human' %}You are connected{% else %}Waiting for reply{% endif %}
+                    </div>
+                </div>
+                <button type="button" id="adminCloseBtn" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x-circle"></i> Close Chat
+                </button>
+            </div>
+
+            {# Messages #}
+            <div class="chat-main-messages" id="threadMessages">
+                {% for msg in messages %}
+                    {% if msg.sender_type == 'system' %}
+                        <div class="system-note">{{ msg.text }}</div>
+                    {% else %}
+                        <div class="msg-row {{ msg.sender_type }}">
+                            <div class="msg-bubble {{ msg.sender_type }}">
+                                {{ msg.text }}
+                            </div>
+                            <div class="msg-meta">
+                                {% if msg.sender_type == 'user' %}Customer
+                                {% elif msg.sender_type == 'bot' %}Bot
+                                {% else %}You{% endif %} &middot; 
+                                {% if msg.created_at %}{{ msg.created_at[:16]|replace('T', ' ') }}{% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {# Input Form #}
+            <form class="chat-main-input" id="adminReplyForm">
+                <input type="text" id="adminReplyInput" placeholder="Type your message here..." autocomplete="off" required>
+                <button type="submit" id="adminSendBtn">
+                    <i class="bi bi-send-fill"></i> Send
+                </button>
+            </form>
+
+        {% else %}
+            {# Empty State #}
+            <div class="empty-chat">
+                <i class="bi bi-chat-square-text" style="font-size: 4rem; color: #e5e7eb; margin-bottom: 1rem;"></i>
+                <h5 class="text-gray-600">No conversation selected</h5>
+                <p class="small">Choose a guest from the left to start chatting.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if current_session %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form     = document.getElementById('adminReplyForm');
+    const input    = document.getElementById('adminReplyInput');
+    const sendBtn  = document.getElementById('adminSendBtn');
+    const threadEl = document.getElementById('threadMessages');
+    const closeBtn = document.getElementById('adminCloseBtn');
+    const sessionId = "{{ current_session.id }}";
+
+    let lastMessageCount = {{ messages|length }};
+
+    // Auto-scroll on load
+    threadEl.scrollTop = threadEl.scrollHeight;
+
+    // Send a reply
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Optimistic UI
+        appendBubble('human', text, 'You');
+        input.value = '';
+        input.disabled = true;
+        sendBtn.disabled = true;
+
+        try {
+            const res = await fetch(`/admin/chat/${sessionId}/reply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            });
+            const data = await res.json();
+            if (!data.ok) {
+                alert('Failed to send message.');
+                console.error(data);
+            }
+        } catch (err) {
+            console.error('Send failed:', err);
+            alert('Network error — could not send.');
+        } finally {
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    });
+
+    // Close Chat
+    if (closeBtn) {
+        closeBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to close this chat?')) return;
+            closeBtn.disabled = true;
+            closeBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Closing...';
+
+            try {
+                const res = await fetch(`/admin/chat/${sessionId}/close`, { method: 'POST' });
+                const data = await res.json();
+                if (data.ok) {
+                    window.location.href = "{{ url_for('admin.chat_list') }}";
+                } else {
+                    alert('Failed to close the chat.');
+                    closeBtn.disabled = false;
+                    closeBtn.innerHTML = '<i class="bi bi-x-circle"></i> Close Chat';
+                }
+            } catch (err) {
+                console.error('Close failed:', err);
+                closeBtn.disabled = false;
+                closeBtn.innerHTML = '<i class="bi bi-x-circle"></i> Close Chat';
+            }
+        });
+    }
+
+    // Poll for new messages (2s)
+    setInterval(async () => {
+        try {
+            const res = await fetch(`/api/chat/poll/${sessionId}`);
+            const data = await res.json();
+            if (!data.ok) return;
+
+            if (data.messages && data.messages.length > lastMessageCount) {
+                const wasAtBottom =
+                    threadEl.scrollHeight - threadEl.scrollTop - threadEl.clientHeight < 60;
+
+                threadEl.innerHTML = '';
+                data.messages.forEach(msg => {
+                    if (msg.sender_type === 'system') {
+                        const note = document.createElement('div');
+                        note.className = 'system-note';
+                        note.textContent = msg.text;
+                        threadEl.appendChild(note);
+                    } else {
+                        appendBubble(
+                            msg.sender_type,
+                            msg.text,
+                            msg.sender_type === 'user' ? 'Customer'
+                                : msg.sender_type === 'bot' ? 'Bot'
+                                : (msg.sender_name || 'You'),
+                            msg.created_at
+                        );
+                    }
+                });
+
+                lastMessageCount = data.messages.length;
+                if (wasAtBottom) threadEl.scrollTop = threadEl.scrollHeight;
+            }
+        } catch (err) { /* silent */ }
+    }, 2000);
+
+    function appendBubble(type, text, name, createdAt) {
+        const row = document.createElement('div');
+        row.className = `msg-row ${type}`;
+
+        let timeStr = '';
+        if (createdAt) {
+            try {
+                const d = new Date(createdAt);
+                timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } catch (e) { timeStr = ''; }
+        } else {
+            timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        row.innerHTML = `
+            <div class="msg-bubble ${type}">${escapeHtml(text)}</div>
+            <div class="msg-meta">${name} &middot; ${timeStr}</div>
+        `;
+        threadEl.appendChild(row);
+        threadEl.scrollTop = threadEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -81,6 +81,11 @@
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.offers_') %}active{% endif %}">
                         <i class="bi bi-star-half"></i> Home offers
                     </a>
+                    <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('admin.chat_list') }}">
+        <i class="bi bi-chat-dots"></i> Live Chat
+    </a>
+</li>
                 </div>
             </div>
         </aside>

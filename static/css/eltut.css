@@ -4001,3 +4001,39 @@ nav.site-header,
 }
 
 
+    /* ── Chat Dashboard Specific ─────────────────────────────── */
+    .chat-admin-wrap {
+        /* Use viewport height minus the header/footer space so the chat fits perfectly */
+        height: calc(100vh - 160px);
+        min-height: 550px;
+        margin-bottom: 0;
+    }
+    .chat-sessions-panel,
+    .chat-thread-panel {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #e9ecef;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    
+    /* Ensure the thread messages area handles the scroll, not the page */
+    .thread-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.25rem;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Make sure human messages (Admin) are green */
+    .bubble.human {
+        background: #16a34a; /* Green */
+        color: #fff;
+        border-bottom-right-radius: 4px;
+    }

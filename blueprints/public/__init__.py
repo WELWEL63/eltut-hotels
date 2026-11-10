@@ -59,6 +59,7 @@ from blueprints.public import review_routes  # noqa: E402,F401
 from blueprints.public import enquiry_routes  # noqa: E402,F401
 from blueprints.public import search_routes   # noqa: E402,F401
 from blueprints.public import quote_routes    # noqa: E402,F401
+from blueprints.public import chat_routes  # noqa: E402,F401
 
 
 __all__: list[str] = ["public_bp"]

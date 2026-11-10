@@ -98,6 +98,7 @@ from blueprints.admin import quote_admin      # noqa: E402,F401
 from blueprints.admin import destination_admin  # noqa: E402,F401
 from blueprints.admin import offer_admin        # noqa: E402,F401
 from blueprints.admin import flight_admin       # noqa: E402,F401
+from blueprints.admin import chat_admin  # noqa: E402,F401
 
 __all__: list[str] = ["admin_bp", "admin_required"]
 

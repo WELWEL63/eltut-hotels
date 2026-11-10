@@ -1,0 +1,400 @@
+{# ═══════════════════════════════════════════════════════════════════
+   FLOATING CHAT WIDGET
+   Include this in base.html just before </body>
+   ═══════════════════════════════════════════════════════════════════ #}
+
+<style>
+    /* Chat Widget Container */
+    .chat-widget-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        font-family: inherit;
+    }
+
+    /* The Floating Button */
+    .chat-toggle-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #c85a3e; /* Terracotta */
+        color: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(200, 90, 62, 0.4);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .chat-toggle-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(200, 90, 62, 0.6);
+    }
+
+    /* The Chat Window */
+    .chat-window {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 350px;
+        height: 500px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #f0e6dc;
+    }
+    .chat-window.active {
+        display: flex;
+    }
+
+    /* Header */
+    .chat-header {
+        background: #1e3a5f; /* Navy */
+        color: white;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .chat-header h6 { margin: 0; font-weight: 700; }
+    .chat-header small { opacity: 0.8; font-size: 0.75rem; }
+    .chat-close-btn {
+        background: none; border: none; color: white;
+        font-size: 1.2rem; cursor: pointer; opacity: 0.7;
+    }
+    .chat-close-btn:hover { opacity: 1; }
+
+    /* Messages Area */
+    .chat-messages {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        background: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Message Bubbles */
+    .chat-bubble {
+        max-width: 80%;
+        padding: 0.6rem 1rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+    .chat-bubble.bot {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+        align-self: flex-start;
+        border-bottom-left-radius: 4px;
+    }
+    .chat-bubble.user {
+        background: #c85a3e; /* Terracotta */
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.system {
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 0.8rem;
+        align-self: center;
+        font-style: italic;
+        text-align: center;
+        border-radius: 8px;
+        padding: 4px 10px;
+    }
+
+    /* Input Area */
+    .chat-input-area {
+        padding: 0.75rem;
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 8px;
+    }
+    .chat-input-area input {
+        flex: 1;
+        border: 1px solid #d1d5db;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        outline: none;
+    }
+    .chat-input-area input:focus { border-color: #c85a3e; }
+    .chat-input-area button {
+        background: #c85a3e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .chat-input-area button:hover { background: #a84530; }
+
+    /* Human Handover Button */
+    .chat-human-btn {
+        background: none;
+        border: none;
+        color: #c85a3e;
+        text-decoration: underline;
+        font-size: 0.8rem;
+        padding: 8px;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+    }
+    .chat-human-btn:hover { color: #a84530; }
+    .chat-human-btn:disabled { color: #9ca3af; cursor: not-allowed; text-decoration: none; }
+
+    /* Typing Indicator */
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
+        background: #e5e7eb;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        color: #6b7280;
+    }
+    .typing-indicator.active { display: block; }
+
+    /* Mobile */
+    @media (max-width: 576px) {
+        .chat-window { width: calc(100vw - 40px); height: 80vh; bottom: 80px; }
+    }
+</style>
+
+<div class="chat-widget-container" id="chatWidget">
+    {# The Chat Window #}
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div>
+                <h6><i class="bi bi-robot me-1"></i> ElTut Assistant</h6>
+                <small id="chat-status-text">Online &middot; Automated</small>
+            </div>
+            <button class="chat-close-btn" id="chatCloseBtn"><i class="bi bi-x-lg"></i></button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            {# Messages will be injected here via JS #}
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <i class="bi bi-three-dots"></i> Agent is typing...
+        </div>
+
+        <form class="chat-input-area" id="chatForm">
+            <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off" required>
+            <button type="submit"><i class="bi bi-send-fill"></i></button>
+        </form>
+        
+        <button class="chat-human-btn" id="chatHumanBtn">
+            <i class="bi bi-person-badge"></i> Talk to a Human
+        </button>
+    </div>
+
+    {# The Floating Action Button #}
+    <button class="chat-toggle-btn" id="chatToggleBtn">
+        <i class="bi bi-chat-dots-fill"></i>
+    </button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('chatToggleBtn');
+    const closeBtn = document.getElementById('chatCloseBtn');
+    const chatWindow = document.getElementById('chatWindow');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const humanBtn = document.getElementById('chatHumanBtn');
+    const statusText = document.getElementById('chat-status-text');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    let sessionId = localStorage.getItem('eltut_chat_session');
+    let pollInterval = null;
+    let lastMessageId = null;
+
+    // Toggle Open/Close
+    toggleBtn.addEventListener('click', () => {
+        chatWindow.classList.toggle('active');
+        if (chatWindow.classList.contains('active') && !sessionId) {
+            startSession();
+        }
+    });
+    closeBtn.addEventListener('click', () => {
+        chatWindow.classList.remove('active');
+    });
+
+    // Start Session
+    async function startSession() {
+        try {
+            const res = await fetch('/api/chat/start', { method: 'POST' });
+            const data = await res.json();
+            if (data.ok) {
+                sessionId = data.session.id;
+                localStorage.setItem('eltut_chat_session', sessionId);
+                updateStatus(data.session.status);
+                loadMessages(); // Fetch initial greeting
+                startPolling();
+            }
+        } catch (err) {
+            console.error('Failed to start chat', err);
+        }
+    }
+
+    // Load Messages
+    async function loadMessages() {
+        if (!sessionId) return;
+        try {
+            const res = await fetch(`/api/chat/poll/${sessionId}`);
+            
+            // Self-heal: if session was wiped (404), start a new one
+            if (res.status === 404) {
+                localStorage.removeItem('eltut_chat_session');
+                sessionId = null;
+                await startSession();
+                return;
+            }
+
+            const data = await res.json();
+            if (data.ok) {
+                renderMessages(data.messages);
+                updateStatus(data.status);
+            }
+        } catch (err) {
+            console.error('Poll error', err);
+        }
+    }
+
+    // Render Messages
+    function renderMessages(messages) {
+        chatMessages.innerHTML = '';
+        messages.forEach(msg => {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${msg.sender_type}`;
+            
+            if (msg.sender_type === 'system') {
+                bubble.textContent = msg.text;
+            } else {
+                bubble.innerHTML = msg.text;
+            }
+            
+            chatMessages.appendChild(bubble);
+        });
+        // Scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Update Status Text
+    function updateStatus(status) {
+        if (status === 'waiting_for_human') {
+            statusText.innerHTML = 'Waiting for agent...';
+            humanBtn.disabled = true;
+            humanBtn.textContent = 'Agent joining soon...';
+        } else if (status === 'human') {
+            statusText.innerHTML = '<span style="color:#fca5a5;">Live Agent</span>';
+            humanBtn.style.display = 'none';
+            typingIndicator.classList.remove('active');
+        } else {
+            statusText.innerHTML = 'Online &middot; Automated';
+            humanBtn.disabled = false;
+            humanBtn.innerHTML = '<i class="bi bi-person-badge"></i> Talk to a Human';
+            humanBtn.style.display = 'block';
+        }
+    }
+
+    // Send Message
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text || !sessionId) return;
+
+        // Optimistic UI: Add user message immediately
+        const userBubble = document.createElement('div');
+        userBubble.className = 'chat-bubble user';
+        userBubble.textContent = text;
+        chatMessages.appendChild(userBubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        chatInput.value = '';
+        typingIndicator.classList.add('active');
+
+        try {
+            const res = await fetch('/api/chat/message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, text: text })
+            });
+            const data = await res.json();
+            
+            typingIndicator.classList.remove('active');
+            
+            if (data.ok && data.result.reply) {
+                // Add bot reply
+                const botBubble = document.createElement('div');
+                botBubble.className = 'chat-bubble bot';
+                botBubble.innerHTML = data.result.reply;
+                chatMessages.appendChild(botBubble);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        } catch (err) {
+            console.error('Send error', err);
+            typingIndicator.classList.remove('active');
+        }
+    });
+
+    // Human Handover
+    humanBtn.addEventListener('click', async () => {
+        if (!sessionId) return;
+        humanBtn.disabled = true;
+        humanBtn.textContent = 'Connecting to agent...';
+
+        try {
+            const res = await fetch('/api/chat/human', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                updateStatus('waiting_for_human');
+                loadMessages(); // Refresh to show the system message
+            }
+        } catch (err) {
+            console.error('Human handover failed', err);
+            humanBtn.disabled = false;
+            humanBtn.innerHTML = '<i class="bi bi-person-badge"></i> Talk to a Human';
+        }
+    });
+
+    // Polling for new messages (only when waiting for human or with human)
+    function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(() => {
+            if (sessionId) loadMessages();
+        }, 3000);
+    }
+
+    // Check session on load (in case they refresh the page)
+    if (sessionId) {
+        updateStatus('bot'); // Default until we poll
+        startPolling();
+    }
+});
+</script>
