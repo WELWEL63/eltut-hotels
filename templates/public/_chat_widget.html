@@ -1,10 +1,11 @@
 {# ═══════════════════════════════════════════════════════════════════
-   FLOATING CHAT WIDGET
-   Include this in base.html just before </body>
+   FLOATING CHAT WIDGET — ElTut Tours
+   Fully featured: Markdown, smart scrolling, session cleanup,
+   bot mode after admin close, typing indicator, notification badge.
    ═══════════════════════════════════════════════════════════════════ #}
 
 <style>
-    /* Chat Widget Container */
+    /* ─── Container ──────────────────────────────────────────── */
     .chat-widget-container {
         position: fixed;
         bottom: 20px;
@@ -13,82 +14,173 @@
         font-family: inherit;
     }
 
-    /* The Floating Button */
+    /* ─── Floating Toggle Button ─────────────────────────────── */
     .chat-toggle-btn {
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: #c85a3e; /* Terracotta */
+        background: linear-gradient(135deg, #c85a3e 0%, #a84530 100%);
         color: white;
         border: none;
-        box-shadow: 0 4px 15px rgba(200, 90, 62, 0.4);
+        box-shadow: 0 4px 20px rgba(200, 90, 62, 0.45);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.8rem;
-        transition: transform 0.2s, box-shadow 0.2s;
+        font-size: 1.75rem;
+        transition: transform 0.25s cubic-bezier(.34, 1.56, .64, 1), box-shadow 0.25s;
+        position: relative;
     }
     .chat-toggle-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 20px rgba(200, 90, 62, 0.6);
+        transform: scale(1.08) rotate(4deg);
+        box-shadow: 0 6px 24px rgba(200, 90, 62, 0.65);
+    }
+    .chat-toggle-btn:active {
+        transform: scale(0.95);
     }
 
-    /* The Chat Window */
+    /* ─── Notification Badge ─────────────────────────────────── */
+    .chat-notification-badge {
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        width: 20px;
+        height: 20px;
+        background: #22c55e;
+        border: 2.5px solid white;
+        border-radius: 50%;
+        display: none;
+        animation: pulse-badge 1.5s infinite;
+    }
+    .chat-toggle-btn.has-notification .chat-notification-badge {
+        display: block;
+    }
+    @keyframes pulse-badge {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    }
+
+    /* ─── Chat Window ────────────────────────────────────────── */
     .chat-window {
         position: absolute;
         bottom: 80px;
         right: 0;
-        width: 350px;
-        height: 500px;
+        width: 370px;
+        height: 540px;
         background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        display: none; /* Hidden by default */
+        border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(240, 230, 220, 0.5);
+        display: none;
         flex-direction: column;
         overflow: hidden;
         border: 1px solid #f0e6dc;
+        transform: translateY(20px) scale(0.9);
+        opacity: 0;
+        transition: transform 0.3s cubic-bezier(.34, 1.56, .64, 1), opacity 0.25s ease;
     }
     .chat-window.active {
         display: flex;
+        transform: translateY(0) scale(1);
+        opacity: 1;
     }
 
-    /* Header */
+    /* ─── Header ─────────────────────────────────────────────── */
     .chat-header {
-        background: #1e3a5f; /* Navy */
+        background: linear-gradient(135deg, #1e3a5f 0%, #2b4f7a 100%);
         color: white;
-        padding: 1rem;
+        padding: 1rem 1.2rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        position: relative;
+        overflow: hidden;
     }
-    .chat-header h6 { margin: 0; font-weight: 700; }
-    .chat-header small { opacity: 0.8; font-size: 0.75rem; }
+    .chat-header::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -30px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .chat-header h6 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+    }
+    .chat-header small {
+        opacity: 0.85;
+        font-size: 0.72rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 3px;
+    }
+    .chat-header small::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #22c55e;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+    }
     .chat-close-btn {
-        background: none; border: none; color: white;
-        font-size: 1.2rem; cursor: pointer; opacity: 0.7;
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        opacity: 0.85;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
     }
-    .chat-close-btn:hover { opacity: 1; }
+    .chat-close-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        opacity: 1;
+    }
 
-    /* Messages Area */
+    /* ─── Messages Area ──────────────────────────────────────── */
     .chat-messages {
         flex: 1;
-        padding: 1rem;
+        padding: 1.1rem;
         overflow-y: auto;
-        background: #f9f9f9;
+        background: #f9fafb;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width: 6px; }
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: rgba(200, 90, 62, 0.25);
+        border-radius: 3px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: rgba(200, 90, 62, 0.5);
     }
 
-    /* Message Bubbles */
+    /* ─── Message Bubbles ────────────────────────────────────── */
     .chat-bubble {
-        max-width: 80%;
-        padding: 0.6rem 1rem;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        line-height: 1.4;
+        max-width: 85%;
+        padding: 0.7rem 1rem;
+        border-radius: 14px;
+        font-size: 0.88rem;
+        line-height: 1.5;
         word-wrap: break-word;
+       
+    }
+    @keyframes bubble-in {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
     }
     .chat-bubble.bot {
         background: #fff;
@@ -96,244 +188,396 @@
         color: #374151;
         align-self: flex-start;
         border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .chat-bubble.user {
-        background: #c85a3e; /* Terracotta */
+        background: linear-gradient(135deg, #c85a3e 0%, #b8492f 100%);
         color: white;
         align-self: flex-end;
         border-bottom-right-radius: 4px;
+        box-shadow: 0 2px 8px rgba(200, 90, 62, 0.25);
     }
     .chat-bubble.system {
-        background: #f3f4f6;
-        color: #6b7280;
-        font-size: 0.8rem;
+        background: transparent;
+        color: #9ca3af;
+        font-size: 0.75rem;
         align-self: center;
         font-style: italic;
         text-align: center;
-        border-radius: 8px;
         padding: 4px 10px;
+        max-width: 100%;
     }
 
-    /* Input Area */
-    .chat-input-area {
-        padding: 0.75rem;
+    /* ─── Markdown Styles inside Bubbles ─────────────────────── */
+    .chat-bubble p { margin-bottom: 0.5rem; }
+    .chat-bubble p:last-child { margin-bottom: 0; }
+    .chat-bubble ul { padding-left: 1.2rem; margin-bottom: 0.5rem; margin-top: 0.25rem; }
+    .chat-bubble li { margin-bottom: 0.3rem; }
+    .chat-bubble a {
+        color: #c85a3e;
+        text-decoration: underline;
+        font-weight: 600;
+        transition: color 0.15s;
+    }
+    .chat-bubble a:hover { color: #a84530; }
+    .chat-bubble.user a { color: #fff; text-decoration-color: rgba(255,255,255,0.6); }
+    .chat-bubble strong { font-weight: 700; }
+    .chat-bubble code {
+        background: rgba(0,0,0,0.06);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+
+    /* ─── Typing Indicator ───────────────────────────────────── */
+    .typing-indicator {
+        display: none;
+        align-self: flex-start;
         background: #fff;
-        border-top: 1px solid #e5e7eb;
+        border: 1px solid #e5e7eb;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .typing-indicator.active { display: flex; }
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+    .typing-dots span {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #9ca3af;
+        animation: typing-bounce 1.4s infinite ease-in-out;
+    }
+    .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing-bounce {
+        0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ─── Input Area ─────────────────────────────────────────── */
+    .chat-input-area {
+        padding: 0.75rem 0.9rem;
+        background: #fff;
+        border-top: 1px solid #f0e6dc;
         display: flex;
         gap: 8px;
+        align-items: center;
     }
     .chat-input-area input {
         flex: 1;
-        border: 1px solid #d1d5db;
-        border-radius: 20px;
-        padding: 0.5rem 1rem;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 0.55rem 1rem;
         font-size: 0.9rem;
         outline: none;
+        transition: border-color 0.2s;
+        background: #f9fafb;
     }
-    .chat-input-area input:focus { border-color: #c85a3e; }
+    .chat-input-area input:focus {
+        border-color: #c85a3e;
+        background: #fff;
+    }
     .chat-input-area button {
-        background: #c85a3e;
+        background: linear-gradient(135deg, #c85a3e 0%, #a84530 100%);
         color: white;
         border: none;
         border-radius: 50%;
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 8px rgba(200, 90, 62, 0.35);
     }
-    .chat-input-area button:hover { background: #a84530; }
+    .chat-input-area button:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(200, 90, 62, 0.5);
+    }
+    .chat-input-area button:active {
+        transform: scale(0.92);
+    }
 
-    /* Human Handover Button */
+    /* ─── Human Handover Button ──────────────────────────────── */
     .chat-human-btn {
-        background: none;
+        background: #fff;
         border: none;
+        border-top: 1px solid #f0e6dc;
         color: #c85a3e;
-        text-decoration: underline;
-        font-size: 0.8rem;
-        padding: 8px;
+        font-size: 0.78rem;
+        padding: 10px;
         cursor: pointer;
         width: 100%;
         text-align: center;
-        border-top: 1px solid #e5e7eb;
+        font-weight: 600;
+        transition: background 0.15s, color 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
     }
-    .chat-human-btn:hover { color: #a84530; }
-    .chat-human-btn:disabled { color: #9ca3af; cursor: not-allowed; text-decoration: none; }
-
-    /* Typing Indicator */
-    .typing-indicator {
-        display: none;
-        align-self: flex-start;
-        background: #e5e7eb;
-        padding: 8px 12px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        color: #6b7280;
+    .chat-human-btn:hover {
+        background: #fff8f5;
+        color: #a84530;
     }
-    .typing-indicator.active { display: block; }
+    .chat-human-btn:disabled {
+        color: #9ca3af;
+        cursor: not-allowed;
+        background: #f9fafb;
+    }
 
-    /* Mobile */
+    /* ─── Mobile ─────────────────────────────────────────────── */
     @media (max-width: 576px) {
-        .chat-window { width: calc(100vw - 40px); height: 80vh; bottom: 80px; }
+        .chat-window {
+            width: calc(100vw - 32px);
+            height: calc(100vh - 100px);
+            bottom: 75px;
+            right: -8px;
+            border-radius: 16px;
+        }
+        .chat-toggle-btn { width: 54px; height: 54px; font-size: 1.5rem; }
     }
 </style>
 
-<div class="chat-widget-container" id="chatWidget">
-    {# The Chat Window #}
-    <div class="chat-window" id="chatWindow">
+<div class="chat-widget-container" id="chatWidget" role="complementary" aria-label="Chat support">
+    <div class="chat-window" id="chatWindow" role="dialog" aria-labelledby="chatTitle">
         <div class="chat-header">
             <div>
-                <h6><i class="bi bi-robot me-1"></i> ElTut Assistant</h6>
-                <small id="chat-status-text">Online &middot; Automated</small>
+                <h6 id="chatTitle"><i class="bi bi-robot me-1"></i> ElTut Assistant</h6>
+                <small id="chat-status-text">Online · Automated</small>
             </div>
-            <button class="chat-close-btn" id="chatCloseBtn"><i class="bi bi-x-lg"></i></button>
+            <button class="chat-close-btn" id="chatCloseBtn" aria-label="Close chat">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            {# Messages will be injected here via JS #}
-        </div>
-        
+
+        <div class="chat-messages" id="chatMessages"></div>
+
         <div class="typing-indicator" id="typingIndicator">
-            <i class="bi bi-three-dots"></i> Agent is typing...
+            <div class="typing-dots">
+                <span></span><span></span><span></span>
+            </div>
         </div>
 
         <form class="chat-input-area" id="chatForm">
-            <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off" required>
-            <button type="submit"><i class="bi bi-send-fill"></i></button>
+            <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off" aria-label="Type your message" required>
+            <button type="submit" aria-label="Send message">
+                <i class="bi bi-send-fill"></i>
+            </button>
         </form>
-        
+
         <button class="chat-human-btn" id="chatHumanBtn">
             <i class="bi bi-person-badge"></i> Talk to a Human
         </button>
     </div>
 
-    {# The Floating Action Button #}
-    <button class="chat-toggle-btn" id="chatToggleBtn">
+    <button class="chat-toggle-btn" id="chatToggleBtn" aria-label="Open chat">
         <i class="bi bi-chat-dots-fill"></i>
+        <span class="chat-notification-badge"></span>
     </button>
 </div>
 
+<!-- Marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const toggleBtn = document.getElementById('chatToggleBtn');
-    const closeBtn = document.getElementById('chatCloseBtn');
-    const chatWindow = document.getElementById('chatWindow');
-    const chatForm = document.getElementById('chatForm');
-    const chatInput = document.getElementById('chatInput');
+    const toggleBtn   = document.getElementById('chatToggleBtn');
+    const closeBtn    = document.getElementById('chatCloseBtn');
+    const chatWindow  = document.getElementById('chatWindow');
+    const chatForm    = document.getElementById('chatForm');
+    const chatInput   = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
-    const humanBtn = document.getElementById('chatHumanBtn');
-    const statusText = document.getElementById('chat-status-text');
+    const humanBtn    = document.getElementById('chatHumanBtn');
+    const statusText  = document.getElementById('chat-status-text');
     const typingIndicator = document.getElementById('typingIndicator');
 
-    let sessionId = localStorage.getItem('eltut_chat_session');
+    // sessionStorage = wiped when tab closes, survives F5 refresh
+    let sessionId = sessionStorage.getItem('eltut_chat_session');
     let pollInterval = null;
-    let lastMessageId = null;
+    let hasShownAutoOpen = sessionStorage.getItem('eltut_chat_auto_opened');
+    let isSending = false;
 
-    // Toggle Open/Close
-    toggleBtn.addEventListener('click', () => {
-        chatWindow.classList.toggle('active');
-        if (chatWindow.classList.contains('active') && !sessionId) {
-            startSession();
-        }
-    });
-    closeBtn.addEventListener('click', () => {
-        chatWindow.classList.remove('active');
-    });
-
-    // Start Session
-    async function startSession() {
-        try {
-            const res = await fetch('/api/chat/start', { method: 'POST' });
-            const data = await res.json();
-            if (data.ok) {
-                sessionId = data.session.id;
-                localStorage.setItem('eltut_chat_session', sessionId);
-                updateStatus(data.session.status);
-                loadMessages(); // Fetch initial greeting
-                startPolling();
-            }
-        } catch (err) {
-            console.error('Failed to start chat', err);
-        }
+    // ─── Markdown renderer ─────────────────────────────────────
+    function formatMessage(text) {
+        if (!text) return '';
+        let html = marked.parse(text);
+        // strip scripts for safety
+        return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     }
 
-    // Load Messages
+    // ─── Scroll helpers ────────────────────────────────────────
+    function isUserAtBottom() {
+        return (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 50;
+    }
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ─── Open / Close ──────────────────────────────────────────
+    function openChat() {
+        chatWindow.classList.add('active');
+        toggleBtn.classList.remove('has-notification');
+        if (!sessionId) {
+            startSession();
+        } else {
+            setTimeout(() => { scrollToBottom(); chatInput.focus(); }, 200);
+        }
+    }
+    function closeChat() {
+        chatWindow.classList.remove('active');
+    }
+    toggleBtn.addEventListener('click', () => {
+        chatWindow.classList.contains('active') ? closeChat() : openChat();
+    });
+    closeBtn.addEventListener('click', closeChat);
+
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+        if (!chatWindow.classList.contains('active')) return;
+        if (chatWidget.contains(e.target)) return;
+        closeChat();
+    });
+
+    // ESC to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && chatWindow.classList.contains('active')) closeChat();
+    });
+
+    // ─── Auto-open after 20s (homepage only, once per tab) ─────
+    const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
+    if (!hasShownAutoOpen && isHomepage) {
+        setTimeout(() => {
+            if (!chatWindow.classList.contains('active')) {
+                openChat();
+                toggleBtn.classList.add('has-notification');
+                sessionStorage.setItem('eltut_chat_auto_opened', 'true');
+            }
+        }, 20000);
+    }
+
+   async function startSession() {
+    try {
+        const res = await fetch('/api/chat/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            sessionId = data.session.id;
+            sessionStorage.setItem('eltut_chat_session', sessionId);
+            updateStatus(data.session.status);
+
+            // Fetch messages immediately (the server has already written the greeting)
+            await loadMessages();
+
+            // Safety net: if still empty after 300ms, retry once
+            setTimeout(async () => {
+                if (chatMessages.children.length === 0) {
+                    await loadMessages();
+                }
+            }, 300);
+
+            startPolling();
+        }
+    } catch (err) {
+        console.error('Start error', err);
+    }
+}
+
+    async function restartChat() {
+        sessionStorage.removeItem('eltut_chat_session');
+        sessionId = null;
+        chatMessages.innerHTML = '';
+        await startSession();
+    }
+
     async function loadMessages() {
         if (!sessionId) return;
         try {
             const res = await fetch(`/api/chat/poll/${sessionId}`);
-            
-            // Self-heal: if session was wiped (404), start a new one
             if (res.status === 404) {
-                localStorage.removeItem('eltut_chat_session');
-                sessionId = null;
-                await startSession();
+                await restartChat();
                 return;
             }
-
             const data = await res.json();
-            if (data.ok) {
-                renderMessages(data.messages);
-                updateStatus(data.status);
-            }
+            if (!data.ok) return;
+
+            const shouldScroll = isUserAtBottom();
+            renderMessages(data.messages);
+            updateStatus(data.status);
+            if (shouldScroll) scrollToBottom();
         } catch (err) {
             console.error('Poll error', err);
         }
     }
 
-    // Render Messages
+    // ─── Render messages ───────────────────────────────────────
     function renderMessages(messages) {
         chatMessages.innerHTML = '';
         messages.forEach(msg => {
             const bubble = document.createElement('div');
             bubble.className = `chat-bubble ${msg.sender_type}`;
-            
-            if (msg.sender_type === 'system') {
+            if (msg.sender_type === 'system' || msg.sender_type === 'user') {
                 bubble.textContent = msg.text;
             } else {
-                bubble.innerHTML = msg.text;
+                bubble.innerHTML = formatMessage(msg.text);
             }
-            
             chatMessages.appendChild(bubble);
         });
-        // Scroll to bottom
-        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Update Status Text
+    function appendBubble(type, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${type}`;
+        if (type === 'user' || type === 'system') {
+            bubble.textContent = text;
+        } else {
+            bubble.innerHTML = formatMessage(text);
+        }
+        chatMessages.appendChild(bubble);
+    }
+
+    // ─── Status label ──────────────────────────────────────────
     function updateStatus(status) {
         if (status === 'waiting_for_human') {
             statusText.innerHTML = 'Waiting for agent...';
             humanBtn.disabled = true;
-            humanBtn.textContent = 'Agent joining soon...';
+            humanBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Agent joining soon...';
         } else if (status === 'human') {
-            statusText.innerHTML = '<span style="color:#fca5a5;">Live Agent</span>';
+            statusText.innerHTML = '<span style="color:#fca5a5;">●</span> Live Agent';
             humanBtn.style.display = 'none';
             typingIndicator.classList.remove('active');
         } else {
-            statusText.innerHTML = 'Online &middot; Automated';
+            // 'bot' or 'closed' → both mean user is chatting with the bot
+            statusText.innerHTML = 'Online · Automated';
             humanBtn.disabled = false;
+            humanBtn.style.display = 'flex';
             humanBtn.innerHTML = '<i class="bi bi-person-badge"></i> Talk to a Human';
-            humanBtn.style.display = 'block';
         }
     }
 
-    // Send Message
+    // ─── Send message ──────────────────────────────────────────
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (isSending) return;
         const text = chatInput.value.trim();
         if (!text || !sessionId) return;
 
-        // Optimistic UI: Add user message immediately
-        const userBubble = document.createElement('div');
-        userBubble.className = 'chat-bubble user';
-        userBubble.textContent = text;
-        chatMessages.appendChild(userBubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
+        isSending = true;
+        appendBubble('user', text);
+        scrollToBottom();
         chatInput.value = '';
         typingIndicator.classList.add('active');
+        scrollToBottom();
 
         try {
             const res = await fetch('/api/chat/message', {
@@ -341,29 +585,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ session_id: sessionId, text: text })
             });
+
+            if (res.status === 404) {
+                typingIndicator.classList.remove('active');
+                await restartChat();
+                isSending = false;
+                return;
+            }
+
             const data = await res.json();
-            
             typingIndicator.classList.remove('active');
-            
+
             if (data.ok && data.result.reply) {
-                // Add bot reply
-                const botBubble = document.createElement('div');
-                botBubble.className = 'chat-bubble bot';
-                botBubble.innerHTML = data.result.reply;
-                chatMessages.appendChild(botBubble);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                appendBubble('bot', data.result.reply);
+                scrollToBottom();
             }
         } catch (err) {
-            console.error('Send error', err);
             typingIndicator.classList.remove('active');
+            console.error('Send error', err);
+        } finally {
+            isSending = false;
         }
     });
 
-    // Human Handover
+    // ─── Human handover ────────────────────────────────────────
     humanBtn.addEventListener('click', async () => {
         if (!sessionId) return;
         humanBtn.disabled = true;
-        humanBtn.textContent = 'Connecting to agent...';
+        humanBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Connecting...';
 
         try {
             const res = await fetch('/api/chat/human', {
@@ -371,19 +620,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ session_id: sessionId })
             });
+            if (res.status === 404) { await restartChat(); return; }
             const data = await res.json();
             if (data.ok) {
                 updateStatus('waiting_for_human');
-                loadMessages(); // Refresh to show the system message
+                loadMessages();
             }
         } catch (err) {
-            console.error('Human handover failed', err);
             humanBtn.disabled = false;
             humanBtn.innerHTML = '<i class="bi bi-person-badge"></i> Talk to a Human';
         }
     });
 
-    // Polling for new messages (only when waiting for human or with human)
+    // ─── Polling ───────────────────────────────────────────────
     function startPolling() {
         if (pollInterval) clearInterval(pollInterval);
         pollInterval = setInterval(() => {
@@ -391,10 +640,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
-    // Check session on load (in case they refresh the page)
+    // ─── Cleanup on tab close / navigation ─────────────────────
+    window.addEventListener('beforeunload', function() {
+        if (sessionId && navigator.sendBeacon) {
+            const blob = new Blob(
+                [JSON.stringify({ session_id: sessionId })],
+                { type: 'application/json' }
+            );
+            navigator.sendBeacon('/api/chat/end', blob);
+            sessionStorage.removeItem('eltut_chat_session');
+        }
+    });
+
+    // ─── Init ──────────────────────────────────────────────────
     if (sessionId) {
-        updateStatus('bot'); // Default until we poll
+        updateStatus('bot');
         startPolling();
+        loadMessages();
     }
 });
 </script>

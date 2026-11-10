@@ -1,0 +1,60 @@
+[1mdiff --git a/vps b/vps[m
+[1mindex 652271f..8ed44ae 100644[m
+[1m--- a/vps[m
+[1m+++ b/vps[m
+[36m@@ -1,14 +1,48 @@[m
+[31m-On the VPS (SSH):[m
+[32m+[m[32mStep 1 — On your Windows laptop[m
+[32m+[m[32mOpen PowerShell in your local project folder:[m
+[32m+[m[32mcd C:\Users\washo\Desktop\eltut-tours-platform[m
+[32m+[m
+[32m+[m
+[32m+[m[32mCheck which files have changed:[m
+[32m+[m[32mgit status[m
+[32m+[m
+[32m+[m
+[32m+[m[32mAdd and commit your changes:[m
+[32m+[m[32mgit add static/css/eltut.css templates/base.html templates/index.html[m
+[32m+[m[32mgit commit -m "Update website styling and homepage templates"[m
+[32m+[m[32mgit push origin main[m
+[32m+[m
+[32m+[m
+[32m+[m[32mIf you changed additional CSS files, include those too. You can use git add with their paths.[m
+[32m+[m[32mStep 2 — Update the VPS[m
+[32m+[m[32mConnect to your VPS using SSH, then run:[m
+[32m+[m[32mcd /var/www/eltut-tours-platform[m
+[32m+[m
+[32m+[m
+[32m+[m[32mCheck the current server changes first:[m
+[32m+[m[32mrunuser -u luxorapp -- git -C /var/www/eltut-tours-platform status[m
+[32m+[m
+[32m+[m
+[32m+[m[32mThen pull the updates:[m
+ runuser -u luxorapp -- git -C /var/www/eltut-tours-platform pull --ff-only[m
+ [m
+ [m
+[31m-Then restart Flask:[m
+[32m+[m[32mIf the pull succeeds[m
+[32m+[m[32mRestart Flask:[m
+ systemctl restart luxordahabiya.service[m
+ [m
+ [m
+ Check that it is running:[m
+[31m-systemctl is-active luxordahabiya.service[m
+[32m+[m[32msystemctl status luxordahabiya.service --no-pager[m
+[32m+[m
+[32m+[m
+[32m+[m[32mYou want to see:[m
+[32m+[m[32mActive: active (running)[m
+[32m+[m
+[32m+[m
+[32m+[m[32mStep 3 — Check your live website[m
+[32m+[m[32mOpen:[m
+ [m
+[32m+[m[32mhttps://www.luxordahabiya.com[m
+ [m
+[31m-Expected result:[m
+[31m-active[m
+\ No newline at end of file[m
+[32m+[m[32mPress Ctrl + F5 to force-refresh the CSS and templates.[m
+\ No newline at end of file[m

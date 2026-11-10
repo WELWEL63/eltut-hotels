@@ -92,20 +92,49 @@ def get_session(session_id: str) -> dict[str, Any] | None:
     except Exception:
         return None
 
-def get_active_session(user_id: int | None = None) -> dict[str, Any] | None:
+def get_active_session(user_id: int | None = None, session_id: str | None = None) -> dict[str, Any] | None:
+    """
+    Strictly isolate sessions.
+
+    - Guests (user_id is None): ONLY return a session if the exact
+      session_id was passed AND it is not closed. Otherwise return None.
+    - Logged-in users: return their most recent open session.
+    """
     col = _get_col("chat_sessions")
+
+    # ── Guest path ──
+    if user_id is None:
+        if not session_id:
+            return None
+        if col is None:
+            db = _load_db()
+            s = db["sessions"].get(session_id)
+            if s and s["status"] != SESSION_STATUS_CLOSED:
+                return s
+            return None
+        try:
+            doc = col.find_one({
+                "_id": ObjectId(session_id),
+                "status": {"$ne": SESSION_STATUS_CLOSED},
+            })
+            if doc:
+                doc["id"] = str(doc.pop("_id"))
+            return doc
+        except Exception:
+            return None
+
+    # ── Logged-in user path ──
     if col is None:
         db = _load_db()
         for s in db["sessions"].values():
             if s["status"] != SESSION_STATUS_CLOSED and s["user_id"] == user_id:
                 return s
         return None
-        
     try:
-        query = {"status": {"$ne": SESSION_STATUS_CLOSED}}
-        if user_id is not None:
-            query["user_id"] = user_id
-        doc = col.find_one(query, sort=[("created_at", -1)])
+        doc = col.find_one(
+            {"status": {"$ne": SESSION_STATUS_CLOSED}, "user_id": user_id},
+            sort=[("created_at", -1)],
+        )
         if doc:
             doc["id"] = str(doc.pop("_id"))
         return doc

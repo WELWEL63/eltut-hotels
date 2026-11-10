@@ -1,14 +1,48 @@
-On the VPS (SSH):
+Step 1 — On your Windows laptop
+Open PowerShell in your local project folder:
+cd C:\Users\washo\Desktop\eltut-tours-platform
+
+
+Check which files have changed:
+git status
+
+
+Add and commit your changes:
+git add static/css/eltut.css templates/base.html templates/index.html
+git commit -m "Update website styling and homepage templates"
+git push origin main
+
+
+If you changed additional CSS files, include those too. You can use git add with their paths.
+Step 2 — Update the VPS
+Connect to your VPS using SSH, then run:
+cd /var/www/eltut-tours-platform
+
+
+Check the current server changes first:
+runuser -u luxorapp -- git -C /var/www/eltut-tours-platform status
+
+
+Then pull the updates:
 runuser -u luxorapp -- git -C /var/www/eltut-tours-platform pull --ff-only
 
 
-Then restart Flask:
+If the pull succeeds
+Restart Flask:
 systemctl restart luxordahabiya.service
 
 
 Check that it is running:
-systemctl is-active luxordahabiya.service
+systemctl status luxordahabiya.service --no-pager
 
 
-Expected result:
-active
+You want to see:
+Active: active (running)
+
+
+Step 3 — Check your live website
+Open:
+
+https://www.luxordahabiya.com
+
+Press Ctrl + F5 to force-refresh the CSS and templates.
