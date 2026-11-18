@@ -1,7 +1,26 @@
 {% extends "base.html" %}
 {% block title %}{{ hotel.name }} â€” {{ config.APP_NAME }}{% endblock %}
-
 {% block content %}
+
+{# Safely normalise reviews, including accidentally nested lists #}
+{% set review_ns = namespace(items=[]) %}
+
+{% for item in reviews or [] %}
+    {% if item is mapping %}
+        {% set _ = review_ns.items.append(item) %}
+    {% elif item is sequence and item is not string %}
+        {% for nested_item in item %}
+            {% if nested_item is mapping or nested_item is not sequence %}
+                {% set _ = review_ns.items.append(nested_item) %}
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        {% set _ = review_ns.items.append(item) %}
+    {% endif %}
+{% endfor %}
+
+{% set safe_reviews = review_ns.items %}
+
 {% set _has_dates = request.args.get('check_in') and request.args.get('check_out') %}
 <section class="py-4">
     <div class="container">
@@ -456,34 +475,83 @@
                 </div>
 
                 {% if reviews %}
-                    <div class="row g-3">
-                        {% for r in reviews %}
-                            <div class="col-12">
-                                <div class="card shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div>
-                                                <div class="stars mb-1">
-                                                    {% for _ in range(r.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                                    {% for _ in range(5 - r.rating) %}<i class="bi bi-star"></i>{% endfor %}
-                                                </div>
-                                                {% if r.title %}<h6 class="mb-1">{{ r.title }}</h6>{% endif %}
-                                            </div>
-                                            <small class="text-muted text-nowrap">{{ r.created_at.strftime("%b %Y") if r.created_at else "" }}</small>
-                                        </div>
-                                        {% if r.body %}<p class="mb-2">{{ r.body }}</p>{% endif %}
-                                        <div class="d-flex justify-content-between align-items-center small text-muted">
-                                            <span><i class="bi bi-person-circle"></i> {{ r.user_name or "Guest" }} {% if r.verified_booking %}<span class="badge bg-success-subtle text-success-emphasis ms-1"><i class="bi bi-patch-check"></i> Verified stay</span>{% endif %}</span>
-                                            <span><i class="bi bi-hand-thumbs-up"></i> {{ r.helpful_count or 0 }} found this helpful</span>
-                                        </div>
+    <div class="row g-3">
+        {% for r in reviews %}
+
+            {% if r is mapping %}
+
+                {% set rating = r.get('rating', 0)|int %}
+
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <div class="stars mb-1">
+                                        {% for star in range(5) %}
+                                            {% if star < rating %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
                                     </div>
+
+                                    {% if r.get('title') %}
+                                        <h6 class="mb-1">
+                                            {{ r.get('title') }}
+                                        </h6>
+                                    {% endif %}
                                 </div>
+
+                                <small class="text-muted text-nowrap">
+                                    {{ r.get('created_at').strftime("%b %Y") if r.get('created_at') else "" }}
+                                </small>
                             </div>
-                        {% endfor %}
+
+                            {% if r.get('body') %}
+                                <p class="mb-2">{{ r.get('body') }}</p>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between align-items-center small text-muted">
+                                <span>
+                                    <i class="bi bi-person-circle"></i>
+                                    {{ r.get('user_name', 'Guest') }}
+
+                                    {% if r.get('verified_booking') %}
+                                        <span class="badge bg-success-subtle text-success-emphasis ms-1">
+                                            <i class="bi bi-patch-check"></i>
+                                            Verified stay
+                                        </span>
+                                    {% endif %}
+                                </span>
+
+                                <span>
+                                    <i class="bi bi-hand-thumbs-up"></i>
+                                    {{ r.get('helpful_count', 0) }}
+                                    found this helpful
+                                </span>
+                            </div>
+
+                        </div>
                     </div>
-                {% else %}
-                    <div class="card shadow-sm"><div class="card-body text-center py-4 text-muted"><i class="bi bi-chat-square-text" style="font-size:2.5rem;"></i><p class="mt-3 mb-0">No reviews yet. Be the first to share your experience.</p></div></div>
-                {% endif %}
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-4 text-muted">
+            <i class="bi bi-chat-square-text" style="font-size:2.5rem;"></i>
+            <p class="mt-3 mb-0">
+                No reviews yet. Be the first to share your experience.
+            </p>
+        </div>
+    </div>
+{% endif %}
 
                 {% if not current_user.is_authenticated %}
                     <div class="alert alert-info mt-3"><i class="bi bi-info-circle"></i> <a href="{{ url_for('auth.login', next=request.path) }}">Sign in</a> to leave a review.</div>
@@ -661,51 +729,155 @@
                     </div>
                 {% endif %}
 
-                {# â”€â”€â”€ Reviews â”€â”€â”€ #}
-                <div class="section-header icon-gold mt-5" id="reviews">
-                    <span class="icon-box"><i class="bi bi-star-fill"></i></span>
-                    <span class="title">Guest reviews {% if review_count and avg_rating %}<span class="subtitle">{{ "%.1f"|format(avg_rating) }} average from {{ review_count }} review{{ "" if review_count == 1 else "s" }}</span>{% endif %}</span>
-                    {% if current_user.is_authenticated and not user_has_reviewed %}
-                        <button class="btn btn-eltut-primary ms-auto" data-bs-toggle="modal" data-bs-target="#writeReviewModal"><i class="bi bi-pencil-square"></i> Write a review</button>
-                    {% endif %}
+           
+{# ─── Guest Reviews ─── #}
+
+<div class="section-header icon-gold mt-5" id="reviews">
+    <span class="icon-box">
+        <i class="bi bi-star-fill"></i>
+    </span>
+
+    <span class="title">
+        Guest reviews
+
+        {% if review_count and avg_rating %}
+            <span class="subtitle">
+                {{ "%.1f"|format(avg_rating) }} average from
+                {{ review_count }} review{{ "" if review_count == 1 else "s" }}
+            </span>
+        {% endif %}
+    </span>
+
+    {% if current_user.is_authenticated and not user_has_reviewed %}
+        <button class="btn btn-eltut-primary ms-auto"
+                data-bs-toggle="modal"
+                data-bs-target="#writeReviewModal">
+            <i class="bi bi-pencil-square"></i> Write a review
+        </button>
+    {% endif %}
+</div>
+
+{% if safe_reviews %}
+
+    <div class="row g-3">
+
+        {% for r in safe_reviews %}
+
+            {% set rating = r.rating|default(0, true)|int %}
+            {% set rating = [0, [rating, 5]|min]|max %}
+
+            <div class="col-12">
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+
+                            <div>
+                                <div class="stars mb-1">
+
+                                    {% for i in range(rating) %}
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                    {% endfor %}
+
+                                    {% for i in range(5 - rating) %}
+                                        <i class="bi bi-star text-warning"></i>
+                                    {% endfor %}
+
+                                </div>
+
+                                {% if r.title|default('', true) %}
+                                    <h6 class="mb-1">
+                                        {{ r.title }}
+                                    </h6>
+                                {% endif %}
+                            </div>
+
+                            <small class="text-muted text-nowrap">
+                                {% if r.created_at|default(none) %}
+                                    {% if r.created_at.strftime is defined %}
+                                        {{ r.created_at.strftime("%b %Y") }}
+                                    {% else %}
+                                        {{ r.created_at }}
+                                    {% endif %}
+                                {% endif %}
+                            </small>
+
+                        </div>
+
+                        {% if r.body|default('', true) %}
+                            <p class="mb-2">
+                                {{ r.body }}
+                            </p>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between align-items-center small text-muted">
+
+                            <span>
+                                <i class="bi bi-person-circle"></i>
+                                {{ r.user_name|default('Guest', true) }}
+
+                                {% if r.verified_booking|default(false, true) %}
+                                    <span class="badge bg-success-subtle text-success-emphasis ms-1">
+                                        <i class="bi bi-patch-check"></i>
+                                        Verified stay
+                                    </span>
+                                {% endif %}
+                            </span>
+
+                            <span>
+                                <i class="bi bi-hand-thumbs-up"></i>
+                                {{ r.helpful_count|default(0, true) }}
+                                found this helpful
+                            </span>
+
+                        </div>
+
+                    </div>
                 </div>
 
-                {% if reviews %}
-                    <div class="row g-3">
-                        {% for r in reviews %}
-                            <div class="col-12">
-                                <div class="card shadow-sm">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div>
-                                                <div class="stars mb-1">
-                                                    {% for _ in range(r.rating) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                                    {% for _ in range(5 - r.rating) %}<i class="bi bi-star"></i>{% endfor %}
-                                                </div>
-                                                {% if r.title %}<h6 class="mb-1">{{ r.title }}</h6>{% endif %}
-                                            </div>
-                                            <small class="text-muted text-nowrap">{{ r.created_at.strftime("%b %Y") if r.created_at else "" }}</small>
-                                        </div>
-                                        {% if r.body %}<p class="mb-2">{{ r.body }}</p>{% endif %}
-                                        <div class="d-flex justify-content-between align-items-center small text-muted">
-                                            <span><i class="bi bi-person-circle"></i> {{ r.user_name or "Guest" }} {% if r.verified_booking %}<span class="badge bg-success-subtle text-success-emphasis ms-1"><i class="bi bi-patch-check"></i> Verified stay</span>{% endif %}</span>
-                                            <span><i class="bi bi-hand-thumbs-up"></i> {{ r.helpful_count or 0 }} found this helpful</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="card shadow-sm"><div class="card-body text-center py-4 text-muted"><i class="bi bi-chat-square-text" style="font-size:2.5rem;"></i><p class="mt-3 mb-0">No reviews yet. Be the first to share your experience.</p></div></div>
-                {% endif %}
-
-                {% if not current_user.is_authenticated %}
-                    <div class="alert alert-info mt-3"><i class="bi bi-info-circle"></i> <a href="{{ url_for('auth.login', next=request.path) }}">Sign in</a> to leave a review.</div>
-                {% elif user_has_reviewed %}
-                    <div class="alert alert-secondary mt-3"><i class="bi bi-check-circle"></i> You've already submitted a review for this hotel.</div>
-                {% endif %}
             </div>
+
+        {% endfor %}
+
+    </div>
+
+{% else %}
+
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-4 text-muted">
+
+            <i class="bi bi-chat-square-text" style="font-size:2.5rem;"></i>
+
+            <p class="mt-3 mb-0">
+                No reviews yet. Be the first to share your experience.
+            </p>
+
+        </div>
+    </div>
+
+{% endif %}
+
+{% if not current_user.is_authenticated %}
+
+    <div class="alert alert-info mt-3">
+        <i class="bi bi-info-circle"></i>
+
+        <a href="{{ url_for('auth.login', next=request.path) }}">
+            Sign in
+        </a>
+        to leave a review.
+    </div>
+
+{% elif user_has_reviewed %}
+
+    <div class="alert alert-secondary mt-3">
+        <i class="bi bi-check-circle"></i>
+        You've already submitted a review for this hotel.
+    </div>
+
+{% endif %}
+
 
                        {# â”€â”€â”€ Sidebar â”€â”€â”€ #}
             <aside class="col-lg-4">

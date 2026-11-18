@@ -4,13 +4,12 @@
 #}
 
 {% set _dests = search_destinations() %}
-{% set _pkg_dests = search_package_destinations() %}
 {% set _widget_active_type = (request.args.get('type') or 'hotel')|lower %}
 
 <div class="search-widget search-widget-hero" id="eltutSearchWidget">
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link {% if _widget_active_type == 'hotel' %}active{% endif %}"
+            <button class="nav-link active"
                     id="sw-hotel-tab"
                     data-bs-toggle="tab"
                     data-bs-target="#sw-hotel"
@@ -19,31 +18,11 @@
                 <i class="bi bi-building"></i> <span class="d-none d-sm-inline">Hotels</span>
             </button>
         </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if _widget_active_type == 'package' %}active{% endif %}"
-                    id="sw-package-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#sw-package"
-                    type="button"
-                    role="tab">
-                <i class="bi bi-suitcase-lg"></i> <span class="d-none d-sm-inline">Holiday Packages</span>
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if _widget_active_type == 'activity' %}active{% endif %}"
-                    id="sw-activity-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#sw-activity"
-                    type="button"
-                    role="tab">
-                <i class="bi bi-compass"></i> <span class="d-none d-sm-inline">Activities</span>
-            </button>
-        </li>
     </ul>
 
     <div class="tab-content">
         {# ─── Hotels ─── #}
-        <div class="tab-pane fade {% if _widget_active_type == 'hotel' %}show active{% endif %}" id="sw-hotel" role="tabpanel">
+        <div class="tab-pane fade show active" id="sw-hotel" role="tabpanel">
             <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form position-relative">
                 <input type="hidden" name="type" value="hotel">
                 
@@ -87,7 +66,7 @@
                         </button>
                         
                         {# Absolute Dropdown Panel #}
-                                              <div id="heroGuestsPanel" class="shadow-lg border-0" 
+                        <div id="heroGuestsPanel" class="shadow-lg border-0" 
                              style="display: none; position: absolute; bottom: 100%; right: 0; z-index: 9999; width: 380px; margin-bottom: 0.5rem; background: #fff; border-radius: 12px; padding: 1.25rem; box-shadow: 0 -10px 30px rgba(0,0,0,0.15) !important;">
                             {% set adults = 2 %}
                             {% set children = 0 %}
@@ -98,85 +77,6 @@
 
                     <div class="col-12 col-md-2">
                         <button type="submit" class="btn btn-eltut-primary btn-lg w-100" style="height: auto; padding: 0.6rem 1rem;">
-                            <i class="bi bi-search"></i> Search
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        {# ─── Tour Packages ─── #}
-        <div class="tab-pane fade {% if _widget_active_type == 'package' %}show active{% endif %}" id="sw-package" role="tabpanel">
-            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
-                <input type="hidden" name="type" value="package">
-                <div class="row g-2 g-md-3 align-items-end">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
-                        <select name="destination" class="form-select form-select-lg">
-                            <option value="">Where would you like to go?</option>
-                            {% for d in _pkg_dests %}
-                                <option value="{{ d.slug }}">{{ d.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-2">
-                        <label class="form-label"><i class="bi bi-calendar-check"></i> From</label>
-                        <input type="date" name="check_in" id="sw-pkg-in"
-                               class="form-control form-control-lg"
-                               min="{{ today().isoformat() }}">
-                    </div>
-                    <div class="col-6 col-md-2">
-                        <label class="form-label"><i class="bi bi-calendar-x"></i> To</label>
-                        <input type="date" name="check_out" id="sw-pkg-out"
-                               class="form-control form-control-lg"
-                               min="{{ today().isoformat() }}">
-                    </div>
-                    <div class="col-6 col-md-2">
-                        <label class="form-label"><i class="bi bi-people-fill"></i> Guests</label>
-                        <div class="input-group input-group-lg">
-                            <input type="number" name="adults" class="form-control" value="2" min="1" max="8" title="Adults" placeholder="A">
-                            <span class="input-group-text">+</span>
-                            <input type="number" name="children" class="form-control" value="0" min="0" max="8" title="Children" placeholder="C">
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
-                            <i class="bi bi-search"></i> Search
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        {# ─── Activities ─── #}
-        <div class="tab-pane fade {% if _widget_active_type == 'activity' %}show active{% endif %}" id="sw-activity" role="tabpanel">
-            <form method="GET" action="{{ url_for('public.search_shortcut') }}" class="search-form">
-                <input type="hidden" name="type" value="activity">
-                <div class="row g-2 g-md-3 align-items-end">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label"><i class="bi bi-geo-alt-fill"></i> Destination</label>
-                        <select name="destination" class="form-select form-select-lg">
-                            <option value="">Where would you like to go?</option>
-                            {% for d in _dests %}
-                                <option value="{{ d.slug }}">{{ d.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-4">
-                        <label class="form-label"><i class="bi bi-calendar-check"></i> When</label>
-                        <input type="date" name="date" class="form-control form-control-lg"
-                               min="{{ today().isoformat() }}">
-                    </div>
-                    <div class="col-6 col-md-2">
-                        <label class="form-label"><i class="bi bi-people-fill"></i> Guests</label>
-                        <div class="input-group input-group-lg">
-                            <input type="number" name="adults" class="form-control" value="2" min="1" max="8" title="Adults" placeholder="A">
-                            <span class="input-group-text">+</span>
-                            <input type="number" name="children" class="form-control" value="0" min="0" max="8" title="Children" placeholder="C">
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-eltut-primary btn-lg w-100">
                             <i class="bi bi-search"></i> Search
                         </button>
                     </div>
@@ -195,15 +95,14 @@
 (function() {
     'use strict';
 
-    [['sw-hotel-in', 'sw-hotel-out'], ['sw-pkg-in', 'sw-pkg-out']].forEach(function(pair) {
-        const start = document.getElementById(pair[0]);
-        const end = document.getElementById(pair[1]);
-        if (!start || !end) return;
+    const start = document.getElementById('sw-hotel-in');
+    const end = document.getElementById('sw-hotel-out');
+    if (start && end) {
         start.addEventListener('change', function() {
             if (start.value) end.min = start.value;
             if (end.value && end.value < start.value) end.value = start.value;
         });
-    });
+    }
 
     // Toggle Dropdown
     const guestsBtn = document.getElementById('heroGuestsBtn');

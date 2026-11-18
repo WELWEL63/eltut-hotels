@@ -45,11 +45,11 @@ VALID_SECTIONS = {
 
 # Valid product types (each section maps to exactly one, but we store
 # the type explicitly so lookups are simple and future-proof).
-PRODUCT_ACTIVITY = "activity"
-PRODUCT_HOTEL = "hotel"
-PRODUCT_PACKAGE = "package"
 
-VALID_PRODUCT_TYPES = {PRODUCT_ACTIVITY, PRODUCT_HOTEL, PRODUCT_PACKAGE}
+PRODUCT_HOTEL = "hotel"
+
+
+VALID_PRODUCT_TYPES = { PRODUCT_HOTEL}
 
 
 class HomeOffer(Base, TimestampMixin):

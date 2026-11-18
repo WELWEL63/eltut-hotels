@@ -8,12 +8,12 @@ URL PREFIX
         /                           home
         /about                      about us
         /contact                    contact form
-        /activities                 activity listing (with filters)
-        /activities/<slug>          activity detail
+      
+       
         /hotels                     hotel listing
         /hotels/<slug>              hotel detail
-        /packages                   package listing
-        /packages/<slug>            package detail
+       
+       
         /booking/<product>/<id>     booking flow (auth-aware, guest ok)
         /booking/paypal/return      PayPal return URL
         /booking/paypal/cancel      PayPal cancel URL
@@ -51,9 +51,9 @@ public_bp = Blueprint(
 # line here — self-documenting and diff-friendly.
 
 from blueprints.public import routes  # noqa: E402,F401
-from blueprints.public import activity_routes  # noqa: E402,F401
+
 from blueprints.public import hotel_routes  # noqa: E402,F401
-from blueprints.public import package_routes  # noqa: E402,F401
+
 from blueprints.public import booking_routes  # noqa: E402,F401
 from blueprints.public import review_routes  # noqa: E402,F401
 from blueprints.public import enquiry_routes  # noqa: E402,F401

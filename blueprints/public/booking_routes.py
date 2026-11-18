@@ -25,20 +25,17 @@ from sqlalchemy import select
 from blueprints.public import public_bp
 from extensions import db
 from models import (
-    Activity,
-    ActivityPrice,
-    Airline,
+   
     Booking,
     Hotel,
-    Package,
-    PackagePrice,
+    
     Room,
     RoomRate,
-    PRODUCT_TYPE_ACTIVITY,
+   
     PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
+   
     VALID_PRODUCT_TYPES,
-    PackageOption,
+   
 )
 
 from services import (
@@ -95,36 +92,17 @@ def _parse_int_csv(value: str | None) -> list[int]:
 
 
 def _load_product(product_type: str, product_id: int):
-    if product_type == PRODUCT_TYPE_ACTIVITY:
-        return db.session.get(Activity, product_id)
+ 
     if product_type == PRODUCT_TYPE_HOTEL:
         return db.session.get(Room, product_id)
-    if product_type == PRODUCT_TYPE_PACKAGE:
-        return db.session.get(Package, product_id)
+ 
     return None
 
 
 def _product_meta(product_type: str, product) -> dict:
     if product is None:
         return {}
-    if product_type == PRODUCT_TYPE_ACTIVITY:
-        price_row = db.session.scalar(
-            select(ActivityPrice)
-            .where(ActivityPrice.activity_id == product.id)
-            .order_by(ActivityPrice.id).limit(1)
-        )
-        img_url = product.images[0].url if product.images else None
-        if img_url and not (img_url.startswith("http") or img_url.startswith("/static")):
-            img_url = "/static" + (img_url if img_url.startswith("/") else "/" + img_url)
-        return {
-            "name": product.name,
-            "slug": product.slug,
-            "image": img_url,
-            "adult_price": float(price_row.adult_price) if price_row else None,
-            "child_price": float(price_row.child_price) if price_row else None,
-            "currency": price_row.currency if price_row else "GBP",
-            "location": product.destination_id,
-        }
+    
     if product_type == PRODUCT_TYPE_HOTEL:
         hotel = db.session.get(Hotel, product.hotel_id)
         dest = None
@@ -149,32 +127,7 @@ def _product_meta(product_type: str, product) -> dict:
             "hotel_slug": hotel.slug if hotel else None,
             "room_id": product.id,
         }
-    if product_type == PRODUCT_TYPE_PACKAGE:
-        price_row = db.session.scalar(
-            select(PackagePrice)
-            .where(PackagePrice.package_id == product.id)
-            .order_by(PackagePrice.id).limit(1)
-        )
-        dest = None
-        if product.destination_id:
-            from models import Destination
-            dest = db.session.get(Destination, product.destination_id)
-        img_url = product.images[0].url if product.images else None
-        if img_url and not (img_url.startswith("http") or img_url.startswith("/static")):
-            img_url = "/static" + (img_url if img_url.startswith("/") else "/" + img_url)
-        return {
-            "name": product.name,
-            "slug": product.slug,
-            "image": img_url,
-            "adult_price": float(price_row.adult_price) if price_row else None,
-            "child_price": float(price_row.child_price) if price_row else None,
-            "currency": price_row.currency if price_row else "GBP",
-            "location": product.destination_id,
-            "hotel": None,
-            "room": None,
-            "destination": dest.name if dest else None,
-        }
-    return {}
+   
 
 
 def _room_stay_pricing(room: Room, check_in: date | None, check_out: date | None, adults: int, children: int) -> dict:
@@ -214,123 +167,6 @@ def _room_stay_pricing(room: Room, check_in: date | None, check_out: date | None
         "total": total,
         "currency": currency,
     }
-
-
-def _package_pricing(
-    package: Package,
-    adults: int,
-    children: int,
-    package_flight_id: int | None = None,
-    check_in=None,
-    check_out=None,
-) -> dict:
-    empty = {
-        "adult_rate": None, "child_rate": None, "nights": package.duration_nights,
-        "per_night": None, "per_person": None, "total": None, "currency": "GBP",
-        "package_flight_id": None, "hotel_total": None, "flight_total": None,
-        "markup": None, "tax": None, "transfer_fee": None, "departure_date": None,
-        "return_date": None, "airline_name": None, "airline_logo": None,
-        "flight_from": None, "flight_to": None, "is_land_only": False,
-    }
-
-    from services.package_options_service import options_for_package
-
-    try:
-        options = options_for_package(
-            package, check_in, check_out,
-            adults=adults, children=children, tolerance_days=30,
-        )
-    except Exception as exc:
-        current_app.logger.warning("options_for_package failed: %s", exc)
-        options = []
-
-    if not options:
-        return empty
-
-    chosen = None
-    # ─── FIX: Directly load the PackageFlight by ID (ignore filter) ───
-    from models import PackageFlight as _PFModel
-    if package_flight_id:
-        pf = db.session.get(_PFModel, package_flight_id)
-        if pf and pf.package_id == package.id and pf.is_active:
-            # Convert the PackageFlight into an option dict
-            ob = pf.outbound_flight
-            ib = pf.inbound_flight
-            if ob and ib:
-                from services.package_pricing_service import compute_package_flight_card
-                card_calc = compute_package_flight_card(package, pf)
-                if card_calc.get("ok"):
-                    chosen = {
-                        "package_flight_id": pf.id,
-                        "grand_total": card_calc.get("per_person") * max(1, adults + children),
-                        "per_person": card_calc.get("per_person"),
-                        "land_total": card_calc.get("hotel_total"),
-                        "flight_total": card_calc.get("flight_total"),
-                        "markup": card_calc.get("markup"),
-                        "tax": card_calc.get("tax"),
-                        "transfer_fee": card_calc.get("transfer_fee"),
-                        "nights": card_calc.get("nights"),
-                        "departure_date": card_calc.get("check_in"),
-                        "return_date": card_calc.get("check_out"),
-                        "currency": card_calc.get("currency"),
-                    }
-
-    # Fallback to the old logic only if the direct load failed
-    if chosen is None and package_flight_id:
-        for opt in options:
-            if opt.get("package_flight_id") == package_flight_id:
-                chosen = opt
-                break
-    if chosen is None:
-        chosen = options[0] if options else None
-
-    pax = max(1, int(adults) + int(children))
-    grand_total = float(chosen.get("grand_total") or 0.0)
-    if grand_total <= 0:
-        per_person = float(chosen.get("per_person") or 0.0)
-        grand_total = per_person * pax
-    if grand_total <= 0:
-        land_total = float(chosen.get("land_total") or 0.0)
-        grand_total = land_total * pax
-    per_person_display = (grand_total / pax) if pax > 0 else 0.0
-
-    return {
-        "adult_rate": round(per_person_display, 2),
-        "child_rate": round(per_person_display, 2),
-        "nights": int(chosen.get("nights") or package.duration_nights),
-        "per_night": None,
-        "per_person": round(per_person_display, 2),
-        "total": round(grand_total, 2),
-        "currency": chosen.get("currency") or "GBP",
-        "package_flight_id": chosen.get("package_flight_id"),
-        "hotel_total": round(float(chosen.get("land_total") or 0.0), 2),
-        "flight_total": round(float(chosen.get("flight_total") or 0.0), 2),
-        "markup": round(float(chosen.get("markup") or 0.0), 2),
-        "tax": round(float(chosen.get("tax") or 0.0), 2),
-        "transfer_fee": round(float(chosen.get("transfer_fee") or 0.0), 2),
-        "departure_date": chosen.get("departure_date"),
-        "return_date": chosen.get("return_date"),
-        "airline_name": chosen.get("airline_name"),
-        "airline_logo": chosen.get("airline_logo"),
-        "flight_from": chosen.get("flight_from"),
-        "flight_to": chosen.get("flight_to"),
-        "is_land_only": bool(chosen.get("is_land_only")),
-    }
-
-
-def _activity_pricing(activity: Activity, adults: int, children: int) -> dict:
-    row = db.session.scalars(
-        select(ActivityPrice)
-        .where(ActivityPrice.activity_id == activity.id)
-        .order_by(ActivityPrice.id.asc()).limit(1)
-    ).first()
-    if row is None:
-        return {"adult_rate": None, "child_rate": None, "nights": None, "per_night": None, "total": None, "currency": "GBP"}
-    adult_rate = float(row.adult_price or 0)
-    child_rate = float(row.child_price or 0)
-    per_person = adult_rate * adults + child_rate * children
-    return {"adult_rate": adult_rate, "child_rate": child_rate, "nights": None, "per_night": None, "per_person": per_person, "total": per_person, "currency": row.currency or "GBP"}
-
 
 def _build_rooms_grouping(*, room_ids, check_in, check_out, adults, child_ages, infants):
     if not room_ids or check_in is None or check_out is None or check_out <= check_in:
@@ -415,19 +251,7 @@ def booking_start(product_type: str, product_id: int):
     check_in = _parse_date(request.args.get("check_in"))
     check_out = _parse_date(request.args.get("check_out"))
 
-    # ─── FORCE FLIGHT DATES TO OVERRIDE URL DATES (in booking_start) ───
-    if product_type == PRODUCT_TYPE_PACKAGE:
-        raw_pfid = (request.args.get("package_flight_id") or "").strip()
-        if raw_pfid and raw_pfid.lower() not in ("none", ""):
-            try:
-                pf_id = int(raw_pfid)
-                from models import PackageFlight
-                pf = db.session.get(PackageFlight, pf_id)
-                if pf and pf.outbound_flight and pf.inbound_flight:
-                    check_in = pf.outbound_flight.departure_date
-                    check_out = pf.inbound_flight.departure_date
-            except (ValueError, TypeError) as e:
-                current_app.logger.warning("Flight date override in booking_start failed: %s", e)
+    
     # ────────────────────────────────────────────────────────────────
 
     activity_date = _parse_date(request.args.get("date")) or _parse_date(request.args.get("activity_date"))
@@ -443,12 +267,8 @@ def booking_start(product_type: str, product_id: int):
         check_out = check_in + timedelta(days=7)
     elif product_type == PRODUCT_TYPE_HOTEL and check_in and not check_out:
         check_out = check_in + timedelta(days=7)
-    elif product_type == PRODUCT_TYPE_PACKAGE and not activity_date:
-        activity_date = date.today() + timedelta(days=30)
-    elif product_type == PRODUCT_TYPE_ACTIVITY and not activity_date:
-        activity_date = date.today() + timedelta(days=7)
-
-    package_flight_id: int | None = None
+    
+  
     raw_pfid = (request.args.get("package_flight_id") or "").strip()
     if product_type == "package" and raw_pfid and raw_pfid.lower() != "none":
         try:
@@ -512,10 +332,7 @@ def booking_start(product_type: str, product_id: int):
     try:
         if product_type == PRODUCT_TYPE_HOTEL:
             pricing = _room_stay_pricing(product, check_in, check_out, adults, children)
-        elif product_type == PRODUCT_TYPE_PACKAGE:
-            pricing = _package_pricing(product, adults, children, package_flight_id=package_flight_id, check_in=check_in, check_out=check_out)
-        elif product_type == PRODUCT_TYPE_ACTIVITY:
-            pricing = _activity_pricing(product, adults, children)
+        
         else:
             pricing = {}
     except Exception as exc:

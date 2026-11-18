@@ -68,9 +68,9 @@ from models import (
     BookingTraveller,
     Payment,
     Room,
-    PRODUCT_TYPE_ACTIVITY,
+   
     PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
+   
     VALID_PRODUCT_TYPES,
     STATUS_PENDING,
     STATUS_CONFIRMED,

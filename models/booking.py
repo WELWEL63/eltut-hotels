@@ -12,15 +12,15 @@ from models import Base, TimestampMixin
 
 
 # ─── Product types ──────────────────────────────────────────────────
-PRODUCT_TYPE_ACTIVITY = "activity"
+
 PRODUCT_TYPE_HOTEL = "hotel"
-PRODUCT_TYPE_PACKAGE = "package"
-PRODUCT_TYPE_FLIGHT = "flight"
+
+
 
 VALID_PRODUCT_TYPES = (
-    PRODUCT_TYPE_ACTIVITY,
+    
     PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
+   
 )
 
 

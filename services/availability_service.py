@@ -57,9 +57,9 @@ from models import (
     BookingRoom,
     Package,
     Room,
-    PRODUCT_TYPE_ACTIVITY,
+   
     PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
+    
     STATUS_PENDING,
     STATUS_CONFIRMED,
     VALID_PRODUCT_TYPES,
@@ -112,42 +112,6 @@ def _validate_int(value, name: str) -> int:
     if n <= 0:
         raise InvalidAvailabilityInput(f"{name} must be positive")
     return n
-
-
-def _sum_quantity_for_activity(
-    session: Session, activity_id: int, target_date: Optional[date]
-) -> int:
-    stmt = (
-        select(func.coalesce(func.sum(BookingItem.quantity), 0))
-        .join(Booking, Booking.id == BookingItem.booking_id)
-        .where(
-            BookingItem.item_type == "primary",
-            BookingItem.product_type == PRODUCT_TYPE_ACTIVITY,
-            BookingItem.product_id == activity_id,
-            Booking.status.in_(ACTIVE_STATUSES),
-        )
-    )
-    if target_date is not None:
-        stmt = stmt.where(Booking.activity_date == target_date)
-    return int(session.scalar(stmt) or 0)
-
-
-def _sum_quantity_for_package(
-    session: Session, package_id: int, target_date: Optional[date]
-) -> int:
-    stmt = (
-        select(func.coalesce(func.sum(BookingItem.quantity), 0))
-        .join(Booking, Booking.id == BookingItem.booking_id)
-        .where(
-            BookingItem.item_type == "primary",
-            BookingItem.product_type == PRODUCT_TYPE_PACKAGE,
-            BookingItem.product_id == package_id,
-            Booking.status.in_(ACTIVE_STATUSES),
-        )
-    )
-    if target_date is not None:
-        stmt = stmt.where(Booking.activity_date == target_date)
-    return int(session.scalar(stmt) or 0)
 
 
 def _sum_rooms_for_range(
@@ -211,17 +175,7 @@ def _sum_rooms_for_range(
 
 
 # ─── Public API ────────────────────────────────────────────────────
-def activity_availability(activity_id: int, target_date: Optional[date]) -> int:
-    """Return seats remaining for an activity on a given date."""
-    _validate_int(activity_id, "activity_id")
 
-    activity = db.session.get(Activity, activity_id)
-    if activity is None:
-        raise ProductNotFound(f"activity {activity_id} not found")
-
-    used = _sum_quantity_for_activity(db.session, activity_id, target_date)
-    remaining = max(0, int(activity.capacity) - used)
-    return remaining
 
 
 def hotel_room_availability(
@@ -243,19 +197,7 @@ def hotel_room_availability(
     return remaining
 
 
-def package_availability(
-    package_id: int, target_date: Optional[date] = None
-) -> int:
-    """Return slots remaining for a package (optionally on a given date)."""
-    _validate_int(package_id, "package_id")
 
-    package = db.session.get(Package, package_id)
-    if package is None:
-        raise ProductNotFound(f"package {package_id} not found")
-
-    used = _sum_quantity_for_package(db.session, package_id, target_date)
-    remaining = max(0, int(package.capacity) - used)
-    return remaining
 
 
 def check_availability(
@@ -276,22 +218,7 @@ def check_availability(
     _validate_int(product_id, "product_id")
     qty = _validate_int(quantity, "quantity")
 
-    if product_type == PRODUCT_TYPE_ACTIVITY:
-        activity = db.session.get(Activity, product_id)
-        if activity is None:
-            raise ProductNotFound(f"activity {product_id} not found")
-        used = _sum_quantity_for_activity(db.session, product_id, target_date)
-        capacity = int(activity.capacity)
-        remaining = max(0, capacity - used)
-        return AvailabilityResult(
-            available=remaining >= qty,
-            remaining=remaining,
-            capacity=capacity,
-            used=used,
-            reason="" if remaining >= qty else (
-                f"only {remaining} seat(s) remaining; {qty} requested"
-            ),
-        )
+    
 
     if product_type == PRODUCT_TYPE_HOTEL:
         if not isinstance(check_in, date) or not isinstance(check_out, date):
@@ -315,40 +242,16 @@ def check_availability(
             ),
         )
 
-    if product_type == PRODUCT_TYPE_PACKAGE:
-        package = db.session.get(Package, product_id)
-        if package is None:
-            raise ProductNotFound(f"package {product_id} not found")
-        used = _sum_quantity_for_package(db.session, product_id, target_date)
-        capacity = int(package.capacity)
-        remaining = max(0, capacity - used)
-        return AvailabilityResult(
-            available=remaining >= qty,
-            remaining=remaining,
-            capacity=capacity,
-            used=used,
-            reason="" if remaining >= qty else (
-                f"only {remaining} slot(s) remaining; {qty} requested"
-            ),
-        )
+    
 
     raise InvalidAvailabilityInput(f"unsupported product_type {product_type!r}")
 
 
 # ─── Convenience wrappers ──────────────────────────────────────────
-def activity_is_bookable(
-    activity_id: int, target_date: Optional[date], quantity: int = 1
-) -> bool:
-    return activity_availability(activity_id, target_date) >= quantity
+
 
 
 def room_is_bookable(
     room_id: int, check_in: date, check_out: date, quantity: int = 1
 ) -> bool:
     return hotel_room_availability(room_id, check_in, check_out) >= quantity
-
-
-def package_is_bookable(
-    package_id: int, target_date: Optional[date] = None, quantity: int = 1
-) -> bool:
-    return package_availability(package_id, target_date) >= quantity

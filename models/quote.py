@@ -87,14 +87,13 @@ DEFAULT_QUOTE_STATUS: str = STATUS_DRAFT
 
 # ─── Product types ────────────────────────────────────────────────────────
 # Duplicated from bookings to avoid a circular import; keep in sync.
-PRODUCT_TYPE_ACTIVITY: str = "activity"
+
 PRODUCT_TYPE_HOTEL: str = "hotel"
-PRODUCT_TYPE_PACKAGE: str = "package"
+
 
 VALID_QUOTE_PRODUCT_TYPES: tuple[str, ...] = (
-    PRODUCT_TYPE_ACTIVITY,
-    PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
+   
+    PRODUCT_TYPE_HOTEL
 )
 
 

@@ -160,6 +160,27 @@ def update_session_status(session_id: str, status: str) -> bool:
     except Exception:
         return False
 
+def delete_session(session_id: str) -> bool:
+    """Delete a chat session and its messages. Called when the tab closes."""
+    col = _get_col("chat_sessions")
+    if col is None:
+        db = _load_db()
+        if session_id in db["sessions"]:
+            del db["sessions"][session_id]
+        if session_id in db["messages"]:
+            del db["messages"][session_id]
+        _save_db(db)
+        return True
+    try:
+        col.delete_one({"_id": ObjectId(session_id)})
+        msg_col = _get_col("chat_messages")
+        if msg_col is not None:
+            msg_col.delete_many({"session_id": ObjectId(session_id)})
+        return True
+    except Exception as exc:
+        log.error("delete_session failed: %s", exc)
+        return False
+
 # ── Messages ────────────────────────────────────────────────────────
 def add_message(session_id: str, sender_type: str, text: str, sender_name: str | None = None) -> dict[str, Any]:
     if sender_type not in VALID_SENDER_TYPES:
@@ -190,10 +211,12 @@ def add_message(session_id: str, sender_type: str, text: str, sender_name: str |
     else:
         try:
             col.insert_one({**msg_doc, "_id": ObjectId(msg_id), "session_id": ObjectId(session_id)})
-            _get_col("chat_sessions").update_one(
-                {"_id": ObjectId(session_id)},
-                {"$set": {"updated_at": now, "last_message_preview": text[:50]}}
-            )
+            session_col = _get_col("chat_sessions")
+            if session_col is not None:
+                session_col.update_one(
+                    {"_id": ObjectId(session_id)},
+                    {"$set": {"updated_at": now, "last_message_preview": text[:50]}}
+                )
         except Exception:
             pass
 
@@ -207,7 +230,13 @@ def get_messages(session_id: str, limit: int = 100) -> list[dict[str, Any]]:
         
     try:
         cursor = col.find({"session_id": ObjectId(session_id)}).sort("created_at", 1).limit(limit)
-        return [ {"id": str(doc.pop("_id")), **doc} for doc in cursor ]
+        results = []
+        for doc in cursor:
+            doc["id"] = str(doc.pop("_id"))
+            if "session_id" in doc and not isinstance(doc["session_id"], str):
+                doc["session_id"] = str(doc["session_id"])
+            results.append(doc)
+        return results
     except Exception:
         return []
 

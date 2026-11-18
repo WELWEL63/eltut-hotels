@@ -8,9 +8,7 @@ URL PREFIX
 
 ROUTE MODULES
     routes.py            dashboard
-    activity_admin.py    activities + children CRUD
     hotel_admin.py       hotels + rooms + facilities CRUD
-    package_admin.py     packages + itineraries + flights CRUD
     booking_admin.py     bookings, status changes, refunds
     user_admin.py        users list/toggle/role
     review_admin.py      moderation of Mongo reviews
@@ -84,20 +82,20 @@ def _admin_guard():
 # fire against the blueprint object.
 
 from blueprints.admin import routes           # noqa: E402,F401
-from blueprints.admin import activity_admin   # noqa: E402,F401
+
 from blueprints.admin import hotel_admin      # noqa: E402,F401
-from blueprints.admin import package_admin    # noqa: E402,F401
+
 from blueprints.admin import booking_admin    # noqa: E402,F401
 from blueprints.admin import user_admin       # noqa: E402,F401
 from blueprints.admin import review_admin     # noqa: E402,F401
 from blueprints.admin import report_routes    # noqa: E402,F401
 from blueprints.admin import media_routes     # noqa: E402,F401
 from blueprints.admin import content_admin    # noqa: E402,F401
-from blueprints.admin import airline_admin    # noqa: E402,F401
+
 from blueprints.admin import quote_admin      # noqa: E402,F401
 from blueprints.admin import destination_admin  # noqa: E402,F401
 from blueprints.admin import offer_admin        # noqa: E402,F401
-from blueprints.admin import flight_admin       # noqa: E402,F401
+
 from blueprints.admin import chat_admin  # noqa: E402,F401
 
 __all__: list[str] = ["admin_bp", "admin_required"]
