@@ -18,7 +18,9 @@
                 "refunded":  "info"
             }.get(booking.status, "secondary") %}
             <span class="badge bg-{{ badge }} fs-6">{{ booking.status }}</span>
-            <span class="text-muted ms-2">{{ booking.product_type|capitalize }} #{{ booking.product_id }}</span>
+            {% if booking.product_type == 'hotel' %}
+                <span class="text-muted ms-2">Hotel #{{ booking.product_id }}</span>
+            {% endif %}
         </div>
     </div>
     <div class="text-end">
@@ -89,10 +91,6 @@
             <div class="card-header bg-white"><strong>Dates &amp; travellers</strong></div>
             <div class="card-body">
                 <dl class="row small mb-0">
-                    {% if booking.activity_date %}
-                        <dt class="col-5 text-muted">Activity date</dt>
-                        <dd class="col-7">{{ booking.activity_date | uk_date }}</dd>
-                    {% endif %}
                     {% if booking.check_in_date %}
                         <dt class="col-5 text-muted">Check-in</dt>
                         <dd class="col-7">{{ booking.check_in_date | uk_date }}</dd>
@@ -126,14 +124,14 @@
     </div>
 </div>
 
-{# ─── Items ─── #}
+{# ─── Hotel items ─── #}
+{% if booking.product_type == 'hotel' %}
 <div class="card shadow-sm mb-3">
     <div class="card-header bg-white"><strong>Items</strong></div>
     <div class="table-responsive">
         <table class="table table-sm mb-0">
             <thead>
                 <tr>
-                    <th>Type</th>
                     <th>Product</th>
                     <th>Description</th>
                     <th class="text-end">Qty</th>
@@ -142,23 +140,24 @@
                 </tr>
             </thead>
             <tbody>
-                {% for it in items %}
+                {% for it in items if it.item_type == "primary" %}
                     <tr>
-                        <td><code>{{ it.item_type }}</code></td>
-                        <td>{{ it.product_type }} #{{ it.product_id }}</td>
+                        {% if it.item_type == "primary" %}
+                        <td>Hotel #{{ it.product_id }}</td>
                         <td>{{ it.product_name_snapshot or "—" }}
-                            {% if it.added_during_booking %}<span class="badge bg-info-subtle text-info-emphasis ms-1">add-on</span>{% endif %}
                         </td>
                         <td class="text-end">{{ it.quantity }}</td>
                         <td class="text-end">{{ "%.2f"|format(it.unit_price or 0) }}</td>
                         <td class="text-end fw-semibold">{{ "%.2f"|format(it.line_total or 0) }}</td>
+                        {% endif %}
                     </tr>
                 {% else %}
-                    <tr><td colspan="6" class="text-center text-muted py-3">No items.</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-3">No items.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% endif %}
 </div>
 {# ─── Rooms (multi-room hotel bookings, Step 5f) ─── #}
 {% if booking.product_type == 'hotel' and booking.rooms %}

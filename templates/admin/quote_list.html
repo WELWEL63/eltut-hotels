@@ -38,12 +38,7 @@
             </div>
             <div class="col-md-3">
                 <select name="product_type" class="form-select">
-                    <option value="">Any product</option>
-                    {% for p in ["activity", "hotel", "package"] %}
-                        <option value="{{ p }}" {% if product_type == p %}selected{% endif %}>
-                            {{ p|capitalize }}
-                        </option>
-                    {% endfor %}
+                    <option value="hotel" {% if product_type == "hotel" %}selected{% endif %}>Hotel</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -65,7 +60,7 @@
                 <tr>
                     <th>Reference</th>
                     <th>Customer</th>
-                    <th>Product</th>
+                    <th>Hotel</th>
                     <th class="text-end">Price</th>
                     <th>Status</th>
                     <th>Valid until</th>
@@ -73,7 +68,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for q in items %}
+                {% for q in items if q.product_type == 'hotel' %}
                     <tr>
                         <td>
                             <a href="{{ url_for('admin.quote_detail', reference=q.reference) }}"
@@ -91,8 +86,7 @@
                             <div class="small text-muted">{{ q.customer_email }}</div>
                         </td>
                         <td>
-                            <span class="text-capitalize">{{ q.product_type }}</span>
-                            <span class="text-muted small">#{{ q.product_id }}</span>
+                            <span>Hotel #{{ q.product_id }}</span>
                             {% if q.product_name_snapshot %}
                                 <div class="small text-muted text-truncate"
                                      style="max-width:220px;"

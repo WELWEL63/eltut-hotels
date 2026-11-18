@@ -33,9 +33,7 @@
             <div class="col-md-2">
                 <select name="product_type" class="form-select">
                     <option value="">Any product</option>
-                    {% for p in ["activity", "hotel", "package"] %}
-                        <option value="{{ p }}" {% if product_type == p %}selected{% endif %}>{{ p|capitalize }}</option>
-                    {% endfor %}
+                    <option value="hotel" {% if product_type == "hotel" %}selected{% endif %}>Hotel</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -59,7 +57,7 @@
                 <tr>
                     <th>Reference</th>
                     <th>Customer</th>
-                    <th>Product</th>
+                    <th>Hotel</th>
                     <th>Dates</th>
                     <th class="text-end">Total</th>
                     <th>Status</th>
@@ -67,7 +65,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for b in items %}
+                {% for b in items if b.product_type == 'hotel' %}
                     <tr>
                         <td>
                             <a href="{{ url_for('admin.booking_detail', reference=b.reference) }}"
@@ -85,14 +83,9 @@
                                 {{ b.guest_email or "—" }}
                             </div>
                         </td>
-                        <td>
-                            <span class="text-capitalize">{{ b.product_type }}</span>
-                            <span class="text-muted small">#{{ b.product_id }}</span>
-                        </td>
+                        <td>Hotel #{{ b.product_id }}</td>
                         <td class="small">
-                            {% if b.activity_date %}
-                                {{ b.activity_date | uk_date }}
-                            {% elif b.check_in_date and b.check_out_date %}
+                            {% if b.check_in_date and b.check_out_date %}
                                 {{ b.check_in_date | uk_date }} → {{ b.check_out_date | uk_date }}
                             {% else %}
                                 <span class="text-muted">—</span>

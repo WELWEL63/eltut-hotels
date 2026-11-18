@@ -30,10 +30,7 @@
             </div>
             <div class="col-md-2">
                 <select name="product_type" class="form-select">
-                    <option value="">Any product</option>
-                    <option value="activity" {% if product_type == "activity" %}selected{% endif %}>Activity</option>
-                    <option value="hotel"    {% if product_type == "hotel" %}selected{% endif %}>Hotel</option>
-                    <option value="package"  {% if product_type == "package" %}selected{% endif %}>Package</option>
+                    <option value="hotel" {% if product_type == "hotel" %}selected{% endif %}>Hotel</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -60,7 +57,7 @@
             <thead>
                 <tr>
                     <th>When</th>
-                    <th>Product</th>
+                    <th>Hotel</th>
                     <th>User</th>
                     <th>Rating</th>
                     <th>Title</th>
@@ -69,14 +66,13 @@
                 </tr>
             </thead>
             <tbody>
-                {% for r in items %}
+                {% for r in items if r.product_type == 'hotel' %}
                     <tr>
                         <td class="small">
                             {{ r.created_at | uk_datetime if r.created_at else "—" }}
                         </td>
                         <td>
-                            <span class="text-capitalize">{{ r.product_type }}</span>
-                            <span class="text-muted small">#{{ r.product_id }}</span>
+                            <span>Hotel #{{ r.product_id }}</span>
                             {% if r.product_code %}
                                 <div class="small text-muted">{{ r.product_code }}</div>
                             {% endif %}

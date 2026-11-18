@@ -33,8 +33,7 @@ from models import (
     RoomRate,
    
     PRODUCT_TYPE_HOTEL,
-   
-    VALID_PRODUCT_TYPES,
+    PRODUCT_TYPE_PACKAGE,
    
 )
 
@@ -43,7 +42,6 @@ from services import (
     booking_service,
     payment_service,
     pricing_service,
-    recommendation_service,
 )
 
 
@@ -241,7 +239,7 @@ def _build_rooms_grouping(*, room_ids, check_in, check_out, adults, child_ages, 
 # ─── Booking start (GET) ────────────────────────────────────────────
 @public_bp.route("/booking/start/<product_type>/<int:product_id>", methods=["GET"])
 def booking_start(product_type: str, product_id: int):
-    if product_type not in VALID_PRODUCT_TYPES:
+    if product_type != PRODUCT_TYPE_HOTEL:
         abort(404)
 
     product = _load_product(product_type, product_id)
@@ -250,10 +248,6 @@ def booking_start(product_type: str, product_id: int):
 
     check_in = _parse_date(request.args.get("check_in"))
     check_out = _parse_date(request.args.get("check_out"))
-
-    
-    # ────────────────────────────────────────────────────────────────
-
     activity_date = _parse_date(request.args.get("date")) or _parse_date(request.args.get("activity_date"))
     adults = _to_int(request.args.get("adults"), 2, 1, 8)
     children = _to_int(request.args.get("children"), 0, 0, 8)
@@ -267,45 +261,13 @@ def booking_start(product_type: str, product_id: int):
         check_out = check_in + timedelta(days=7)
     elif product_type == PRODUCT_TYPE_HOTEL and check_in and not check_out:
         check_out = check_in + timedelta(days=7)
-    
-  
-    raw_pfid = (request.args.get("package_flight_id") or "").strip()
-    if product_type == "package" and raw_pfid and raw_pfid.lower() != "none":
-        try:
-            package_flight_id = int(raw_pfid)
-        except ValueError:
-            package_flight_id = None
-
-    option = None
-    if product_type == "package":
-        from models import PackageFlight
-        if package_flight_id:
-            card = db.session.get(PackageFlight, package_flight_id)
-            if card and card.package_id == product.id and card.is_active:
-                option = card
-        if option is None:
-            raw_option_id = (request.args.get("option_id") or "").strip()
-            if raw_option_id and raw_option_id.lower() != "none":
-                try:
-                    legacy_opt_id = int(raw_option_id)
-                except ValueError:
-                    legacy_opt_id = None
-                if legacy_opt_id:
-                    candidate = db.session.get(PackageOption, legacy_opt_id)
-                    if candidate and candidate.package_id == product.id and candidate.is_active:
-                        option = candidate
 
     meta = _product_meta(product_type, product)
-
-    if package_flight_id and option is not None:
-        dep = getattr(option, "outbound_flight", None)
-        if dep is not None and getattr(dep, "departure_date", None):
-            meta["default_start"] = dep.departure_date.isoformat()
 
     rooms_grouping: dict | None = None
     rooms_json: str = ""
     rooms_param_ids = _parse_int_csv(request.args.get("rooms"))
-    if product_type == PRODUCT_TYPE_HOTEL and rooms_param_ids:
+    if rooms_param_ids:
         rooms_grouping = _build_rooms_grouping(
             room_ids=rooms_param_ids,
             check_in=check_in,
@@ -340,17 +302,9 @@ def booking_start(product_type: str, product_id: int):
         pricing = {}
 
     addons: list[dict] = []
-    try:
-        if product_type == PRODUCT_TYPE_HOTEL:
-            hotel = db.session.get(Hotel, product.hotel_id)
-            if hotel:
-                addons = recommendation_service.recommend_addons_for_hotel(hotel.id, limit=6)
-        elif product_type == PRODUCT_TYPE_PACKAGE:
-            addons = recommendation_service.recommend_addons_for_package(product.id, limit=6)
-    except Exception as exc:
-        current_app.logger.warning("recommendations failed: %s", exc)
-        addons = []
 
+    option = None
+    package_flight_id: int | None = None
     option_summary = None
     if option is not None:
         from models import PackageFlight as _PF
@@ -481,8 +435,8 @@ def booking_start(product_type: str, product_id: int):
 @public_bp.route("/booking/create", methods=["POST"])
 def booking_create():
     product_type = (request.form.get("product_type") or "").strip().lower()
-    if product_type not in VALID_PRODUCT_TYPES:
-        flash("Invalid product type.", "danger")
+    if product_type != PRODUCT_TYPE_HOTEL:
+        flash("Only hotel bookings are available.", "danger")
         return redirect(url_for("public.index"))
 
     product_id = _to_int(request.form.get("product_id"), 0, 1, 10**9)
@@ -544,15 +498,6 @@ def booking_create():
             return redirect(request.referrer or url_for("public.index"))
 
     addon_specs: list[dict] = []
-    for key in request.form.keys():
-        if not key.startswith("addon_"):
-            continue
-        try:
-            aid = int(key.split("_", 1)[1])
-        except (ValueError, IndexError):
-            continue
-        qty = _to_int(request.form.get(f"addon_qty_{aid}"), 1, 1, 20)
-        addon_specs.append({"activity_id": aid, "quantity": qty})
 
     package_flight_id: int | None = None
     if product_type == PRODUCT_TYPE_PACKAGE:
@@ -643,41 +588,7 @@ def booking_create():
         raw = (request.form.get(f"traveller_name_{idx}") or "").strip()
         travellers.append({"full_name": raw or f"Infant {k + 1}", "traveller_type": "infant"})
 
-    # --- FIX: Correctly multiply addon prices by party size ---
     addon_items: list[dict] = []
-    addon_total_for_booking = Decimal("0.00")
-    for spec in addon_specs:
-        try:
-            a = db.session.get(Activity, spec["activity_id"])
-            if a is None:
-                continue
-            price_row = db.session.scalar(select(ActivityPrice).where(ActivityPrice.activity_id == a.id).order_by(ActivityPrice.id).limit(1))
-            
-            # Calculate total price for this addon based on adults & children
-            adult_price = Decimal(str(price_row.adult_price)) if price_row else Decimal("0.00")
-            child_price = Decimal(str(price_row.child_price)) if price_row else Decimal("0.00")
-            total_addon_price = (adult_price * adults) + (child_price * children)
-            
-            addon_total_for_booking += total_addon_price
-            
-        except Exception:
-            total_addon_price = Decimal("0.00")
-            a = None
-        if a is None:
-            continue
-            
-        # We add the line item as quantity=1, but the unit_price is the grand total of the addon
-        addon_items.append({
-            "product_id": a.id, 
-            "quantity": 1, 
-            "unit_price": float(total_addon_price), 
-            "name": a.name
-        })
-    # ---------------------------------------------------------
-
-    # --- ADD THE ADD-ONS TO THE FINAL BOOKING TOTAL ---
-    total = total + addon_total_for_booking
-    # --------------------------------------------------
 
     currency = "GBP"
     try:
@@ -774,7 +685,6 @@ def booking_confirmation(reference: str):
         PackageImage, PackageInclusion, PackageExclusion, PackageItinerary,
         PackageTip, FlightPrice,
     )
-    from services.package_pricing_service import compute_package_flight_card
 
     items = list(db.session.scalars(select(BookingItem).where(BookingItem.booking_id == booking.id).order_by(BookingItem.id)))
     primary_item = next((it for it in items if it.item_type == "primary"), items[0] if items else None)
@@ -795,6 +705,8 @@ def booking_confirmation(reference: str):
     flight_back = None
 
     if booking.product_type == "package" and primary_item is not None:
+        from services.package_pricing_service import compute_package_flight_card
+
         package = db.session.get(Package, primary_item.product_id)
         if package is not None:
             hotel = db.session.get(Hotel, package.hotel_id) if package.hotel_id else None

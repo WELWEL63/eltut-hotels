@@ -77,12 +77,8 @@ MAX_BYTES = 50 * 1024 * 1024  # 50 MB
 # ─── Helpers ─────────────────────────────────────────────────────────────
 def _model_for(product_type: str):
     """Return (model, parent_fk_col_name, has_type, has_caption) or None."""
-    if product_type == "activity":
-        return ActivityImage, "activity_id", False, True
     if product_type == "hotel":
         return HotelImage, "hotel_id", True, False
-    if product_type == "package":
-        return PackageImage, "package_id", True, False
     return None
 
 
@@ -168,7 +164,7 @@ def media_index():
         page         1-based
     """
     tab = (request.args.get("tab") or "hotels").strip().lower()
-    if tab not in ("hotels", "packages", "activities"):
+    if tab != "hotels":
         tab = "hotels"
 
     q = (request.args.get("q") or "").strip()
@@ -178,28 +174,16 @@ def media_index():
     page = max(1, int(request.args.get("page", 1) or 1))
     per_page = 30
 
-    if tab == "hotels":
-        rows = _browse_hotels(q, has_images, page, per_page)
-    elif tab == "packages":
-        rows = _browse_packages(q, has_images, page, per_page)
-    else:
-        rows = _browse_activities(q, has_images, page, per_page)
+    rows = _browse_hotels(q, has_images, page, per_page)
 
-    # Small recent-uploads list for debugging (last 8 across all tables)
+    # Recent hotel uploads only; legacy product image models are disabled.
     recent: list[dict] = []
-    for ptype, model, *_ in (
-        ("activity", ActivityImage, "activity_id", False, True),
-        ("hotel",    HotelImage,    "hotel_id",    True,  False),
-        ("package",  PackageImage,  "package_id",  True,  False),
+    for img in db.session.scalars(
+        select(HotelImage).order_by(HotelImage.id.desc()).limit(8)
     ):
-        for img in db.session.scalars(
-            select(model).order_by(model.id.desc()).limit(8)
-        ):
-            meta = _image_meta(img, ptype)
-            meta["parent_label"] = _parent_name(img, ptype)
-            recent.append(meta)
-    recent.sort(key=lambda r: r["id"], reverse=True)
-    recent = recent[:8]
+        meta = _image_meta(img, "hotel")
+        meta["parent_label"] = _parent_name(img, "hotel")
+        recent.append(meta)
 
     return render_template(
         "admin/media_index.html",

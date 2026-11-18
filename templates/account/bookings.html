@@ -21,13 +21,14 @@
             <div class="col-lg-9">
                 <h1 class="mb-4">My bookings</h1>
 
-                {% if items %}
+                {% set hotel_bookings = items|selectattr('product_type', 'equalto', 'hotel')|list %}
+                {% if hotel_bookings %}
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <thead>
                                 <tr>
                                     <th>Reference</th>
-                                    <th>Type</th>
+                                    <th>Hotel</th>
                                     <th>Dates</th>
                                     <th>Status</th>
                                     <th>Total</th>
@@ -35,11 +36,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for b in items %}
+                                {% for b in hotel_bookings %}
                                     <tr>
                                         <td class="fw-bold">{{ b.reference }}</td>
                                         <td>
-                                            {{ b.product_type|title }}
+                                            Hotel
                                             {% if b.product_type == 'hotel' and b.rooms %}
                                                 <div class="small text-muted">
                                                     <i class="bi bi-door-open"></i> {{ b.rooms|length }} room{{ "" if b.rooms|length == 1 else "s" }}
@@ -49,8 +50,6 @@
                                         <td>
                                             {% if b.check_in_date %}
                                                 {{ b.check_in_date }} → {{ b.check_out_date }}
-                                            {% elif b.activity_date %}
-                                                {{ b.activity_date }}
                                             {% else %}
                                                 <span class="text-muted">—</span>
                                             {% endif %}

@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="mb-0">Dashboard</h1>
-        <p class="text-muted mb-0">Snapshot of ElTut Tours activity</p>
+        <p class="text-muted mb-0">Hotel operations overview</p>
     </div>
     <a href="{{ url_for('public.index') }}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-box-arrow-up-right"></i> View public site
@@ -28,12 +28,7 @@
                     <div>
                         <div class="small opacity-75">Total revenue</div>
                         <div class="fs-3 fw-bold">
-                            £{{ "%.0f"|format(
-                                (revenue.by_product_type.activity or 0)
-                                | float
-                                + (revenue.by_product_type.hotel or 0) | float
-                                + (revenue.by_product_type.package or 0) | float
-                            ) }}
+                            £{{ "%.0f"|format((revenue.by_product_type.hotel or 0) | float) }}
                         </div>
                     </div>
                     <i class="bi bi-currency-euro fs-2 opacity-50"></i>
@@ -127,16 +122,17 @@
 
         <div class="card shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <strong>Top products</strong>
+                <strong>Top hotels booked</strong>
                 <a href="{{ maybe_url('admin.report_index') }}" class="small">All reports</a>
             </div>
             <div class="card-body p-0">
-                {% if bookings.top_products %}
+                {% set top_hotels = (bookings.top_products or [])|selectattr('product_type', 'equalto', 'hotel')|list %}
+                {% if top_hotels %}
                     <ul class="list-group list-group-flush">
-                        {% for p in bookings.top_products %}
+                        {% for p in top_hotels %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
-                                    <span class="badge bg-secondary">{{ p.product_type }}</span>
+                                    <span class="badge bg-secondary">Hotel</span>
                                     <span class="ms-2">#{{ p.product_id }}</span>
                                 </div>
                                 <div>
@@ -157,18 +153,19 @@
     <div class="col-lg-6">
         <div class="card shadow-sm mb-4">
             <div class="card-header">
-                <strong>Revenue by product type</strong>
+                <strong>Hotel revenue</strong>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    {% for pt, amount in (revenue.by_product_type or {}).items() %}
+                    {% set hotel_revenue = (revenue.by_product_type or {}).get('hotel', 0) %}
+                    {% if hotel_revenue %}
                         <li class="list-group-item d-flex justify-content-between">
-                            <span>{{ pt|title }}</span>
-                            <strong>£{{ "%.2f"|format(amount|float) }}</strong>
+                            <span>Hotels</span>
+                            <strong>£{{ "%.2f"|format(hotel_revenue|float) }}</strong>
                         </li>
                     {% else %}
                         <li class="list-group-item text-muted">No revenue yet.</li>
-                    {% endfor %}
+                    {% endif %}
                 </ul>
             </div>
         </div>

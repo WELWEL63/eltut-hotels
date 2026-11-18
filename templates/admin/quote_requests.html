@@ -53,7 +53,7 @@
                             {% endif %}
                         </div>
 
-                        {% if e.product_type %}
+                        {% if e.product_type == 'hotel' %}
                             <div class="mb-2">
                                 <span class="badge bg-secondary-subtle text-secondary-emphasis">
                                     {{ e.product_type }} #{{ e.product_id }}
@@ -89,7 +89,7 @@
                                              email=e.email,
                                              name=e.name or '',
                                              phone=e.phone or '',
-                                             product_type=e.product_type or 'package',
+                                             product_type='hotel',
                                              product_id=e.product_id or '',
                                              enquiry_id=e._id|string) }}"
                            class="btn btn-sm btn-primary">

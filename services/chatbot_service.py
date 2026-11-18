@@ -28,15 +28,11 @@ import re
 from typing import Any
 
 from mongo import chat as chat_repo
-from models import Package, Hotel, Destination
-from extensions import db
-from sqlalchemy import select
-
 log = logging.getLogger(__name__)
 
 # ── Bot Replies ─────────────────────────────────────────────────────
 GREETING_MSG = (
-    "Hello! 👋 I'm the ElTut Assistant. I can help you explore our packages, "
+    "Hello! 👋 I'm the ElTut Assistant. I can help you find a hotel, "
     "answer questions about Egypt, or connect you with our team. "
     "What are you looking to do today?"
 )
@@ -53,7 +49,7 @@ HUMAN_ACTIVE_MSG = (
 FALLBACK_MSG = (
     "I'm not quite sure I understand that. 🤔\n\n"
     "Here are some things I can help with:\n"
-    "• **Explore:** Ask me about our Hotels, Packages, or Activities.\n"
+    "• **Hotels:** Ask me about finding a place to stay.\n"
     "• **Travel Advice:** Ask about Visas, Weather, Safety, or Money.\n"
     "• **Support:** Ask for our contact details (email/phone).\n\n"
     "Or click 'Talk to a Human' below and a real person will help you!"
@@ -81,38 +77,24 @@ def _match_and_reply(text: str) -> str | None:
         )
 
     # ═══════════════════════════════════════════════════════════════
-    # 2. SITE NAVIGATION & CROSS-SELLING
+    # 2. SITE NAVIGATION
     # ═══════════════════════════════════════════════════════════════
     if re.search(r'\b(website|site|browse|look|find|see|show me|options|what do you have)\b', t):
         return (
-            "You can explore everything we offer right here on the website:\n\n"
-            "• **Tour Packages:** [View Packages](/packages) — All-inclusive holidays.\n"
-            "• **Hotels:** [View Hotels](/hotels) — From 3-star to luxury 5-star resorts.\n"
-            "• **Activities:** [View Activities](/activities) — Diving, tours, and excursions.\n"
-            "• **Custom Quote:** [Get a Quote](/quote/request) — Let us build your dream trip.\n\n"
-            "Where would you like to start?"
+            "You can browse hotel stays across Egypt or ask our team for help:\n\n"
+            "• **Hotels:** [View Hotels](/hotels)\n"
+            "• **Hotel enquiry:** [Contact us](/contact)\n\n"
+            "Where would you like to stay?"
         )
-
-    if "package" in t or "holiday" in t or "tour" in t:
-        try:
-            for dest in db.session.scalars(select(Destination)):
-                if dest.name.lower() in t:
-                    return f"We have several amazing packages for **{dest.name}**! 🌴\n\nYou can browse them all here: [View {dest.name} Packages](/packages?destination={dest.slug})"
-        except Exception:
-            pass
-        return "We have packages all across Egypt — from Nile cruises to Red Sea holidays! 🏖️\n\nYou can browse all our packages here: [View Tour Packages](/packages)"
 
     if "hotel" in t or "stay" in t or "room" in t or "accommodation" in t:
         return "We offer a wide range of hotels from 3-star to 5-star luxury resorts. 🏨\n\nYou can view all our hotels here: [View Hotels](/hotels)"
-
-    if "activity" in t or "excursion" in t or "trip" in t or "things to do" in t:
-        return "We have incredible activities — from scuba diving in the Red Sea to guided tours of the Pyramids! 🤿🏛️\n\nYou can see all activities here: [View Activities](/activities)"
 
     # ═══════════════════════════════════════════════════════════════
     # 3. GREETINGS & SMALL TALK
     # ═══════════════════════════════════════════════════════════════
     if re.search(r'\b(hello|hi|hey|greetings|good morning|good evening)\b', t):
-        return "Hello! 👋 How can I help you with your Egypt trip today? I can answer questions about our packages, visas, safety, weather, or connect you with our team."
+        return "Hello! 👋 How can I help you with your hotel stay in Egypt? I can answer questions about hotels, visas, safety, weather, or connect you with our team."
     
     if re.search(r'\b(thanks|thank you|cheers|great|awesome|perfect)\b', t):
         return "You're very welcome! 😊 Is there anything else I can help you with before you book?"
@@ -239,24 +221,21 @@ def _match_and_reply(text: str) -> str | None:
             "💳 **Payment & Checkout**\n\n"
             "You can pay securely via PayPal at checkout. "
             "If you don't have PayPal, you can still book and we will send "
-            "a secure payment link via email! For packages, a deposit is usually required, with the balance due before travel."
+            "a secure payment link via email. Payment details are shown during checkout."
         )
 
     if re.search(r'\b(cancel|cancellation|refund|policy)\b', t):
         return (
             "📝 **Cancellation Policy**\n\n"
-            "Our cancellation policies vary by package and hotel. "
-            "Generally, you can cancel up to 7 days before departure for a full refund. "
-            "You can view the exact policy on the specific package detail page before booking."
+            "Cancellation terms depend on the hotel and rate you select. "
+            "Please check the booking details or contact our team before making changes."
         )
 
     if re.search(r'\b(flight|airport|transfer|pickup|baggage|luggage)\b', t):
         return (
             "✈️ **Flights & Transfers**\n\n"
-            "Most of our packages include flights and airport transfers. "
-            "Look for the 'Flights Included' badge on the package card. "
-            "If you don't see it, the package is land-only and we can arrange flights for you! "
-            "Luggage allowances depend on the airline (usually 20-23kg checked)."
+            "We focus on hotel reservations and don't arrange flights. "
+            "For questions about getting to your hotel, please contact our team."
         )
 
     # Fallback

@@ -21,17 +21,9 @@
                        class="list-group-item list-group-item-action {% if request.endpoint == 'admin.index' %}active{% endif %}">
                         <i class="bi bi-speedometer2"></i> Dashboard
                     </a>
-                    <a href="{{ maybe_url('admin.activity_list') }}"
-                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.activity') and request.endpoint != 'admin.index' %}active{% endif %}">
-                        <i class="bi bi-map"></i> Activities
-                    </a>
                     <a href="{{ maybe_url('admin.hotel_list') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.hotel') %}active{% endif %}">
                         <i class="bi bi-building"></i> Hotels
-                    </a>
-                    <a href="{{ maybe_url('admin.package_list') }}"
-                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.package') %}active{% endif %}">
-                        <i class="bi bi-box-seam"></i> Packages
                     </a>
                     <a href="{{ maybe_url('admin.booking_list') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.booking') %}active{% endif %}">
@@ -60,14 +52,6 @@
                     <a href="{{ maybe_url('admin.content_index') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.content') %}active{% endif %}">
                         <i class="bi bi-pencil-square"></i> Site content
-                    </a>
-                    <a href="{{ maybe_url('admin.airline_list') }}"
-                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.airline') %}active{% endif %}">
-                        <i class="bi bi-airplane"></i> Airlines
-                    </a>
-                    <a href="{{ url_for('admin.flight_admin_index') }}"
-                       class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.flight_admin') %}active{% endif %}">
-                        <i class="bi bi-cash-coin"></i> Flight prices
                     </a>
                     <a href="{{ maybe_url('admin.hotel_csv_index') }}"
                        class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.hotel_csv') %}active{% endif %}">

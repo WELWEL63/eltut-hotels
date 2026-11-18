@@ -78,11 +78,7 @@
                     Type <span class="text-danger">*</span>
                 </label>
                 <select name="product_type" class="form-select" required>
-                    {% for pt in ["activity", "hotel", "package"] %}
-                        <option value="{{ pt }}" {% if prefill.product_type == pt %}selected{% endif %}>
-                            {{ pt|capitalize }}
-                        </option>
-                    {% endfor %}
+                    <option value="hotel" selected>Hotel</option>
                 </select>
             </div>
             <div class="col-md-3">

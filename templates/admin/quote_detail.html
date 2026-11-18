@@ -52,9 +52,9 @@
                 "cancelled": "dark"
             }.get(quote.status, "secondary") %}
             <span class="badge bg-{{ badge }} fs-6">{{ quote.status }}</span>
-            <span class="text-muted ms-2">
-                {{ quote.product_type|capitalize }} #{{ quote.product_id }}
-            </span>
+            {% if quote.product_type == 'hotel' %}
+                <span class="text-muted ms-2">Hotel #{{ quote.product_id }}</span>
+            {% endif %}
         </div>
     </div>
     <div class="text-end">
@@ -99,13 +99,14 @@
             </div>
         </div>
     </div>
+    {% if quote.product_type == 'hotel' %}
     <div class="col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-white"><strong>Product</strong></div>
+            <div class="card-header bg-white"><strong>Hotel</strong></div>
             <div class="card-body">
                 <dl class="row small mb-0">
                     <dt class="col-4 text-muted">Type</dt>
-                    <dd class="col-8 text-capitalize">{{ quote.product_type }}</dd>
+                    <dd class="col-8">Hotel</dd>
                     <dt class="col-4 text-muted">ID</dt>
                     <dd class="col-8">#{{ quote.product_id }}</dd>
                     <dt class="col-4 text-muted">Name</dt>
@@ -122,10 +123,11 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 {# ─── Draft editor (only when status is draft) ─── #}
-{% if quote.status == "draft" %}
+{% if quote.status == "draft" and quote.product_type == 'hotel' %}
     <form method="POST"
           action="{{ url_for('admin.quote_detail', reference=quote.reference) }}"
           class="card shadow-sm mb-4">

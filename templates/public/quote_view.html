@@ -3,6 +3,7 @@
 
 {% block content %}
 
+{% if quote.product_type == 'hotel' %}
 <section class="py-5">
     <div class="container">
         <div class="row justify-content-center">
@@ -81,17 +82,17 @@
                         {# ─── Product ─── #}
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <h6 class="text-muted text-uppercase small mb-1">Product</h6>
+                                <h6 class="text-muted text-uppercase small mb-1">Hotel</h6>
                                 <h4 class="mb-1">
                                     {% if quote.product_name_snapshot %}
                                         {{ quote.product_name_snapshot }}
                                     {% else %}
-                                        {{ quote.product_type|capitalize }} #{{ quote.product_id }}
+                                        Hotel #{{ quote.product_id }}
                                     {% endif %}
                                 </h4>
                                 <div class="text-muted small">
                                     <i class="bi bi-tag"></i>
-                                    {{ quote.product_type|capitalize }}
+                                    Hotel
                                     {% if quote.product_name_snapshot %}
                                         &middot; #{{ quote.product_id }}
                                     {% endif %}
@@ -244,4 +245,12 @@
     </div>
 </div>
 {% endif %}
+{% else %}
+<section class="py-5">
+    <div class="container">
+        <div class="alert alert-info">This quote is unavailable.</div>
+    </div>
+</section>
+{% endif %}
+
 {% endblock %}

@@ -22,11 +22,11 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h1 class="h3 mb-1">
-            <i class="bi bi-star-fill text-warning"></i> Home page offers
+            <i class="bi bi-star-fill text-warning"></i> Home page hotel offers
         </h1>
         <p class="text-muted small mb-0">
-            Curate which products appear on the home page. Each section
-            shows up to {{ slots_per_section }} items in the order below.
+            Curate which hotels appear on the home page. Each section
+            shows up to {{ slots_per_section }} hotels in the order below.
         </p>
     </div>
 </div>
@@ -44,7 +44,7 @@
 {% endwith %}
 
 {# ─── Sections ─── #}
-{% for sec in sections %}
+{% for sec in sections if sec.cfg.product_type == 'hotel' %}
     {% set cfg = sec.cfg %}
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-white d-flex align-items-center justify-content-between">
@@ -67,7 +67,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="width:60px;">Order</th>
-                                <th>Product</th>
+                                <th>Hotel</th>
                                 <th style="width:100px;">Status</th>
                                 <th style="width:200px;">Actions</th>
                             </tr>
@@ -93,7 +93,7 @@
                                         {% else %}
                                             <em class="text-danger">
                                                 <i class="bi bi-exclamation-triangle"></i>
-                                                Product #{{ o.product_id }} (deleted)
+                                                Hotel #{{ o.product_id }} (deleted)
                                             </em>
                                         {% endif %}
                                     </td>
@@ -176,7 +176,7 @@
                     <div class="col-md-8">
                         <label class="form-label small mb-1">
                             <i class="bi bi-plus-circle"></i>
-                            Add a {{ cfg.product_type }}
+                            Add a hotel
                         </label>
                         <div class="position-relative">
                             <input type="text"

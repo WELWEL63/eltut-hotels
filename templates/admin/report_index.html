@@ -83,28 +83,29 @@
     </div>
 {% endif %}
 
-{# ─── Revenue by product + Bookings by status ─── #}
+{# ─── Hotel revenue + Bookings by status ─── #}
 <div class="row g-3 mb-4">
     <div class="col-md-6">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-white"><strong>Revenue by product type</strong></div>
+            <div class="card-header bg-white"><strong>Hotel revenue</strong></div>
             <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead>
                         <tr>
-                            <th>Product</th>
+                            <th>Hotels</th>
                             <th class="text-end">Revenue</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for k, v in (revenue.by_product_type or {}).items() %}
+                        {% set hotel_revenue = (revenue.by_product_type or {}).get('hotel', 0) %}
+                        {% if hotel_revenue %}
                             <tr>
-                                <td class="text-capitalize">{{ k }}</td>
-                                <td class="text-end">&pound;{{ "%.2f"|format(v or 0) }}</td>
+                                <td>Hotels</td>
+                                <td class="text-end">&pound;{{ "%.2f"|format(hotel_revenue or 0) }}</td>
                             </tr>
                         {% else %}
                             <tr><td colspan="2" class="text-center text-muted py-3">No revenue data.</td></tr>
-                        {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -163,57 +164,29 @@
     </div>
 </div>
 
-{# ─── Top products + Top-rated activities ─── #}
+{# ─── Top booked hotels ─── #}
 <div class="row g-3 mb-4">
-    <div class="col-md-6">
+    <div class="col-12">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-white"><strong>Top booked products</strong></div>
+            <div class="card-header bg-white"><strong>Top booked hotels</strong></div>
             <div class="table-responsive">
                 <table class="table table-sm mb-0">
                     <thead>
                         <tr><th>#</th><th>Product</th><th class="text-end">Bookings</th></tr>
                     </thead>
                     <tbody>
-                        {% for p in bookings.top_products or [] %}
+                        {% set top_hotels = (bookings.top_products or [])|selectattr('product_type', 'equalto', 'hotel')|list %}
+                        {% for p in top_hotels %}
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td>
-                                    <span class="text-capitalize">{{ p.product_type }}</span>
+                                    <span>Hotel</span>
                                     {% if p.product_name %}<div class="small text-muted">{{ p.product_name }}</div>{% endif %}
                                 </td>
                                 <td class="text-end">{{ p.bookings }}</td>
                             </tr>
                         {% else %}
                             <tr><td colspan="3" class="text-center text-muted py-3">No data.</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white"><strong>Top-rated activities</strong></div>
-            <div class="table-responsive">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr><th>#</th><th>Activity</th><th class="text-end">Rating</th><th class="text-end">Reviews</th></tr>
-                    </thead>
-                    <tbody>
-                        {% for a in reviews.top_activities or [] %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ a.name or a.product_id }}</td>
-                                <td class="text-end">
-                                    {{ "%.1f"|format(a.avg_rating or 0) }}
-                                    <i class="bi bi-star-fill text-warning small"></i>
-                                </td>
-                                <td class="text-end">{{ a.count or a.review_count or 0 }}</td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="4" class="text-center text-muted py-3">
-                                No reviews (Mongo required).
-                            </td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

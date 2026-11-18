@@ -37,7 +37,7 @@
                                             </p>
                                         {% else %}
                                             <p class="hero-subhead mx-auto">
-                                                {{ content('home_hero_subtitle') or 'Handpicked tours, world-class hotels, and all-inclusive packages across the Red Sea, Nile Valley, and beyond.' }}
+                                                {{ content('home_hero_subtitle') or 'Handpicked hotels across the Red Sea, Nile Valley, and beyond.' }}
                                             </p>
                                         {% endif %}
                                         {% if slide.cta_text %}
@@ -147,12 +147,12 @@
    GREAT VALUE HOTELS
    ═══════════════════════════════════════════════════════════════════ #}
 {% if featured_hotels %}
-<section class="pkgs-section py-5">
+<section class="hotels-section py-5">
     <div class="container">
-        <div class="pkgs-hero text-center mb-5">
-            <span class="pkgs-eyebrow"><i class="bi bi-building"></i> Stays we love</span>
-            <h2 class="pkgs-title">{{ content('home_hotels_title') or 'Great value hotels' }}</h2>
-            <p class="pkgs-sub mx-auto">{{ content('home_hotels_subtitle') or "Well-priced stays in Egypt's best destinations." }}</p>
+        <div class="hotels-hero text-center mb-5">
+            <span class="hotels-eyebrow"><i class="bi bi-building"></i> Stays we love</span>
+            <h2 class="hotels-title">{{ content('home_hotels_title') or 'Great value hotels' }}</h2>
+            <p class="hotels-sub mx-auto">{{ content('home_hotels_subtitle') or "Well-priced stays in Egypt's best destinations." }}</p>
         </div>
 
         <div class="row g-4">
@@ -162,28 +162,28 @@
                 {% set dest = search_destinations()|selectattr('id', 'equalto', h.destination_id)|first if h.destination_id else None %}
 
                 <div class="col-md-6 col-lg-4">
-                    <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}" class="pkg-card">
-                        <div class="pkg-card-media">
+                    <a href="{{ url_for('public.hotel_detail', slug=h.slug) }}" class="hotel-card">
+                        <div class="hotel-card-media">
                             {% if img %}
                                 <img src="{{ img }}" alt="{{ h.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="pkg-card-placeholder" style="display:none;"><i class="bi bi-building"></i></div>
+                                <div class="hotel-card-placeholder" style="display:none;"><i class="bi bi-building"></i></div>
                             {% else %}
-                                <div class="pkg-card-placeholder"><i class="bi bi-building"></i></div>
+                                <div class="hotel-card-placeholder"><i class="bi bi-building"></i></div>
                             {% endif %}
-                            <div class="pkg-card-scrim"></div>
+                            <div class="hotel-card-scrim"></div>
                             {% if dest %}
-                                <span class="pkg-badge pkg-badge--dest"><i class="bi bi-geo-alt-fill"></i> {{ dest.name }}</span>
+                                <span class="hotel-card-badge"><i class="bi bi-geo-alt-fill"></i> {{ dest.name }}</span>
                             {% endif %}
                             {% if item.price %}
-                                <div class="pkg-card-price">
-                                    <span class="pkg-card-price-label">from</span>
-                                    <span class="pkg-card-price-amount">£{{ "%.0f"|format(item.price) }}</span>
-                                    <span class="pkg-card-price-unit">/ night</span>
+                                <div class="hotel-card-price">
+                                    <span class="hotel-card-price-label">from</span>
+                                    <span class="hotel-card-price-amount">£{{ "%.0f"|format(item.price) }}</span>
+                                    <span class="hotel-card-price-unit">/ night</span>
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="pkg-card-body">
-                            <h5 class="pkg-card-title mb-1">{{ h.name }}</h5>
+                        <div class="hotel-card-body">
+                            <h5 class="hotel-card-title mb-1">{{ h.name }}</h5>
                             {% if h.stars %}
                                 <div class="hotel-rating-under-name">
                                     {% for _ in range(h.stars) %}<i class="bi bi-star-fill"></i>{% endfor %}
@@ -191,14 +191,14 @@
                                 </div>
                             {% endif %}
                             {% if h.address %}
-                                <div class="pkg-card-address" style="font-size:0.78rem; color:#78716c; margin-bottom:0.5rem;">
+                                <div class="hotel-card-address" style="font-size:0.78rem; color:#78716c; margin-bottom:0.5rem;">
                                     <i class="bi bi-house" style="color:#c9a227;"></i> {{ h.address|truncate(70, true) }}
                                 </div>
                             {% endif %}
                             {% if h.description %}
-                                <p class="pkg-card-desc">{{ h.description|truncate(120, true) }}</p>
+                                <p class="hotel-card-desc">{{ h.description|truncate(120, true) }}</p>
                             {% endif %}
-                            <div class="pkg-card-cta">
+                            <div class="hotel-card-cta">
                                 <span>View hotel</span>
                                 <i class="bi bi-arrow-right"></i>
                             </div>

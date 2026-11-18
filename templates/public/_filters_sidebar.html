@@ -1,5 +1,5 @@
 {#
-   Shared filter sidebar for search / hotels / packages / activities.
+   Shared hotel filter sidebar for hotel listings and search results.
    Unique class prefix: .eltut-filters- to avoid any clash with
    search_results.css or eltut.css.
 
@@ -10,10 +10,8 @@
      - Hotel + compact=True (/search/results): the hero search widget
        above is the party editor; the sidebar keeps a compact totals
        block (adults / children / infants) for refinement.
-     - Packages / activities: keep the existing steppers unchanged.
 #}
 
-{% set _pt = product_type %}
 {% set _qs = qs %}
 
 <aside class="{% if wrapper_class %}{{ wrapper_class }}{% else %}col-lg-3{% endif %}">
@@ -37,7 +35,7 @@
             id="eltutFiltersForm">
 
         {% if url_for_endpoint == 'public.search_results' %}
-          <input type="hidden" name="type" value="{{ _pt }}">
+          <input type="hidden" name="type" value="hotel">
         {% endif %}
 
         <div class="eltut-filters-head">
@@ -68,8 +66,7 @@
         <input type="hidden" name="destination" value="{{ _qs.destination or '' }}">
         {% endif %}
 
-        {# ── Hotel-specific ──────────────────────────────────────── #}
-        {% if _pt == 'hotel' %}
+        {# ── Hotel filters ───────────────────────────────────────── #}
           <div class="eltut-filters-group">
             <label class="eltut-filters-label">
               <i class="bi bi-star-fill" style="color:#f2c964;"></i> Star rating
@@ -125,114 +122,8 @@
           <input type="hidden" name="check_out" value="{{ _qs.check_out or '' }}">
           {% endif %}
 
-        {# ── Package-specific ────────────────────────────────────── #}
-        {% elif _pt == 'package' %}
-          {% if package_types %}
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label" for="ef-ptype">
-              <i class="bi bi-suitcase-lg"></i> Package type
-            </label>
-            <select name="package_type" id="ef-ptype" class="eltut-filters-select">
-              <option value="">Any</option>
-              {% for pt in package_types %}
-                <option value="{{ pt }}" {% if selected_package_type == pt %}selected{% endif %}>
-                  {{ pt|replace("_", " ")|title }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-          {% endif %}
-
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label">
-              <i class="bi bi-moon-stars"></i> Minimum nights
-            </label>
-            <div class="eltut-book-chips" role="radiogroup">
-              {% for n in ['', '7', '10', '14'] %}
-                <label class="eltut-book-chip">
-                  <input type="radio" name="min_nights" value="{{ n }}"
-                    {% if (min_nights|string == n) or (n == '' and not min_nights) %}checked{% endif %}>
-                  <span>{% if n == '' %}Any{% else %}{{ n }}+{% endif %}</span>
-                </label>
-              {% endfor %}
-            </div>
-          </div>
-
-          {% if not compact %}
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label">
-              <i class="bi bi-calendar-range"></i> Travel dates
-            </label>
-            <div class="row g-2">
-              <div class="col-6">
-                <input type="date" name="check_in" class="eltut-filters-input"
-                       value="{{ _qs.check_in or '' }}">
-              </div>
-              <div class="col-6">
-                <input type="date" name="check_out" class="eltut-filters-input"
-                       value="{{ _qs.check_out or '' }}">
-              </div>
-            </div>
-          </div>
-          {% else %}
-          <input type="hidden" name="check_in" value="{{ _qs.check_in or '' }}">
-          <input type="hidden" name="check_out" value="{{ _qs.check_out or '' }}">
-          {% endif %}
-
-        {# ── Activity-specific ───────────────────────────────────── #}
-        {% elif _pt == 'activity' %}
-          {% if categories %}
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label" for="ef-cat">
-              <i class="bi bi-tag"></i> Category
-            </label>
-            <select name="category" id="ef-cat" class="eltut-filters-select">
-              <option value="">All categories</option>
-              {% for c in categories %}
-                <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>
-                  {{ c|replace("_", " ")|title }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-          {% endif %}
-
-          {% if difficulties %}
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label">
-              <i class="bi bi-activity"></i> Difficulty
-            </label>
-            <div class="eltut-book-chips" role="radiogroup">
-              <label class="eltut-book-chip">
-                <input type="radio" name="difficulty" value="" {% if not selected_difficulty %}checked{% endif %}>
-                <span>Any</span>
-              </label>
-              {% for d in difficulties %}
-                <label class="eltut-book-chip">
-                  <input type="radio" name="difficulty" value="{{ d }}" {% if selected_difficulty == d %}checked{% endif %}>
-                  <span>{{ d|title }}</span>
-                </label>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-
-          {% if not compact %}
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label" for="ef-date">
-              <i class="bi bi-calendar-event"></i> Date
-            </label>
-            <input type="date" name="date" id="ef-date" class="eltut-filters-input"
-                   value="{{ _qs.date or '' }}">
-          </div>
-          {% else %}
-          <input type="hidden" name="date" value="{{ _qs.date or '' }}">
-          {% endif %}
-        {% endif %}
-
         {# ── Travellers (multi-room upgrade, Step 4b) ────────────── #}
-        {% if _pt == 'hotel' %}
-          {% if compact %}
+        {% if compact %}
             {# Search-results page: hero widget above owns the party; keep totals only. #}
             <div class="eltut-filters-group">
               <label class="eltut-filters-label">
@@ -277,7 +168,7 @@
                 Child ages are collected on the detail page.
               </div>
             </div>
-          {% else %}
+        {% else %}
             {# /hotels list page: full per-room party editor. #}
             <div class="eltut-filters-group">
               <div class="eltut-filters-label">
@@ -288,45 +179,6 @@
               {% set infants = _qs.infants or 0 %}
               {% include "public/_party_widget.html" %}
             </div>
-          {% endif %}
-        {% else %}
-          {# Packages & activities: keep the simple steppers. #}
-          {% if not compact %}
-          <div class="eltut-filters-group">
-            <label class="eltut-filters-label">
-              <i class="bi bi-people-fill"></i> Travellers
-            </label>
-            <div class="row g-2">
-              <div class="col-6">
-                <div class="eltut-filters-stepper">
-                  <span class="eltut-filters-step-label">Adults</span>
-                  <div class="eltut-filters-step-controls">
-                    <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-adults">−</button>
-                    <input type="number" name="adults" id="ef-adults" class="eltut-filters-step-input"
-                           value="{{ _qs.adults or 1 }}" min="1" max="8">
-                    <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-adults">+</button>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6">
-                <div class="eltut-filters-stepper">
-                  <span class="eltut-filters-step-label">Children</span>
-                  <div class="eltut-filters-step-controls">
-                    <button type="button" class="eltut-filters-step-btn" data-step="-1" data-target="ef-children">−</button>
-                    <input type="number" name="children" id="ef-children" class="eltut-filters-step-input"
-                           value="{{ _qs.children or 0 }}" min="0" max="8">
-                    <button type="button" class="eltut-filters-step-btn" data-step="1" data-target="ef-children">+</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <input type="hidden" name="infants" value="{{ _qs.infants or 0 }}">
-          </div>
-          {% else %}
-          <input type="hidden" name="adults" value="{{ _qs.adults or 1 }}">
-          <input type="hidden" name="children" value="{{ _qs.children or 0 }}">
-          <input type="hidden" name="infants" value="{{ _qs.infants or 0 }}">
-          {% endif %}
         {% endif %}
 
         {# ── Search text ─────────────────────────────────────────── #}
@@ -336,7 +188,7 @@
           </label>
           <input type="text" name="q" id="ef-q" class="eltut-filters-input"
                  value="{{ _qs.q or '' }}"
-                 placeholder="{% if _pt == 'hotel' %}Hotel name{% elif _pt == 'package' %}Package name{% else %}Activity name{% endif %}">
+                 placeholder="Hotel name">
         </div>
 
         {# ── Sort ────────────────────────────────────────────────── #}
@@ -349,12 +201,7 @@
             <option value="name"       {% if sort == 'name' %}selected{% endif %}>Name (A to Z)</option>
             <option value="price_asc"  {% if sort == 'price_asc' %}selected{% endif %}>Price — low to high</option>
             <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price — high to low</option>
-            {% if _pt == 'hotel' %}
-              <option value="stars_desc" {% if sort == 'stars_desc' %}selected{% endif %}>Stars — high first</option>
-            {% endif %}
-            {% if _pt == 'package' %}
-              <option value="duration_asc" {% if sort == 'duration_asc' %}selected{% endif %}>Shortest duration</option>
-            {% endif %}
+            <option value="stars_desc" {% if sort == 'stars_desc' %}selected{% endif %}>Stars — high first</option>
           </select>
         </div>
 

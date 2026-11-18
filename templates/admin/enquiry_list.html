@@ -55,7 +55,7 @@
                     <th>When</th>
                     <th>Type</th>
                     <th>From</th>
-                    <th>Product</th>
+                    <th>Hotel</th>
                     <th>Message</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
@@ -74,7 +74,7 @@
                             {% if e.phone %}<div class="small text-muted">{{ e.phone }}</div>{% endif %}
                         </td>
                         <td class="small">
-                            {% if e.product_type %}
+                            {% if e.product_type == "hotel" %}
                                 {{ e.product_type }} #{{ e.product_id }}
                             {% else %}
                                 <span class="text-muted">—</span>

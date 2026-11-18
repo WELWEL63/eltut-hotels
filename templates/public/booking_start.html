@@ -13,8 +13,7 @@
 
         <h1 class="mb-2" style="font-weight: 700; letter-spacing: -0.5px; color: #1f2937;">Complete your booking</h1>
         <p class="text-muted mb-4" style="font-size: 1.05rem; max-width: 600px; line-height: 1.6;">
-            You're just one step away from your unforgettable Egyptian adventure.
-            Secure your stay instantly with our encrypted, zero-fee checkout.
+            Complete your hotel reservation with a secure, straightforward checkout.
         </p>
 
         <div class="d-flex flex-wrap gap-3 mb-4 pb-4" style="border-bottom: 1px solid #e5e7eb;">
@@ -38,12 +37,8 @@
 
         <form method="POST" action="{{ url_for('public.booking_create') }}" id="booking-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="product_type" value="{{ product_type }}">
+            <input type="hidden" name="product_type" value="hotel">
             <input type="hidden" name="product_id" value="{{ product.id }}">
-            {% if option and option.id %}
-                <input type="hidden" name="package_flight_id" value="{{ option.id }}">
-            {% endif %}
-
             {# Hidden inputs — party size + dates #}
             <input type="hidden" name="adults" value="{{ form_defaults.adults }}">
             <input type="hidden" name="children" value="{{ form_defaults.children }}">
@@ -54,15 +49,10 @@
                 <input type="hidden" name="child_ages" value="{{ child_ages|join(',') }}">
             {% endif %}
 
-            {# ─── Dates: hotels + packages use check_in/check_out, activities use activity_date ─── #}
-            {% if product_type in ['hotel', 'package'] %}
-                <input type="hidden" name="check_in" value="{{ form_defaults.check_in.isoformat() if form_defaults.check_in else (request.args.get('check_in') or '') }}">
-                <input type="hidden" name="check_out" value="{{ form_defaults.check_out.isoformat() if form_defaults.check_out else (request.args.get('check_out') or '') }}">
-                {% if product_type == 'hotel' and rooms_json %}
-                    <input type="hidden" name="rooms" value="{{ rooms_json }}">
-                {% endif %}
-            {% elif product_type == 'activity' %}
-                <input type="hidden" name="activity_date" value="{{ form_defaults.activity_date.isoformat() if form_defaults.activity_date else (request.args.get('date') or '') }}">
+            <input type="hidden" name="check_in" value="{{ form_defaults.check_in.isoformat() if form_defaults.check_in else (request.args.get('check_in') or '') }}">
+            <input type="hidden" name="check_out" value="{{ form_defaults.check_out.isoformat() if form_defaults.check_out else (request.args.get('check_out') or '') }}">
+            {% if rooms_json %}
+                <input type="hidden" name="rooms" value="{{ rooms_json }}">
             {% endif %}
 
             <script>
@@ -79,118 +69,11 @@
             <div class="row g-4">
                 <div class="col-lg-8">
 
-                    {# ═══════════════ STEP 1 — Enhance your trip ═══════════════ #}
+                    {# ═══════════════ STEP 1 — Your details ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3 d-flex align-items-center gap-2">
                                 <span class="step-badge">1</span>
-                                Enhance your trip
-                                <small class="text-muted fw-normal ms-auto">Optional</small>
-                            </h5>
-
-                            <p class="text-muted small mb-3">
-                                Priced per traveller. Add-ons can be added or removed at any time.
-                            </p>
-
-                            <div class="row g-3">
-                                {% for a in addons %}
-                                    <div class="col-md-6">
-                                        <div class="addon-card">
-                                            <input type="checkbox"
-                                                   class="addon-checkbox form-check-input"
-                                                   name="addon_{{ a.id }}"
-                                                   id="addon_{{ a.id }}"
-                                                   value="1"
-                                                   data-addon-id="{{ a.id }}"
-                                                   data-adult-price="{{ a.price_adult or 0 }}"
-                                                   data-child-price="{{ a.price_child or 0 }}"
-                                                   data-currency="{{ a.currency or 'GBP' }}"
-                                                   data-name="{{ a.name }}">
-
-                                            <label class="addon-card-label" for="addon_{{ a.id }}">
-                                                <div class="addon-thumb">
-                                                    {% if a.image_url %}
-                                                        <img src="{{ a.image_url }}" alt="{{ a.name }}" loading="lazy"
-                                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                        <div class="addon-thumb-fallback" style="display:none;">
-                                                            <i class="bi bi-compass"></i>
-                                                        </div>
-                                                    {% else %}
-                                                        <div class="addon-thumb-fallback">
-                                                            <i class="bi bi-compass"></i>
-                                                        </div>
-                                                    {% endif %}
-                                                </div>
-
-                                                <div class="addon-body">
-                                                    <div class="addon-name">{{ a.name }}</div>
-
-                                                    <div class="addon-meta">
-                                                        {% if a.category %}
-                                                            <span class="badge bg-secondary-subtle text-secondary-emphasis">
-                                                                {{ a.category|title }}
-                                                            </span>
-                                                        {% endif %}
-                                                        {% if a.duration_hours %}
-                                                            <span class="text-muted small">
-                                                                <i class="bi bi-clock"></i> {{ a.duration_hours }}h
-                                                            </span>
-                                                        {% endif %}
-                                                    </div>
-
-                                                    <div class="addon-prices">
-                                                        <span class="addon-price adult">
-                                                            {{ a.currency }} {{ "%.2f"|format(a.price_adult or 0) }}
-                                                            <small>/ adult</small>
-                                                        </span>
-                                                        {% if a.price_child and a.price_child > 0 %}
-                                                            <span class="addon-price child">
-                                                                {{ a.currency }} {{ "%.2f"|format(a.price_child) }}
-                                                                <small>/ child</small>
-                                                            </span>
-                                                        {% endif %}
-                                                    </div>
-
-                                                    <div class="addon-contribution" style="display:none;">
-                                                        <i class="bi bi-check-circle-fill"></i>
-                                                        Adding <strong class="addon-contribution-value">—</strong>
-                                                    </div>
-                                                </div>
-                                            </label>
-
-                                            <button type="button"
-                                                    class="addon-details-btn"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#addonModal"
-                                                    data-name="{{ a.name }}"
-                                                    data-category="{{ a.category or '' }}"
-                                                    data-duration="{{ a.duration_hours or '' }}"
-                                                    data-difficulty="{{ a.difficulty or '' }}"
-                                                    data-description="{{ (a.description or '')|e }}"
-                                                    data-departure-time="{{ a.departure_time or '' }}"
-                                                    data-return-time="{{ a.return_time or '' }}"
-                                                    data-meeting-point="{{ a.meeting_point or '' }}"
-                                                    data-what-to-bring="{{ (a.what_to_bring or '')|e }}"
-                                                    data-min-age="{{ a.min_age or '' }}"
-                                                    data-max-age="{{ a.max_age or '' }}"
-                                                    data-price-adult="{{ a.price_adult or 0 }}"
-                                                    data-price-child="{{ a.price_child or 0 }}"
-                                                    data-currency="{{ a.currency or 'GBP' }}"
-                                                    data-image="{{ a.image_url or '' }}">
-                                                <i class="bi bi-info-circle"></i> View details
-                                            </button>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    {# ═══════════════ STEP 2 — Your details ═══════════════ #}
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3 d-flex align-items-center gap-2">
-                                <span class="step-badge">2</span>
                                 Your details
                             </h5>
 
@@ -254,11 +137,11 @@
                         </div>
                     </div>
 
-                    {# ═══════════════ STEP 3 — Traveller names ═══════════════ #}
+                    {# ═══════════════ STEP 2 — Traveller names ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3 d-flex align-items-center gap-2">
-                                <span class="step-badge">3</span>
+                                <span class="step-badge">2</span>
                                 Traveller names
                             </h5>
                             <p class="text-muted small mb-3">
@@ -280,11 +163,11 @@
                         </div>
                     </div>
 
-                    {# ═══════════════ STEP 4 — Payment method ═══════════════ #}
+                    {# ═══════════════ STEP 3 — Payment method ═══════════════ #}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title mb-3 d-flex align-items-center gap-2">
-                                <span class="step-badge">4</span>
+                                <span class="step-badge">3</span>
                                 Payment method
                             </h5>
 
@@ -363,41 +246,24 @@
                             <div class="d-flex align-items-start gap-2 mb-2">
                                 <i class="bi bi-building text-eltut-terracotta" style="font-size:1.4rem;"></i>
                                 <div class="flex-grow-1">
-                                    <div class="fw-bold">{{ pkg_details.hotel_name or meta.hotel or meta.name }}</div>
-                                    {% if pkg_details.stars or meta.get('stars') %}
+                                    <div class="fw-bold">{{ meta.hotel or meta.name }}</div>
+                                    {% if meta.get('stars') %}
                                         <div class="small" style="color:#f2c964;">
-                                            {% for _ in range((pkg_details.stars or meta.get('stars') or 0)|int) %}<i class="bi bi-star-fill"></i>{% endfor %}
-                                            <span class="text-muted ms-1">{{ pkg_details.stars or meta.get('stars') }}-star</span>
+                                            {% for _ in range((meta.get('stars') or 0)|int) %}<i class="bi bi-star-fill"></i>{% endfor %}
+                                            <span class="text-muted ms-1">{{ meta.get('stars') }}-star</span>
                                         </div>
                                     {% endif %}
-                                    {% if pkg_details.destination or meta.destination %}
-                                        <div class="small text-muted mt-1"><i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i> {{ pkg_details.destination or meta.destination }}</div>
+                                    {% if meta.destination %}
+                                        <div class="small text-muted mt-1"><i class="bi bi-geo-alt-fill" style="color:#c85a3e;"></i> {{ meta.destination }}</div>
                                     {% endif %}
                                 </div>
                             </div>
-                            {% if pkg_details.room_type %}
-                                <div class="mt-2 small">
-                                    <div class="fw-semibold">{{ pkg_details.room_type }}</div>
-                                    {% if pkg_details.meal_plan %}<div class="text-muted"><i class="bi bi-egg-fried"></i> {{ pkg_details.meal_plan|replace('_', ' ')|title }}</div>{% endif %}
-                                    {% if pkg_details.max_occupancy %}<div class="text-muted"><i class="bi bi-people"></i> Up to {{ pkg_details.max_occupancy }} guests</div>{% endif %}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {# FLIGHT #}
-                        {% if option and option.airline_name %}
-                        <div class="card-body border-bottom pb-3">
-                            <div class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.05em; font-size:.7rem;">Your selected flight</div>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                {% if option.airline_logo %}<img src="{{ option.airline_logo }}" alt="{{ option.airline_name }}" style="height:32px; max-width:70px; object-fit:contain;">{% endif %}
-                                <div>
-                                    <div class="fw-semibold">{{ option.airline_name }}</div>
-                                    <div class="small text-muted">{{ option.flight_from }} → {{ option.flight_to }}</div>
-                                </div>
+                            <div class="mt-2 small">
+                                <div class="fw-semibold">{{ meta.room }}</div>
+                                {% if meta.meal_plan %}<div class="text-muted"><i class="bi bi-egg-fried"></i> {{ meta.meal_plan|replace('_', ' ')|title }}</div>{% endif %}
+                                {% if meta.max_occupancy %}<div class="text-muted"><i class="bi bi-people"></i> Up to {{ meta.max_occupancy }} guests</div>{% endif %}
                             </div>
-                            <div class="small text-muted">{{ option.departure_date }} → {{ option.return_date }}</div>
                         </div>
-                        {% endif %}
 
                         {# DATES #}
                         <div class="card-body border-bottom pb-3">
@@ -419,37 +285,11 @@
                         <div class="card-body pb-3">
                             <div class="small fw-semibold text-uppercase text-muted mb-2" style="letter-spacing:.05em; font-size:.7rem;">Price breakdown</div>
                             <div>
-                                {% if product_type == 'package' and pkg_details.land_cost is defined %}
-                                    <div class="d-flex justify-content-between small mb-2">
-                                        <span class="text-muted"><i class="bi bi-house"></i> Land cost ({{ pricing.nights }} nights)</span>
-                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.land_cost) }}</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between small mb-2">
-                                        <span class="text-muted"><i class="bi bi-airplane"></i> Flights</span>
-                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.flight_cost) }}</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between small mb-2">
-                                        <span class="text-muted"><i class="bi bi-percent"></i> Service fee</span>
-                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.service_fee) }}</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between small mb-2">
-                                        <span class="text-muted"><i class="bi bi-bus-front"></i> Transfers</span>
-                                        <strong>{{ pkg_details.currency }} {{ "%.2f"|format(pkg_details.transfers) }}</strong>
-                                    </div>
-                                {% else %}
-                                    <div class="d-flex justify-content-between small mb-2">
-                                        <span class="text-muted">
-                                            {% if rooms_grouping %}{{ rooms_grouping.min_rooms }} Rooms × {{ pricing.nights }} nights{% else %}{{ product_type|title }} × {{ pricing.nights }} nights{% endif %}
-                                        </span>
-                                        <strong>{{ pricing.currency }} {{ "%.2f"|format(pricing.total or 0) }}</strong>
-                                    </div>
-                                {% endif %}
-                                
-                                <div id="addons-breakdown" style="display:none;">
-                                    <div class="d-flex justify-content-between small mb-2 mt-1">
-                                        <span class="text-muted">Add-ons subtotal</span>
-                                        <strong id="addons-subtotal">—</strong>
-                                    </div>
+                                <div class="d-flex justify-content-between small mb-2">
+                                    <span class="text-muted">
+                                        {% if rooms_grouping %}{{ rooms_grouping.min_rooms }} Rooms × {{ pricing.nights }} nights{% else %}Hotel × {{ pricing.nights }} nights{% endif %}
+                                    </span>
+                                    <strong>{{ pricing.currency }} {{ "%.2f"|format(pricing.total or 0) }}</strong>
                                 </div>
 
                                 <hr class="my-2">
@@ -469,55 +309,6 @@
         </form>
     </div>
 </section>
-
-{# Add-on details modal #}
-<div class="modal fade" id="addonModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content overflow-hidden">
-            <div class="addon-modal-hero">
-                <img id="addonModalImage" src="" alt="" onerror="this.style.display='none'; document.getElementById('addonModalFallback').style.display='flex';">
-                <div id="addonModalFallback" class="addon-modal-fallback" style="display:none;"><i class="bi bi-compass"></i></div>
-            </div>
-            <div class="modal-header border-0 pb-0">
-                <div>
-                    <h4 class="modal-title mb-1" id="addonModalName">—</h4>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        <span class="badge bg-secondary-subtle text-secondary-emphasis" id="addonModalCategory">—</span>
-                        <span class="small text-muted" id="addonModalDuration"></span>
-                        <span class="small text-muted" id="addonModalDifficulty"></span>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body pt-2">
-                <p class="text-muted" id="addonModalDescription"></p>
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6"><div class="info-tile"><div class="info-tile-label"><i class="bi bi-clock-history"></i> Departure</div><div class="info-tile-value" id="addonModalDeparture">—</div></div></div>
-                    <div class="col-md-6"><div class="info-tile"><div class="info-tile-label"><i class="bi bi-clock"></i> Return</div><div class="info-tile-value" id="addonModalReturn">—</div></div></div>
-                    <div class="col-md-6"><div class="info-tile"><div class="info-tile-label"><i class="bi bi-geo-alt"></i> Meeting point</div><div class="info-tile-value" id="addonModalMeeting">—</div></div></div>
-                    <div class="col-md-6"><div class="info-tile"><div class="info-tile-label"><i class="bi bi-people"></i> Age range</div><div class="info-tile-value" id="addonModalAge">—</div></div></div>
-                </div>
-                <div class="mb-3" id="addonModalBringWrapper">
-                    <div class="info-tile-label mb-1"><i class="bi bi-bag-check"></i> What to bring</div>
-                    <div class="small text-muted" id="addonModalBring">—</div>
-                </div>
-                <div class="price-callout">
-                    <div>
-                        <div class="small text-muted mb-1">Price per person</div>
-                        <div id="addonModalPrice">
-                            <span class="price-adult">—</span>
-                            <span class="text-muted small"> / adult</span>
-                            <span class="mx-2 text-muted">·</span>
-                            <span class="price-child">—</span>
-                            <span class="text-muted small"> / child</span>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-eltut-primary" data-bs-dismiss="modal"><i class="bi bi-check-circle"></i> Got it</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 {# Terms modal #}
 <div class="modal fade" id="termsModal" tabindex="-1">
@@ -549,23 +340,6 @@
 .sidebar-hero { width: 100%; height: 170px; overflow: hidden; background: #f3f4f6; }
 .sidebar-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sidebar-hero-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 3rem; background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%); }
-.addon-card { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 8px 12px; border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px; transition: all .2s ease; background: #fff; position: relative; height: 100%; }
-.addon-card:hover { border-color: #c0392b; box-shadow: 0 4px 12px rgba(192, 57, 43, .08); }
-.addon-card.is-selected { border-color: #198754; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); box-shadow: 0 4px 14px rgba(25, 135, 84, .15); }
-.addon-card-label { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: start; cursor: pointer; grid-column: 1 / -1; }
-.addon-checkbox { position: absolute; top: 14px; right: 14px; margin: 0; width: 20px; height: 20px; z-index: 3; cursor: pointer; }
-.addon-thumb { width: 72px; height: 72px; border-radius: 10px; overflow: hidden; background: #f3f4f6; flex-shrink: 0; }
-.addon-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.addon-thumb-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.75rem; background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%); }
-.addon-name { font-weight: 600; font-size: .95rem; line-height: 1.25; margin-bottom: 4px; padding-right: 24px; color: #1f2937; }
-.addon-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 6px; font-size: .75rem; }
-.addon-prices { display: flex; flex-wrap: wrap; gap: 10px; font-size: .85rem; color: #4b5563; }
-.addon-price.adult { color: #c0392b; font-weight: 600; }
-.addon-price.child { color: #6b7280; }
-.addon-price small { color: #9ca3af; font-weight: 400; }
-.addon-contribution { margin-top: 6px; font-size: .8rem; color: #198754; grid-column: 1 / -1; }
-.addon-details-btn { display: inline-flex; align-items: center; gap: .35rem; padding: .25rem .65rem; background: transparent; border: 1px solid #c0392b; color: #c0392b; border-radius: 6px; font-size: .72rem; font-weight: 600; cursor: pointer; transition: all .2s; grid-column: 1 / -1; justify-self: start; margin-top: .5rem; }
-.addon-details-btn:hover { background: #c0392b; color: #fff; }
 .payment-option { display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px; cursor: pointer; transition: all .2s; background: #fff; }
 .payment-option:hover { border-color: #c0392b; }
 .payment-option input[type="radio"] { margin: 0; }
@@ -575,15 +349,6 @@
 .payment-note { font-size: .75rem; color: #6b7280; }
 .traveller-row { padding: .5rem 0; }
 .traveller-label { font-size: .8rem; color: #6b7280; margin-bottom: .25rem; }
-.addon-modal-hero { width: 100%; height: 240px; overflow: hidden; background: #f3f4f6; position: relative; }
-.addon-modal-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.addon-modal-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 5rem; background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%); }
-.info-tile { border: 1px solid #e5e7eb; border-radius: 8px; padding: .75rem; background: #f9fafb; }
-.info-tile-label { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: .25rem; }
-.info-tile-value { font-size: .9rem; font-weight: 600; color: #1f2937; }
-.price-callout { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #fff8f5 0%, #ffffff 100%); border: 1px solid rgba(192, 57, 43, .15); border-radius: 10px; padding: 1rem; flex-wrap: wrap; gap: 1rem; }
-.price-callout .price-adult { font-size: 1.1rem; font-weight: 700; color: #c0392b; }
-.price-callout .price-child { font-size: 1rem; font-weight: 600; color: #6b7280; }
 .booking-room-card { font-size: .85rem; }
 </style>
 
@@ -591,16 +356,10 @@
 (function() {
     'use strict';
     const ctx = window.BOOKING_CONTEXT || {};
-    const ROOM_TOTAL = Number(ctx.roomTotal) || 0;
-    const ROOM_CURRENCY = ctx.roomCurrency || 'GBP';
     const ADULTS = Number(ctx.adults) || 2;
     const CHILDREN = Number(ctx.children) || 0;
     const INFANTS = Number(ctx.infants) || 0;
 
-    function fmt(value, currency) {
-        const v = Number(value) || 0;
-        return (currency || ROOM_CURRENCY) + ' ' + v.toFixed(2);
-    }
 
     (function renderTravellers() {
         const container = document.getElementById('traveller-names');
@@ -627,69 +386,6 @@
         }
     })();
 
-    function recalc() {
-        let addonTotal = 0;
-        let addonCurrency = null;
-        let selectedCount = 0;
-        const listItems = [];
-
-        document.querySelectorAll('.addon-checkbox').forEach(cb => {
-            const card = cb.closest('.addon-card');
-            const contribRow = card ? card.querySelector('.addon-contribution') : null;
-            const contribValue = card ? card.querySelector('.addon-contribution-value') : null;
-
-            if (cb.checked) {
-                const aP = parseFloat(cb.dataset.adultPrice) || 0;
-                const cP = parseFloat(cb.dataset.childPrice) || 0;
-                const cur = cb.dataset.currency || 'GBP';
-                const name = cb.dataset.name || 'Add-on';
-                const subtotal = aP * ADULTS + cP * CHILDREN;
-
-                addonTotal += subtotal;
-                addonCurrency = addonCurrency || cur;
-                selectedCount += 1;
-
-                listItems.push(
-                    `<div class="d-flex justify-content-between mb-1">
-                        <span class="text-muted">• ${name}</span>
-                        <span>${cur} ${subtotal.toFixed(2)}</span>
-                    </div>`
-                );
-
-                if (card) card.classList.add('is-selected');
-                if (contribRow) contribRow.style.display = 'block';
-                if (contribValue) contribValue.textContent = fmt(subtotal, cur);
-            } else {
-                if (card) card.classList.remove('is-selected');
-                if (contribRow) contribRow.style.display = 'none';
-            }
-        });
-
-        const breakdownSection = document.getElementById('addons-breakdown');
-        const listEl = document.getElementById('addons-list');
-        const subtotalEl = document.getElementById('addons-subtotal');
-        const grandTotal = document.getElementById('grand-total');
-
-        if (selectedCount > 0) {
-            if (breakdownSection) breakdownSection.style.display = '';
-            if (listEl) listEl.innerHTML = listItems.join('');
-            if (subtotalEl) subtotalEl.textContent = fmt(addonTotal, addonCurrency || 'GBP');
-        } else {
-            if (breakdownSection) breakdownSection.style.display = 'none';
-        }
-
-        if (grandTotal) {
-            if (selectedCount > 0 && addonCurrency && addonCurrency !== ROOM_CURRENCY) {
-                grandTotal.innerHTML =
-                    fmt(ROOM_TOTAL, ROOM_CURRENCY) +
-                    '<br><span class="fs-6">+ ' + fmt(addonTotal, addonCurrency) + '</span>';
-            } else {
-                grandTotal.textContent = fmt(ROOM_TOTAL + addonTotal, ROOM_CURRENCY);
-            }
-        }
-    }
-
-    document.querySelectorAll('.addon-checkbox').forEach(cb => cb.addEventListener('change', recalc));
 
     const breakdownCollapse = document.getElementById('price-breakdown');
     if (breakdownCollapse) {
@@ -703,94 +399,6 @@
         });
     }
 
-    (function() {
-        const modal = document.getElementById('addonModal');
-        if (!modal) return;
-
-        modal.addEventListener('show.bs.modal', function(event) {
-            const btn = event.relatedTarget;
-            if (!btn) return;
-
-            const set = (id, val, fallback) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.textContent = (val && String(val).trim()) ? String(val) : (fallback || '—');
-            };
-
-            const name = btn.dataset.name || '—';
-            const category = btn.dataset.category || '';
-            const duration = btn.dataset.duration;
-            const difficulty = btn.dataset.difficulty || '';
-            const description = btn.dataset.description || 'No description available.';
-            const departure = btn.dataset.departureTime;
-            const returnTime = btn.dataset.returnTime;
-            const meeting = btn.dataset.meetingPoint;
-            const bring = btn.dataset.whatToBring;
-            const minAge = btn.dataset.minAge;
-            const maxAge = btn.dataset.maxAge;
-            const priceAdult = parseFloat(btn.dataset.priceAdult) || 0;
-            const priceChild = parseFloat(btn.dataset.priceChild) || 0;
-            const currency = btn.dataset.currency || 'GBP';
-            const image = btn.dataset.image || '';
-
-            document.getElementById('addonModalName').textContent = name;
-
-            const catEl = document.getElementById('addonModalCategory');
-            if (category) {
-                catEl.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-                catEl.style.display = '';
-            } else {
-                catEl.style.display = 'none';
-            }
-
-            const durEl = document.getElementById('addonModalDuration');
-            durEl.innerHTML = duration ? `<i class="bi bi-clock"></i> ${duration}h` : '';
-
-            const diffEl = document.getElementById('addonModalDifficulty');
-            diffEl.innerHTML = difficulty ? `<i class="bi bi-bar-chart"></i> ${difficulty}` : '';
-
-            document.getElementById('addonModalDescription').textContent = description;
-
-            set('addonModalDeparture', departure, 'Flexible');
-            set('addonModalReturn', returnTime, 'Flexible');
-            set('addonModalMeeting', meeting, 'To be confirmed');
-
-            if (minAge || maxAge) {
-                set('addonModalAge', `${minAge || '0'} – ${maxAge || '+'}`, 'All ages');
-            } else {
-                set('addonModalAge', '', 'All ages');
-            }
-
-            const bringWrapper = document.getElementById('addonModalBringWrapper');
-            if (bring) {
-                document.getElementById('addonModalBring').textContent = bring;
-                bringWrapper.style.display = '';
-            } else {
-                bringWrapper.style.display = 'none';
-            }
-
-            const priceEl = document.getElementById('addonModalPrice');
-            priceEl.querySelector('.price-adult').textContent = `${currency} ${priceAdult.toFixed(2)}`;
-            if (priceChild > 0) {
-                priceEl.querySelector('.price-child').textContent = `${currency} ${priceChild.toFixed(2)}`;
-            } else {
-                priceEl.querySelector('.price-child').textContent = 'N/A';
-            }
-
-            const imgEl = document.getElementById('addonModalImage');
-            const fallbackEl = document.getElementById('addonModalFallback');
-            if (image) {
-                imgEl.src = image;
-                imgEl.style.display = 'block';
-                fallbackEl.style.display = 'none';
-            } else {
-                imgEl.style.display = 'none';
-                fallbackEl.style.display = 'flex';
-            }
-        });
-    })();
-
-    recalc();
 })();
 </script>
 

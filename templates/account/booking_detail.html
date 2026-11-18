@@ -30,7 +30,9 @@
                     <div>
                         <h1 class="mb-1">{{ booking.reference }}</h1>
                         <span class="badge bg-info">{{ booking.status|title }}</span>
-                        <span class="badge bg-secondary">{{ booking.product_type|title }}</span>
+                        {% if booking.product_type == 'hotel' %}
+                            <span class="badge bg-secondary">Hotel</span>
+                        {% endif %}
                     </div>
                     {% if booking.is_cancellable %}
                         <form method="POST"
@@ -52,9 +54,6 @@
                             {% if booking.check_in_date %}
                                 <tr><th>Check-in</th><td>{{ booking.check_in_date }}</td></tr>
                                 <tr><th>Check-out</th><td>{{ booking.check_out_date }}</td></tr>
-                            {% endif %}
-                            {% if booking.activity_date %}
-                                <tr><th>Activity date</th><td>{{ booking.activity_date }}</td></tr>
                             {% endif %}
                             <tr><th>Total</th><td><strong>{{ booking.currency }} {{ "%.2f"|format(booking.total_amount) }}</strong></td></tr>
                             <tr><th>Created</th><td>{{ booking.created_at.strftime("%d %b %Y %H:%M") }}</td></tr>
@@ -100,19 +99,18 @@
                     </div>
                 {% endif %}
 
-                {% if items %}
+                {% if booking.product_type == 'hotel' and items %}
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5>Line items</h5>
                             <table class="table table-sm mb-0">
                                 <thead>
-                                    <tr><th>Type</th><th>Product</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+                                    <tr><th>Hotel</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
                                 </thead>
                                 <tbody>
-                                    {% for it in items %}
+                                    {% for it in items if it.item_type == 'primary' %}
                                         <tr>
-                                            <td>{{ it.item_type|replace("_", " ")|title }}</td>
-                                            <td>{{ it.product_name_snapshot or (it.product_type ~ " #" ~ it.product_id) }}</td>
+                                            <td>{{ it.product_name_snapshot or ("Hotel #" ~ it.product_id) }}</td>
                                             <td>{{ it.quantity }}</td>
                                             <td>{{ it.currency }} {{ "%.2f"|format(it.unit_price) }}</td>
                                             <td>{{ it.currency }} {{ "%.2f"|format(it.line_total) }}</td>

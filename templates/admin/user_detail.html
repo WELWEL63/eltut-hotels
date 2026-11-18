@@ -132,17 +132,15 @@
                 </tr>
             </thead>
             <tbody>
-                {% for b in bookings %}
+                {% for b in bookings if b.product_type == 'hotel' %}
                     <tr>
                         <td>
                             <a href="{{ url_for('admin.booking_detail', reference=b.reference) }}"
                                class="text-decoration-none">{{ b.reference }}</a>
                         </td>
-                        <td>{{ b.product_type }} #{{ b.product_id }}</td>
+                        <td>Hotel #{{ b.product_id }}</td>
                         <td class="small">
-                            {% if b.activity_date %}
-                                {{ b.activity_date | uk_date }}
-                            {% elif b.check_in_date %}
+                            {% if b.check_in_date %}
                                 {{ b.check_in_date | uk_date }} → {{ b.check_out_date | uk_date if b.check_out_date else "?" }}
                             {% else %}—{% endif %}
                         </td>

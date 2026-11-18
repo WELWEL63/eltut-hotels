@@ -44,12 +44,7 @@
                         <div class="col-md-6">
                             <label class="form-label">Product type <span class="text-danger">*</span></label>
                             <select name="product_type" class="form-select" required>
-                                {% for t in ["hotel", "package", "activity"] %}
-                                    <option value="{{ t }}"
-                                            {% if prefill.product_type == t %}selected{% endif %}>
-                                        {{ t|capitalize }}
-                                    </option>
-                                {% endfor %}
+                                <option value="hotel" selected>Hotel</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -122,7 +117,7 @@
                         <label class="form-label">Anything else we should know?</label>
                         <textarea name="message" class="form-control" rows="5"
                                   maxlength="2000"
-                                  placeholder="Special occasions, dietary needs, activity preferences..."></textarea>
+                                  placeholder="Special occasions, dietary needs, or room preferences..."></textarea>
                     </div>
 
                     <div class="d-grid gap-2">

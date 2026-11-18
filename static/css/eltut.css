@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
    ElTut Tours — Design System
    ─────────────────────────────────────────────────────────────────────
    TABLE OF CONTENTS
@@ -17,9 +17,8 @@
     13.  Related cards (detail pages)
     14.  Accommodation split card
     15.  Map frame
-    16.  Packages section (home)
-    17.  Activities section (home)
-    18.  Hotels section — full-width rows (home)
+    16.  Featured hotels section (home)
+    17.  Hotels section — full-width rows (home)
     19.  Hotels section — cards (htl-card family)
     20.  Hotels list page — header + filter sidebar + results bar
     21.  Search results — full-width rows (sr-row)
@@ -652,8 +651,8 @@ h5{
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   HOME PAGE — PRODUCT IMAGE HEIGHT OVERRIDES
-   Edit the four numbers below to resize every product image on the home page
+   HOME PAGE — HOTEL IMAGE HEIGHT OVERRIDES
+   Edit the values below to resize hotel images on the home page
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* 1) Generic product cards */
@@ -663,17 +662,12 @@ h5{
     height: 420px !important;          /* ← desktop: product-card image */
 }
 
-/* 2) Package cards */
-.home-page .pkg-card-media {
-    height: 340px !important;          /* ← desktop: package card image */
+/* 2) Featured hotel cards */
+.home-page .hotel-card-media {
+    height: 340px !important;
 }
 
-/* 3) Activity cards */
-.home-page .act-card-media {
-    height: 340px !important;          /* ← desktop: activity card image */
-}
-
-/* 4) Hotel rows (home) — make them taller rectangles instead of squares */
+/* 3) Hotel rows (home) — make them taller rectangles instead of squares */
 .home-page .htl-row-media {
     flex: 0 0 200px !important;
     width: 200px !important;
@@ -687,11 +681,8 @@ h5{
     .home-page .product-card .result-card-placeholder {
         height: 280px !important;      /* ← mobile: product-card image */
     }
-    .home-page .pkg-card-media {
-        height: 240px !important;      /* ← mobile: package card image */
-    }
-    .home-page .act-card-media {
-        height: 240px !important;      /* ← mobile: activity card image */
+    .home-page .hotel-card-media {
+        height: 240px !important;
     }
     .home-page .htl-row-media {
         flex: 0 0 auto !important;
@@ -1581,14 +1572,14 @@ body.home-page {
 
 
 /* ═══════════════════════════════════════════════════════════════════════
-   16. PACKAGES SECTION — home
+   16. FEATURED HOTELS SECTION — home
    ═══════════════════════════════════════════════════════════════════════ */
 
-.pkgs-section {
+.hotels-section {
     background: linear-gradient(180deg, #faf7f1 0%, #fdfbf8 100%);
 }
-.pkgs-hero { max-width: 720px; margin: 0 auto; }
-.pkgs-eyebrow {
+.hotels-hero { max-width: 720px; margin: 0 auto; }
+.hotels-eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
@@ -1603,8 +1594,8 @@ body.home-page {
     margin-bottom: 1rem;
     box-shadow: 0 4px 14px rgba(30, 58, 95, 0.2);
 }
-.pkgs-eyebrow i { color: #f2c964; }
-.pkgs-title {
+.hotels-eyebrow i { color: #f2c964; }
+.hotels-title {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: clamp(1.75rem, 3.4vw, 2.5rem);
     font-weight: 700;
@@ -1612,13 +1603,13 @@ body.home-page {
     letter-spacing: 0.01em;
     margin-bottom: 0.6rem;
 }
-.pkgs-sub {
+.hotels-sub {
     font-size: 1rem;
     color: #78716c;
     max-width: 560px;
     margin: 0 auto 1.75rem;
 }
-.pkgs-stats {
+.hotels-stats {
     display: inline-flex;
     gap: 2rem;
     flex-wrap: wrap;
@@ -1629,21 +1620,21 @@ body.home-page {
     border-radius: 999px;
     box-shadow: 0 6px 20px rgba(28, 25, 23, 0.05);
 }
-.pkgs-stat {
+.hotels-stat {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     font-size: 0.8rem;
 }
-.pkgs-stat i { font-size: 1.1rem; color: #c9a227; }
-.pkgs-stat strong {
+.hotels-stat i { font-size: 1.1rem; color: #c9a227; }
+.hotels-stat strong {
     display: block;
     font-size: 1.05rem;
     font-weight: 800;
     color: #1e3a5f;
     line-height: 1.1;
 }
-.pkgs-stat span {
+.hotels-stat span {
     display: block;
     font-size: 0.7rem;
     text-transform: uppercase;
@@ -1653,7 +1644,7 @@ body.home-page {
 }
 
 /* Card */
-.pkg-card {
+.hotel-card {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -1670,7 +1661,7 @@ body.home-page {
                 box-shadow 0.28s ease,
                 border-color 0.28s ease;
 }
-.pkg-card:hover {
+.hotel-card:hover {
     transform: translateY(-6px);
     border-color: rgba(212, 160, 23, 0.3);
     color: inherit;
@@ -1680,21 +1671,21 @@ body.home-page {
         0 32px 64px rgba(28, 25, 23, 0.08),
         0 0 0 4px rgba(212, 160, 23, 0.06);
 }
-.pkg-card-media {
+.hotel-card-media {
     position: relative;
     height: 240px;
     background: #f3f4f6;
     overflow: hidden;
 }
-.pkg-card-media img {
+.hotel-card-media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.pkg-card:hover .pkg-card-media img { transform: scale(1.08); }
-.pkg-card-placeholder {
+.hotel-card:hover .hotel-card-media img { transform: scale(1.08); }
+.hotel-card-placeholder {
     width: 100%;
     height: 100%;
     display: flex;
@@ -1704,7 +1695,7 @@ body.home-page {
     color: #9ca3af;
     background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
 }
-.pkg-card-scrim {
+.hotel-card-scrim {
     position: absolute;
     inset: 0;
     background:
@@ -1716,7 +1707,7 @@ body.home-page {
             rgba(15, 23, 42, 0) 45%);
     pointer-events: none;
 }
-.pkg-badge {
+.hotel-card-badge {
     position: absolute;
     top: 0.75rem;
     display: inline-flex;
@@ -1731,24 +1722,24 @@ body.home-page {
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
-.pkg-badge--duration {
+.hotel-card-badge--duration {
     left: 0.75rem;
     background: rgba(30, 58, 95, 0.92);
     color: #f5ecd7;
 }
-.pkg-badge--dest {
+.hotel-card-badge--dest {
     right: 0.75rem;
     background: rgba(212, 160, 23, 0.94);
     color: #1c1917;
 }
-.pkg-badge i { font-size: 0.75rem; }
+.hotel-card-badge i { font-size: 0.75rem; }
 /* Stars inside the duration badge */
-.pkg-badge--duration i.bi-star-fill {
+.hotel-card-badge--duration i.bi-star-fill {
     font-size: 0.62rem;
     color: #f5ecd7;
     margin-right: 1px;
 }
-.pkg-ribbon {
+.hotel-ribbon {
     position: absolute;
     top: 3.2rem;
     left: -2.4rem;
@@ -1763,8 +1754,8 @@ body.home-page {
     box-shadow: 0 4px 14px rgba(200, 90, 62, 0.4);
     z-index: 2;
 }
-.pkg-ribbon i { color: #f5ecd7; }
-.pkg-card-price {
+.hotel-ribbon i { color: #f5ecd7; }
+.hotel-card-price {
     position: absolute;
     bottom: 0.85rem;
     left: 0.9rem;
@@ -1775,38 +1766,38 @@ body.home-page {
     gap: 0.4rem;
     z-index: 2;
 }
-.pkg-card-price-label {
+.hotel-card-price-label {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     opacity: 0.85;
     font-weight: 600;
 }
-.pkg-card-price-amount {
+.hotel-card-price-amount {
     font-size: 1.65rem;
     font-weight: 800;
     color: #f2c964;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
     letter-spacing: -0.02em;
 }
-.pkg-card-price-unit {
+.hotel-card-price-unit {
     font-size: 0.75rem;
     opacity: 0.85;
 }
-.pkg-card-body {
+.hotel-card-body {
     flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     padding: 1.1rem 1.15rem 1.15rem;
 }
-.pkg-card-chip-row {
+.hotel-card-chip-row {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     margin-bottom: 0.55rem;
     flex-wrap: wrap;
 }
-.pkg-type-chip {
+.hotel-type-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
@@ -1820,14 +1811,14 @@ body.home-page {
     border-radius: 6px;
     box-shadow: inset 0 -2px 0 rgba(201, 162, 39, 0.85);
 }
-.pkg-type-chip i { font-size: 0.75rem; color: #f2c964; }
-.pkg-code {
+.hotel-type-chip i { font-size: 0.75rem; color: #f2c964; }
+.hotel-code {
     font-size: 0.7rem;
     color: #9ca3af;
     letter-spacing: 0.03em;
     font-weight: 500;
 }
-.pkg-card-title {
+.hotel-card-title {
     margin: 0 0 0.55rem;
     font-size: 1.05rem;
     font-weight: 700;
@@ -1840,7 +1831,7 @@ body.home-page {
     overflow: hidden;
     min-height: 2.6em;
 }
-.pkg-card-meta {
+.hotel-card-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
@@ -1848,15 +1839,15 @@ body.home-page {
     color: #78716c;
     margin-bottom: 0.75rem;
 }
-.pkg-card-meta i { color: #c9a227; margin-right: 0.15rem; }
-.pkg-card-includes {
+.hotel-card-meta i { color: #c9a227; margin-right: 0.15rem; }
+.hotel-card-includes {
     list-style: none;
     padding: 0;
     margin: 0 0 0.75rem;
     padding-top: 0.7rem;
     border-top: 1px dashed rgba(28, 25, 23, 0.08);
 }
-.pkg-card-includes li {
+.hotel-card-includes li {
     display: flex;
     align-items: center;
     gap: 0.35rem;
@@ -1865,18 +1856,18 @@ body.home-page {
     margin-bottom: 0.3rem;
     line-height: 1.35;
 }
-.pkg-card-includes li i {
+.hotel-card-includes li i {
     color: #22c55e;
     font-size: 0.85rem;
     flex-shrink: 0;
 }
-.pkg-card-includes-more {
+.hotel-card-includes-more {
     color: #9ca3af !important;
     font-style: italic;
     font-size: 0.72rem !important;
     padding-left: 1.15rem;
 }
-.pkg-card-per-night {
+.hotel-card-per-night {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -1889,8 +1880,8 @@ body.home-page {
     align-self: flex-start;
     font-weight: 600;
 }
-.pkg-card-per-night i { color: #a84530; }
-.pkg-card-cta {
+.hotel-card-per-night i { color: #a84530; }
+.hotel-card-cta {
     margin-top: auto;
     display: flex;
     align-items: center;
@@ -1903,301 +1894,9 @@ body.home-page {
     letter-spacing: 0.02em;
     transition: color 0.2s ease;
 }
-.pkg-card-cta i { transition: transform 0.25s ease; }
-.pkg-card:hover .pkg-card-cta { color: #a84530; }
-.pkg-card:hover .pkg-card-cta i { transform: translateX(6px); }
-
-
-/* ═══════════════════════════════════════════════════════════════════════
-   17. ACTIVITIES SECTION — home
-   ═══════════════════════════════════════════════════════════════════════ */
-
-.acts-section {
-    background: linear-gradient(180deg, #fdfbf8 0%, #faf7f1 100%);
-}
-.acts-hero { max-width: 720px; margin: 0 auto; }
-.acts-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.35rem 0.9rem;
-    background: linear-gradient(135deg, #c85a3e 0%, #d4a017 100%);
-    color: #ffffff;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    border-radius: 999px;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 14px rgba(200, 90, 62, 0.28);
-}
-.acts-eyebrow i { color: #fff; }
-.acts-title {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(1.75rem, 3.4vw, 2.5rem);
-    font-weight: 700;
-    color: #1e3a5f;
-    letter-spacing: 0.01em;
-    margin-bottom: 0.6rem;
-}
-.acts-sub {
-    font-size: 1rem;
-    color: #78716c;
-    max-width: 560px;
-    margin: 0 auto 1.75rem;
-}
-.acts-stats {
-    display: inline-flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 1rem 1.75rem;
-    background: #ffffff;
-    border: 1px solid rgba(200, 90, 62, 0.22);
-    border-radius: 999px;
-    box-shadow: 0 6px 20px rgba(28, 25, 23, 0.05);
-}
-.acts-stat {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 0.8rem;
-}
-.acts-stat i { font-size: 1.1rem; color: #c85a3e; }
-.acts-stat strong {
-    display: block;
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #1e3a5f;
-    line-height: 1.1;
-}
-.acts-stat span {
-    display: block;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #9ca3af;
-    font-weight: 600;
-}
-
-/* Card */
-.act-card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    background: #ffffff;
-    border: 1px solid rgba(28, 25, 23, 0.06);
-    border-radius: 18px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    box-shadow:
-        0 1px 2px rgba(28, 25, 23, 0.04),
-        0 6px 18px rgba(28, 25, 23, 0.06);
-    transition: transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
-                box-shadow 0.28s ease,
-                border-color 0.28s ease;
-}
-.act-card:hover {
-    transform: translateY(-6px);
-    border-color: rgba(200, 90, 62, 0.3);
-    color: inherit;
-    box-shadow:
-        0 2px 4px rgba(28, 25, 23, 0.05),
-        0 16px 34px rgba(28, 25, 23, 0.11),
-        0 32px 64px rgba(28, 25, 23, 0.08),
-        0 0 0 4px rgba(200, 90, 62, 0.06);
-}
-.act-card-media {
-    position: relative;
-    height: 240px;
-    background: #f3f4f6;
-    overflow: hidden;
-}
-.act-card-media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.act-card:hover .act-card-media img { transform: scale(1.08); }
-.act-card-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5rem;
-    color: #9ca3af;
-    background: linear-gradient(135deg, #eef2f7 0%, #dfe7ef 100%);
-}
-.act-card-scrim {
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(180deg,
-            rgba(15, 23, 42, 0.42) 0%,
-            rgba(15, 23, 42, 0) 32%),
-        linear-gradient(0deg,
-            rgba(15, 23, 42, 0.72) 0%,
-            rgba(15, 23, 42, 0) 42%);
-    pointer-events: none;
-}
-.act-badge {
-    position: absolute;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-.act-badge--duration {
-    top: 0.75rem;
-    left: 0.75rem;
-    background: rgba(30, 58, 95, 0.92);
-    color: #f5ecd7;
-}
-.act-badge--category {
-    top: 0.75rem;
-    right: 0.75rem;
-    background: rgba(212, 160, 23, 0.94);
-    color: #1c1917;
-}
-.act-badge--difficulty {
-    bottom: 3.1rem;
-    right: 0.9rem;
-    color: #ffffff;
-}
-.act-badge--easy     { background: rgba(34, 197, 94, 0.92); }
-.act-badge--moderate { background: rgba(245, 158, 11, 0.92); }
-.act-badge--hard     { background: rgba(220, 38, 38, 0.92); }
-.act-badge--extreme  { background: rgba(126, 34, 206, 0.92); }
-.act-ribbon {
-    position: absolute;
-    top: 3.2rem;
-    left: -2.4rem;
-    transform: rotate(-38deg);
-    background: linear-gradient(135deg, #c85a3e 0%, #d4a017 100%);
-    color: #ffffff;
-    padding: 0.3rem 2.75rem;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    box-shadow: 0 4px 14px rgba(200, 90, 62, 0.4);
-    z-index: 2;
-}
-.act-ribbon i { color: #f5ecd7; }
-.act-card-price {
-    position: absolute;
-    bottom: 0.85rem;
-    left: 0.9rem;
-    right: 0.9rem;
-    color: #ffffff;
-    display: flex;
-    align-items: baseline;
-    gap: 0.4rem;
-    z-index: 2;
-}
-.act-card-price-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    opacity: 0.85;
-    font-weight: 600;
-}
-.act-card-price-amount {
-    font-size: 1.65rem;
-    font-weight: 800;
-    color: #f2c964;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
-    letter-spacing: -0.02em;
-}
-.act-card-price-unit {
-    font-size: 0.75rem;
-    opacity: 0.85;
-}
-.act-card-body {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-    padding: 1.1rem 1.15rem 1.15rem;
-}
-.act-card-title {
-    margin: 0 0 0.5rem;
-    font-size: 1.05rem;
-    font-weight: 700;
-    line-height: 1.3;
-    color: #1e3a5f;
-    letter-spacing: -0.01em;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    min-height: 2.6em;
-}
-.act-card-dest {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.78rem;
-    color: #78716c;
-    margin-bottom: 0.6rem;
-}
-.act-card-dest i { color: #c9a227; }
-.act-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    font-size: 0.76rem;
-    color: #78716c;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px dashed rgba(28, 25, 23, 0.08);
-}
-.act-card-meta i { color: #c85a3e; margin-right: 0.15rem; }
-.act-card-highlights {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    margin-bottom: 0.85rem;
-}
-.act-highlight-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.76rem;
-    color: #525252;
-    line-height: 1.3;
-}
-.act-highlight-chip i {
-    color: #22c55e;
-    font-size: 0.82rem;
-    flex-shrink: 0;
-}
-.act-card-cta {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 0 0;
-    border-top: 2px solid #f5e6d3;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #1e3a5f;
-    letter-spacing: 0.02em;
-    transition: color 0.2s ease;
-}
-.act-card-cta i { transition: transform 0.25s ease; }
-.act-card:hover .act-card-cta { color: #c85a3e; }
-.act-card:hover .act-card-cta i { transform: translateX(6px); }
+.hotel-card-cta i { transition: transform 0.25s ease; }
+.hotel-card:hover .hotel-card-cta { color: #a84530; }
+.hotel-card:hover .hotel-card-cta i { transform: translateX(6px); }
 
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -3238,21 +2937,13 @@ body.home-page {
         letter-spacing: 0.14em;
     }
 
-    /* Packages */
-    .pkgs-stats { padding: 0.85rem 1.25rem; gap: 1.25rem; border-radius: 16px; }
-    .pkgs-stat { font-size: 0.75rem; }
-    .pkgs-stat strong { font-size: 0.95rem; }
-    .pkg-card-media { height: 300px!important; }
-    .pkg-card-price-amount { font-size: 1.4rem; }
-    .pkg-card-title { font-size: 0.98rem; }
-
-    /* Activities */
-    .acts-stats { padding: 0.85rem 1.25rem; gap: 1.25rem; border-radius: 16px; }
-    .acts-stat { font-size: 0.75rem; }
-    .acts-stat strong { font-size: 0.95rem; }
-    .act-card-media { height: 300px!important; }
-    .act-card-price-amount { font-size: 1.4rem; }
-    .act-card-title { font-size: 0.98rem; }
+    /* Featured hotel cards */
+    .hotels-stats { padding: 0.85rem 1.25rem; gap: 1.25rem; border-radius: 16px; }
+    .hotels-stat { font-size: 0.75rem; }
+    .hotels-stat strong { font-size: 0.95rem; }
+    .hotel-card-media { height: 300px!important; }
+    .hotel-card-price-amount { font-size: 1.4rem; }
+    .hotel-card-title { font-size: 0.98rem; }
 
     /* Hotels — home rows stack */
     .htl-section { padding: 2.5rem 0 3rem; }
