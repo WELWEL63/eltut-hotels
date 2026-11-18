@@ -1,5 +1,5 @@
 # ElTut Tours Platform — Full Code & Status Report
-**Generated:** 2026-10-19 00:19:45
+**Generated:** 2026-11-17 23:53:50
 
 ## 1. Database Schema & Row Counts
 | Table | Row Count |
@@ -15,11 +15,11 @@
 | airlines | 4 |
 | airports | 24 |
 | alembic_version | 1 |
-| booking_items | 80 |
-| booking_rooms | 22 |
-| booking_status_history | 48 |
-| booking_travellers | 95 |
-| bookings | 38 |
+| booking_items | 97 |
+| booking_rooms | 24 |
+| booking_status_history | 58 |
+| booking_travellers | 118 |
+| bookings | 47 |
 | destinations | 16 |
 | flight_prices | 458 |
 | flights | 21 |
@@ -35,7 +35,7 @@
 | newsletters | 0 |
 | package_exclusions | 90 |
 | package_faqs | 90 |
-| package_flights | 156 |
+| package_flights | 312 |
 | package_images | 25 |
 | package_inclusions | 121 |
 | package_itineraries | 126 |
@@ -43,19 +43,19 @@
 | package_prices | 2862 |
 | package_tips | 72 |
 | packages | 20 |
-| payments | 38 |
+| payments | 47 |
 | quotes | 5 |
 | room_images | 0 |
 | room_rates | 4454 |
 | rooms | 632 |
 | site_content | 172 |
 | suppliers | 3 |
-| users | 3 |
+| users | 4 |
 
 ## 2. Business Stats
-- Total Bookings: **38**
-- Total Revenue: **GBP 28,050.59**
-- Flight Links (PackageFlight): **156**
+- Total Bookings: **47**
+- Total Revenue: **GBP 44,386.82**
+- Flight Links (PackageFlight): **312**
 
 ## 3. All Registered Routes
 | Method | Route | Endpoint |
@@ -90,6 +90,10 @@
 | GET | /admin/bookings/<reference> | admin.booking_detail |
 | POST | /admin/bookings/<reference>/cancel | admin.booking_cancel |
 | POST | /admin/bookings/<reference>/status | admin.booking_status |
+| GET | /admin/chat | admin.chat_list |
+| GET | /admin/chat/<session_id> | admin.chat_detail |
+| POST | /admin/chat/<session_id>/close | admin.chat_close |
+| POST | /admin/chat/<session_id>/reply | admin.chat_reply |
 | GET | /admin/content | admin.content_index |
 | GET,POST | /admin/content/edit/<path:key> | admin.content_edit |
 | POST | /admin/content/reset/<path:key> | admin.content_reset |
@@ -108,6 +112,8 @@
 | GET | /admin/flights | admin.flight_admin_index |
 | POST | /admin/flights/<int:flight_id>/delete | admin.package_flight_delete |
 | POST | /admin/flights/<int:fp_id>/delete | admin.flight_admin_delete |
+| POST | /admin/flights/auto-match/apply | admin.flight_auto_match_apply |
+| GET | /admin/flights/auto-match/preview | admin.flight_auto_match_preview |
 | POST | /admin/flights/delete-all | admin.flight_admin_delete_all |
 | GET | /admin/flights/export | admin.flight_admin_export |
 | GET,POST | /admin/flights/import | admin.flight_admin_import |
@@ -175,6 +181,11 @@
 | GET | /admin/users/<int:id> | admin.user_detail |
 | POST | /admin/users/<int:id>/role | admin.user_role |
 | POST | /admin/users/<int:id>/toggle | admin.user_toggle |
+| POST | /api/chat/end | public.api_chat_end |
+| POST | /api/chat/human | public.api_chat_human |
+| POST | /api/chat/message | public.api_chat_message |
+| GET | /api/chat/poll/<session_id> | public.api_chat_poll |
+| POST | /api/chat/start | public.api_chat_start |
 | GET | /api/v1/_health | api.api_health |
 | GET | /api/v1/activities | api.activities_list |
 | GET | /api/v1/activities/<identifier> | api.activities_detail |
@@ -238,15 +249,17 @@
 - /models/package_children.py
 - ...and 9 more files.
 
-### services/ (20 files)
+### services/ (22 files)
 - /services/__init__.py
 - /services/auth_service.py
 - /services/availability_service.py
 - /services/booking_service.py
+- /services/chatbot_service.py
 - /services/content_service.py
 - /services/email_service.py
 - /services/flight_csv_service.py
 - /services/flight_import_service.py
+- /services/flight_matching_service.py
 - /services/flight_service.py
 - /services/hotel_capacity_service.py
 - /services/hotel_csv_service.py
@@ -257,10 +270,9 @@
 - /services/pricing_service.py
 - /services/quote_service.py
 - /services/recommendation_service.py
-- /services/report_service.py
-- /services/search_service.py
+- ...and 2 more files.
 
-### blueprints/ (42 files)
+### blueprints/ (44 files)
 - /blueprints/__init__.py
 - /blueprints/account/__init__.py
 - /blueprints/account/forms.py
@@ -269,9 +281,11 @@
 - /blueprints/admin/activity_admin.py
 - /blueprints/admin/airline_admin.py
 - /blueprints/admin/booking_admin.py
+- /blueprints/admin/chat_admin.py
 - /blueprints/admin/content_admin.py
 - /blueprints/admin/destination_admin.py
 - /blueprints/admin/flight_admin.py
+- /blueprints/admin/flight_admin.py.bak
 - /blueprints/admin/hotel_admin.py
 - /blueprints/admin/hotel_csv_admin.py
 - /blueprints/admin/media_routes.py
@@ -279,14 +293,10 @@
 - /blueprints/admin/package_admin.py
 - /blueprints/admin/quote_admin.py
 - /blueprints/admin/report_routes.py
-- /blueprints/admin/review_admin.py
-- /blueprints/admin/routes.py
-- ...and 22 more files.
+- ...and 24 more files.
 
-### scripts/ (30 files)
+### scripts/ (32 files)
 - /scripts/__init__.py
-- /scripts/apply_flight_links.py
-- /scripts/auto_link_packages.py
 - /scripts/auto_match_all_flights.py
 - /scripts/backfill_airport_codes.py
 - /scripts/backfill_hotel_slugs.py
@@ -297,16 +307,18 @@
 - /scripts/enrich_activity_maps.py
 - /scripts/enrich_hotels.py
 - /scripts/enrich_package_faqs_tips.py
+- /scripts/fix_confirmation_flight_match.py
+- /scripts/fix_flight_admin_html.py
 - /scripts/fix_options.py
+- /scripts/fix_sidebar_dates_properly.py
 - /scripts/flight_formats/__init__.py
 - /scripts/flight_formats/_date_format.py
 - /scripts/flight_formats/easyjet_to_canonical.py
 - /scripts/flight_formats/jet2_to_canonical.py
 - /scripts/generate_report.py
-- /scripts/health_check.py
-- ...and 10 more files.
+- ...and 12 more files.
 
-### templates/ (65 files)
+### templates/ (67 files)
 - /templates/account/booking_detail.html
 - /templates/account/bookings.html
 - /templates/account/index.html
@@ -318,16 +330,16 @@
 - /templates/admin/base.html
 - /templates/admin/booking_detail.html
 - /templates/admin/booking_list.html
+- /templates/admin/chat_dashboard.html
 - /templates/admin/content_edit.html
 - /templates/admin/content_index.html
 - /templates/admin/content_slideshow.html
 - /templates/admin/destination_images.html
 - /templates/admin/enquiry_list.html
 - /templates/admin/flight_admin.html
+- /templates/admin/flight_admin.html.bak
 - /templates/admin/flight_import.html
-- /templates/admin/hotel_csv.html
-- /templates/admin/hotel_csv_import.html
-- ...and 45 more files.
+- ...and 47 more files.
 
 ### static/css/ (2 files)
 - /static/css/eltut.css
@@ -335,8 +347,6 @@
 
 ## 5. Automation Scripts
 - scripts/__init__.py
-- scripts/apply_flight_links.py
-- scripts/auto_link_packages.py
 - scripts/auto_match_all_flights.py
 - scripts/backfill_airport_codes.py
 - scripts/backfill_hotel_slugs.py
@@ -347,7 +357,10 @@
 - scripts/enrich_activity_maps.py
 - scripts/enrich_hotels.py
 - scripts/enrich_package_faqs_tips.py
+- scripts/fix_confirmation_flight_match.py
+- scripts/fix_flight_admin_html.py
 - scripts/fix_options.py
+- scripts/fix_sidebar_dates_properly.py
 - scripts/generate_report.py
 - scripts/health_check.py
 - scripts/import_trip_images.py
@@ -359,7 +372,8 @@
 - scripts/seed_package_details.py
 - scripts/session_report.py
 - scripts/set_destination_bookable.py
-- scripts/test_flights.py
+- scripts/ultimate_package_test.py
+- scripts/verify_auto_match.py
 
 ## 6. Environment Configuration
 - FLASK_ENV: development
