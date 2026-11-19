@@ -15,7 +15,6 @@ PUBLIC API
     bookings_by_status() -> dict[str, int]
     top_products(limit=10) -> list[dict]
     customer_stats() -> dict
-    top_rated_activities(limit=10) -> list[dict]
     search_analytics(days=30) -> dict
     enquiry_stats() -> dict
 
@@ -48,9 +47,7 @@ from models import (
     STATUS_COMPLETED,
     STATUS_REFUNDED,
     ROLE_CUSTOMER,
-    PRODUCT_TYPE_ACTIVITY,
     PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
 )
 
 
@@ -66,11 +63,7 @@ ALL_STATUSES: tuple[str, ...] = (
     STATUS_REFUNDED,
 )
 ACTIVE_STATUSES: tuple[str, ...] = (STATUS_PENDING, STATUS_CONFIRMED)
-ALL_PRODUCT_TYPES: tuple[str, ...] = (
-    PRODUCT_TYPE_ACTIVITY,
-    PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
-)
+ALL_PRODUCT_TYPES: tuple[str, ...] = (PRODUCT_TYPE_HOTEL,)
 
 
 # ─── SQL aggregates ────────────────────────────────────────────────
@@ -86,7 +79,10 @@ def revenue_by_product_type() -> dict[str, Decimal]:
             Booking.product_type,
             func.coalesce(func.sum(Booking.total_amount), 0),
         )
-        .where(Booking.status.in_(ACTIVE_STATUSES + (STATUS_COMPLETED,)))
+        .where(
+            Booking.product_type == PRODUCT_TYPE_HOTEL,
+            Booking.status.in_(ACTIVE_STATUSES + (STATUS_COMPLETED,)),
+        )
         .group_by(Booking.product_type)
     )
     out: dict[str, Decimal] = {pt: Decimal("0.00") for pt in ALL_PRODUCT_TYPES}
@@ -228,49 +224,6 @@ def customer_stats() -> dict[str, Any]:
 
 
 # ─── Mongo aggregates (best-effort) ────────────────────────────────
-def top_rated_activities(limit: int = 10) -> list[dict[str, Any]]:
-    """
-    Top-rated activities by average Mongo review rating.
-
-    Best-effort: returns [] if Mongo is unavailable.
-    """
-    try:
-        from mongo.client import reviews_collection  # noqa: PLC0415
-    except Exception as exc:  # noqa: BLE001
-        return [{"_error": f"mongo unavailable: {exc}"}]
-
-    try:
-        limit = max(1, min(int(limit), 100))
-    except (TypeError, ValueError):
-        limit = 10
-
-    try:
-        pipeline = [
-            {"$match": {"product_type": "activity"}},
-            {
-                "$group": {
-                    "_id": "$product_id",
-                    "avg": {"$avg": "$rating"},
-                    "count": {"$sum": 1},
-                }
-            },
-            {"$sort": {"avg": -1, "count": -1}},
-            {"$limit": limit},
-        ]
-        rows = list(reviews_collection().aggregate(pipeline))
-        return [
-            {
-                "product_id": int(r["_id"]),
-                "avg_rating": round(float(r.get("avg") or 0.0), 2),
-                "count": int(r.get("count") or 0),
-            }
-            for r in rows
-        ]
-    except Exception as exc:  # noqa: BLE001
-        log.warning("top_rated_activities failed: %s", exc)
-        return [{"_error": str(exc)}]
-
-
 def search_analytics(days: int = 30) -> dict[str, Any]:
     """
     Search-event analytics from Mongo: top destinations, zero-result
@@ -336,9 +289,6 @@ def summary() -> dict[str, Any]:
                 "top_products": top_products(limit=5),
             },
             "customers": customer_stats(),
-            "reviews": {
-                "top_activities": top_rated_activities(limit=5),
-            },
             "search": search_analytics(days=30),
             "enquiries": enquiry_stats(),
         }

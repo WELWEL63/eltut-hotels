@@ -51,7 +51,7 @@ from mongo.client import ENQUIRIES, enquiries_collection
 # ─── Types & constants ─────────────────────────────────────────────
 EnquiryType = Literal["quote_request", "contact"]
 EnquiryStatus = Literal["new", "handled", "spam"]
-ProductType = Literal["activity", "hotel", "package"]
+ProductType = Literal["hotel"]
 
 TYPE_QUOTE_REQUEST: str = "quote_request"
 TYPE_CONTACT: str = "contact"
@@ -62,7 +62,7 @@ STATUS_HANDLED: str = "handled"
 STATUS_SPAM: str = "spam"
 VALID_ENQUIRY_STATUSES: tuple[str, ...] = (STATUS_NEW, STATUS_HANDLED, STATUS_SPAM)
 
-VALID_PRODUCT_TYPES: tuple[str, ...] = ("activity", "hotel", "package")
+VALID_PRODUCT_TYPES: tuple[str, ...] = ("hotel",)
 
 
 class EnquiryError(Exception):

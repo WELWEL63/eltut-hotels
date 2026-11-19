@@ -14,13 +14,8 @@ MODULE MANIFEST
                            email verification, guest booking claim
     booking_service        create/cancel bookings, status history,
                            reference generation
-    pricing_service        resolve the correct price row for a given
-                           date; compute totals incl. add-ons
-    availability_service   capacity minus active bookings; "can this
-                           be booked?" checks used by pricing + booking
-    recommendation_service suggest add-on activities for hotel and
-                           package bookings (destination + capacity +
-                           rating heuristics)
+    pricing_service        calculate hotel room stay totals
+    availability_service   check hotel room capacity for a date range
     payment_service        PayPal REST API wrapper (create payment,
                            execute payment, handle refunds)
     email_service          transactional email templates via Flask-Mail
@@ -47,7 +42,6 @@ __all__: list[str] = [
     "booking_service",
     "pricing_service",
     "availability_service",
-    "recommendation_service",
     "payment_service",
     "email_service",
     "report_service",
@@ -68,16 +62,10 @@ SERVICE_MANIFEST: dict[str, str] = {
         "write booking_status_history rows alongside status changes."
     ),
     "pricing_service": (
-        "Resolve the correct price row for a given date window and compute "
-        "a booking total including any add-on activity items."
+        "Calculate the total for a hotel room stay."
     ),
     "availability_service": (
-        "Compute capacity minus sum of active bookings for activities, "
-        "hotels/rooms, and packages."
-    ),
-    "recommendation_service": (
-        "Suggest add-on activities for hotel and package bookings, ranked "
-        "by destination match, remaining capacity, and average rating."
+        "Check hotel room capacity over a requested date range."
     ),
     "payment_service": (
         "PayPal REST API wrapper: create payment, execute payment, refund, "
@@ -101,8 +89,7 @@ SERVICE_MANIFEST: dict[str, str] = {
         "quote-request creation from public forms."
     ),
     "search_service": (
-        "Unified search across activities, hotels, and packages "
-        "filtered by destination, dates, and party size."
+        "Search hotels filtered by destination, dates, and party size."
     ),
 }
 

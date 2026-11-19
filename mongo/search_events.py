@@ -51,15 +51,15 @@ from mongo.client import SEARCH_EVENTS, search_events_collection
 
 
 # ─── Constants ─────────────────────────────────────────────────────
-PRODUCT_TYPE_ACTIVITY: str = "activity"
+
 PRODUCT_TYPE_HOTEL: str = "hotel"
-PRODUCT_TYPE_PACKAGE: str = "package"
+
 PRODUCT_TYPE_ALL: str = "all"
 
 VALID_PRODUCT_TYPES: tuple[str, ...] = (
-    PRODUCT_TYPE_ACTIVITY,
+   
     PRODUCT_TYPE_HOTEL,
-    PRODUCT_TYPE_PACKAGE,
+   
     PRODUCT_TYPE_ALL,
 )
 

@@ -4,7 +4,7 @@ models/__init__.py
 from __future__ import annotations
 from datetime import datetime
 from typing import ClassVar
-from sqlalchemy import DateTime, MetaData, String, func
+from sqlalchemy import DateTime, MetaData, String, func, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase):
@@ -31,6 +31,33 @@ class SlugMixin:
         if not source_value: return None
         from slugify import slugify
         return slugify(source_value)[:160]
+
+    @classmethod
+    def _generate_unique_slug(
+        cls,
+        source_value: str | None,
+        session,
+        exclude=None,
+    ) -> str | None:
+        """Generate a unique, URL-safe slug for a model instance."""
+        base_slug = cls._generate_slug(source_value)
+        if not base_slug:
+            return None
+
+        excluded_id = getattr(exclude, "id", exclude)
+        candidate = base_slug
+        suffix = 2
+
+        while True:
+            stmt = select(cls.id).where(cls.slug == candidate)
+            if excluded_id is not None:
+                stmt = stmt.where(cls.id != excluded_id)
+            if session.scalar(stmt) is None:
+                return candidate
+
+            suffix_text = f"-{suffix}"
+            candidate = f"{base_slug[:160 - len(suffix_text)]}{suffix_text}"
+            suffix += 1
 
 # ─── Model Imports (Hotels Only) ───────────────────────────────────
 from models.user import (User, ROLE_ADMIN, ROLE_CUSTOMER, VALID_ROLES, BCRYPT_ROUNDS)
@@ -64,43 +91,3 @@ from models.quote import (
 from models.home_offer import (
     HomeOffer, SECTION_BEST_HOTEL, VALID_SECTIONS, PRODUCT_HOTEL, VALID_PRODUCT_TYPES as HOME_OFFER_PRODUCT_TYPES,
 )
-
-# ─── LEGACY STUBS (Temporary — one block, complete) ────────────────
-Activity = None
-ActivityPrice = None
-ActivityImage = None
-ActivityInclusion = None
-ActivityExclusion = None
-ActivityLanguage = None
-ActivityTip = None
-ActivityFAQ = None
-VALID_ACTIVITY_CATEGORIES = ()
-VALID_ACTIVITY_DIFFICULTIES = ()
-VALID_TRANSPORT_TYPES = ()
-VALID_MEAL_PLANS = ()
-
-Package = None
-PackagePrice = None
-PackageImage = None
-PackageOption = None
-PackageFlight = None
-PackageInclusion = None
-PackageExclusion = None
-PackageItinerary = None
-PackageTip = None
-PackageFAQ = None
-VALID_PACKAGE_TYPES = ()
-VALID_PACKAGE_IMAGE_TYPES = ()
-DEFAULT_PACKAGE_TYPE = ""
-DEFAULT_PACKAGE_IMAGE_TYPE = ""
-
-Flight = None
-FlightPrice = None
-Airline = None
-Airport = None
-VALID_AIRLINE_LOGO_EXT = ()
-DEFAULT_AIRLINE_LOGO_EXT = ""
-Guide = None
-
-PRODUCT_TYPE_ACTIVITY = "activity"
-PRODUCT_TYPE_PACKAGE = "package"

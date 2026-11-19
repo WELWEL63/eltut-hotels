@@ -10,7 +10,8 @@ WORKFLOW
 
     2. Admin sees the request in /admin/quotes?status=requested.
        → Clicks "Create quote" → gets a draft Quote (status='draft').
-       → Fills in price, currency, valid_until, message, optional image.
+       → Prices from database room rates or admin-entered nightly rates,
+         then sets validity, message, and optional image.
        → Clicks "Send to customer" → status='sent', sent_at set,
          email sent via email_service.send_quote_to_customer().
 
@@ -43,15 +44,18 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
     Integer,
+    JSON,
     Numeric,
     String,
     Text,
     UniqueConstraint,
+    false,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -171,10 +175,18 @@ class Quote(Base, TimestampMixin):
         server_default="0",
     )
 
+    # ─── Stay dates and priced room snapshot ────────────────────────────
+    check_in_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    check_out_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    room_selection: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
+    # True when price_adult / price_child are manual per-person nightly rates.
+    manual_pricing: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+
     # ─── Per-person pricing ───────────────────────────────────────────
-    # WHY separate adult/child columns: the admin prices each tier, and
-    # the total is derived. Keeping them separate lets the customer
-    # quote page show a breakdown like "2 × £500 + 1 × £250 = £1,250".
+    # Kept for historical quotes and compatibility. New room-priced quotes
+    # carry the exact rates and subtotals in room_selection.
     price_adult: Mapped[Decimal] = mapped_column(
         Numeric(12, 2),
         nullable=False,
@@ -189,9 +201,7 @@ class Quote(Base, TimestampMixin):
     )
 
     # ─── Computed total ──────────────────────────────────────────────
-    # Stored (not a SQL computed column) so historical quotes keep their
-    # original total even if the underlying unit prices are edited later.
-    # The service layer keeps this in sync with adults/children/prices.
+    # Stored so quotes remain unchanged if underlying room rates are edited.
     price: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     currency: Mapped[str] = mapped_column(
         String(3),
@@ -301,11 +311,24 @@ class Quote(Base, TimestampMixin):
         super().__init__(**kwargs)
 
     def compute_total(self) -> Decimal:
-        """Return adults * price_adult + children * price_child."""
+        """Return the stored room-group total or legacy party-price total."""
+        if self.room_selection or self.manual_pricing:
+            return Decimal(str(self.price or 0))
         return (
             (self.price_adult or Decimal("0")) * (self.adults or 0)
             + (self.price_child or Decimal("0")) * (self.children or 0)
         )
+
+    @property
+    def nights(self) -> int | None:
+        """Return the stay length when both dates form a valid range."""
+        if (
+            self.check_in_date is None
+            or self.check_out_date is None
+            or self.check_out_date <= self.check_in_date
+        ):
+            return None
+        return (self.check_out_date - self.check_in_date).days
 
     # ─── Convenience predicates (used by services + templates) ────────
     @property
@@ -361,8 +384,6 @@ __all__ = [
     "STATUS_CANCELLED",
     "VALID_QUOTE_STATUSES",
     "DEFAULT_QUOTE_STATUS",
-    "PRODUCT_TYPE_ACTIVITY",
     "PRODUCT_TYPE_HOTEL",
-    "PRODUCT_TYPE_PACKAGE",
     "VALID_QUOTE_PRODUCT_TYPES",
 ]

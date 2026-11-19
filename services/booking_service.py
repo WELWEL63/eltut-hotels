@@ -8,7 +8,7 @@ A single call to create_booking() touches up to six tables in one
 transaction:
 
     bookings               parent row
-    booking_items          primary + add-on activities
+    booking_items          primary hotel item
     booking_rooms          per-room detail (hotel multi-room, Step 5c)
     booking_travellers     named travellers (optional)
     payments               initial 'created' placeholder
@@ -294,11 +294,9 @@ def create_booking(
     guest_phone: str | None = None,
     check_in_date: date | None = None,
     check_out_date: date | None = None,
-    activity_date: date | None = None,
     special_requests: str | None = None,
     how_heard: str | None = None,
     payment_method: str | None = None,
-    addon_items: Optional[Iterable[dict[str, Any]]] = None,
     travellers: Optional[Iterable[dict[str, Any]]] = None,
     travellers_infants: int = 0,
     rooms: Optional[Iterable[dict[str, Any]]] = None,
@@ -311,7 +309,7 @@ def create_booking(
 
     Parameters
     ----------
-    product_type : "activity" | "hotel" | "package"
+    product_type : "hotel"
     product_id   : int
     travellers_adults, travellers_children : int >= 0
     travellers_infants : int >= 0 (added in Step 5c)
@@ -381,7 +379,6 @@ def create_booking(
         status=DEFAULT_BOOKING_STATUS,
         check_in_date=check_in_date,
         check_out_date=check_out_date,
-        activity_date=activity_date,
         travellers_adults=travellers_adults,
         travellers_children=travellers_children,
         travellers_infants=travellers_infants,
@@ -429,34 +426,6 @@ def create_booking(
                 currency=r["currency"],
             )
             db.session.add(booking_room)
-
-    # ─── Add-on items (upsell) ────────────────────────────────────
-    if addon_items:
-        for raw in addon_items:
-            try:
-                addon_product_id = int(raw["product_id"])
-                qty = int(raw.get("quantity", 1))
-                unit = _validate_amount(raw.get("unit_price"))
-            except (KeyError, TypeError, ValueError) as exc:
-                raise InvalidBookingInput(f"invalid addon item: {raw!r}") from exc
-
-            if qty <= 0:
-                raise InvalidBookingInput("addon quantity must be positive")
-
-            item = BookingItem(
-                booking_id=booking.id,
-                item_type="activity_addon",
-                product_type=PRODUCT_TYPE_ACTIVITY,
-                product_id=addon_product_id,
-                product_name_snapshot=(raw.get("name") or "").strip() or None,
-                quantity=qty,
-                unit_price=unit,
-                line_total=(unit * Decimal(qty)),
-                currency=booking.currency,
-                added_during_booking=True,
-                notes=(raw.get("notes") or "").strip() or None,
-            )
-            db.session.add(item)
 
     # ─── Travellers (optional) ────────────────────────────────────
     if travellers:

@@ -95,7 +95,7 @@ _REGISTRY: dict[str, ContentSpec] = {
         key="home.hero.subtitle",
         page=PAGE_HOME,
         label="Home — hero subtitle",
-        default="Curated hotels, unforgettable packages, and hand-picked activities across Egypt.",
+        default="Thoughtfully selected hotels and memorable stays across Egypt.",
         content_type=CONTENT_TYPE_HTML,
         notes="Supporting text below the hero title.",
         sort_order=20,
@@ -132,9 +132,8 @@ _REGISTRY: dict[str, ContentSpec] = {
         page=PAGE_ABOUT,
         label="About — intro paragraph",
         default=(
-            "ElTut Tours is an Egypt-based travel company curating "
-            "hotels, tours, and multi-day packages for international "
-            "visitors. Since our founding we have helped thousands of "
+            "ElTut Hotels is an Egypt-based company curating stays for "
+            "visitors to Egypt. Since our founding we have helped thousands of "
             "travellers explore the Red Sea, the Nile, and the "
             "Pyramids."
         ),

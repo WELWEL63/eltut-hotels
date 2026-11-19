@@ -1,14 +1,11 @@
 """
 services/availability_service.py
 ────────────────────────────────
-Compute how much capacity remains for a product — the "is there room
-left?" service used by the public booking flow and the admin panel.
+Compute hotel room availability for the public booking flow and admin.
 
 CAPACITY RULES
-    activity   capacity - sum of active booking quantities on that date
     hotel      room.capacity - sum of active room claims overlapping
                                 the requested date range
-    package    capacity - sum of active booking quantities on that date
 
 "Active" means status IN ('pending', 'confirmed'). Cancelled, completed,
 and refunded bookings are excluded.
@@ -25,13 +22,9 @@ MULTI-ROOM (Step 5e)
     bookings.
 
 PUBLIC API
-    activity_availability(activity_id, target_date) -> int
     hotel_room_availability(room_id, check_in, check_out) -> int
-    package_availability(package_id, target_date=None) -> int
     check_availability(...)  -> AvailabilityResult
-    activity_is_bookable(...) -> bool
     room_is_bookable(...)     -> bool
-    package_is_bookable(...)  -> bool
 
 DESIGN NOTES
     - Reads only. Never writes.
@@ -51,15 +44,11 @@ from sqlalchemy.orm import Session
 
 from extensions import db
 from models import (
-    Activity,
     Booking,
     BookingItem,
     BookingRoom,
-    Package,
-    Room,
-   
     PRODUCT_TYPE_HOTEL,
-    
+    Room,
     STATUS_PENDING,
     STATUS_CONFIRMED,
     VALID_PRODUCT_TYPES,
@@ -207,7 +196,6 @@ def check_availability(
     quantity: int = 1,
     check_in: Optional[date] = None,
     check_out: Optional[date] = None,
-    target_date: Optional[date] = None,
 ) -> AvailabilityResult:
     """Structured availability check used by the booking flow."""
     if product_type not in VALID_PRODUCT_TYPES:

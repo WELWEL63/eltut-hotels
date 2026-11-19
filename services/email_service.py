@@ -42,6 +42,7 @@ from flask import current_app, render_template
 from flask_mail import Message
 
 from extensions import mail
+from services.quote_image_service import hotel_cover_image_url
 
 
 log = logging.getLogger(__name__)
@@ -168,6 +169,13 @@ def _url(path: str) -> str:
     if not path.startswith("/"):
         path = "/" + path
     return f"{base}{path}"
+
+
+def _absolute_url(value: str | None) -> str | None:
+    """Make a stored relative URL usable by remote email clients."""
+    if not value or value.startswith(("http://", "https://")):
+        return value
+    return _url(value)
 
 
 # ─── Public email functions ────────────────────────────────────────
@@ -529,9 +537,18 @@ def send_quote_to_customer(quote: Any) -> bool:
         "product_name": getattr(quote, "product_name_snapshot", None),
         "price": getattr(quote, "price", None),
         "currency": getattr(quote, "currency", "GBP"),
+        "check_in_date": getattr(quote, "check_in_date", None),
+        "check_out_date": getattr(quote, "check_out_date", None),
         "valid_until": getattr(quote, "valid_until", None),
         "message": getattr(quote, "message", None),
-        "image_url": getattr(quote, "image_url", None),
+        "image_url": (
+            _absolute_url(getattr(quote, "image_url", None))
+            or (
+                _absolute_url(hotel_cover_image_url(quote.product_id))
+                if getattr(quote, "product_type", None) == "hotel"
+                else None
+            )
+        ),
         "view_url": view_url,
         "app_name": cfg["app_name"],
     }
@@ -542,6 +559,8 @@ def send_quote_to_customer(quote: Any) -> bool:
         "Here is your personalised quote from ElTut Tours.\n\n"
         f"Reference: {reference}\n"
         f"Price:     {price_str}\n"
+        f"Stay:      {context['check_in_date'] or '—'} to "
+        f"{context['check_out_date'] or '—'}\n"
         f"Valid until: {context['valid_until'] or 'no expiry'}\n\n"
         f"{context['message'] or ''}\n\n"
         f"View, accept, or decline online:\n{view_url}\n\n"

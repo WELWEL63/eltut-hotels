@@ -229,6 +229,49 @@ def rooms_that_fit(
     return []
 
 
+def first_room_allocation(
+    hotel_id: int,
+    *,
+    adults: int,
+    child_ages: list[int] | None = None,
+    infants: int = 0,
+) -> list[dict[str, Any]] | None:
+    """Return a deterministic capacity-fitting room allocation without pricing."""
+    adult_count, ages, infant_count = _normalize_party(
+        adults, child_ages, infants
+    )
+    rooms = _active_rooms(hotel_id)
+    if not rooms:
+        return None
+
+    max_k = min(_max_rooms(), len(rooms))
+    for room_count in range(1, max_k + 1):
+        groups = _enumerate_valid_groupings(
+            rooms, adult_count, len(ages), k=room_count
+        )
+        if not groups:
+            continue
+
+        allocation: list[dict[str, Any]] = []
+        age_offset = 0
+        infants_left = infant_count
+        for room, room_adults, room_children in groups[0]:
+            assigned_ages = ages[age_offset:age_offset + room_children]
+            age_offset += room_children
+            room_infants = infants_left
+            infants_left = 0
+            allocation.append({
+                "room": room,
+                "room_id": room.id,
+                "adults": room_adults,
+                "children": room_children,
+                "child_ages": assigned_ages,
+                "infants": room_infants,
+            })
+        return allocation
+    return None
+
+
 def best_room_grouping(
     hotel_id: int,
     *,
@@ -250,8 +293,11 @@ def best_room_grouping(
               'room': Room,
               'rate_id': int | None,
               'adults': int,
+              'children': int,
               'child_ages': [int],
               'infants': int,
+              'adult_price': Decimal,
+              'child_price': Decimal,
               'total': Decimal,
             }, ...
           ],
@@ -339,10 +385,16 @@ def best_room_grouping(
     )):
         out_rooms.append({
             "room": db.session.get(Room, rp["room_id"]),
+            "room_id": rp["room_id"],
             "rate_id": rp["rate_id"],
             "adults": rp["adults"],
+            "children": rp["children"],
             "child_ages": rp.get("child_ages") or [],
             "infants": rp["infants"],
+            "adult_price": rp["adult_price"],
+            "child_price": rp["child_price"],
+            "currency": rp["currency"],
+            "nights": rp["nights"],
             "total": rp["total"],
         })
 
@@ -360,5 +412,6 @@ def best_room_grouping(
 __all__ = [
     "min_rooms_needed",
     "rooms_that_fit",
+    "first_room_allocation",
     "best_room_grouping",
 ]

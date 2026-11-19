@@ -11,6 +11,7 @@ would bloat the relational schema. The polymorphic reference
 PUBLIC API
     create_review(...)              -> dict
     get_review(review_id)           -> dict | None
+    approve_review(review_id, ...)  -> dict | None
     list_reviews_for_product(...)   -> (list[dict], total)
     list_reviews_by_user(...)       -> (list[dict], total)
     update_review(...)              -> dict | None
@@ -51,8 +52,8 @@ from mongo.client import REVIEWS, reviews_collection
 
 
 # ─── Types & constants ─────────────────────────────────────────────
-ProductType = Literal["activity", "hotel", "package"]
-VALID_PRODUCT_TYPES: tuple[str, ...] = ("activity", "hotel", "package")
+ProductType = Literal["hotel"]
+VALID_PRODUCT_TYPES: tuple[str, ...] = ("hotel",)
 
 MIN_RATING: int = 1
 MAX_RATING: int = 5
@@ -157,6 +158,7 @@ def create_review(
     doc: dict[str, Any] = {
         "product_type": product_type,
         "product_id": product_id,
+        "status": "pending",
         "user_id": user_id,
         "user_name": clean_name,
         "user_email": clean_email,
@@ -218,6 +220,29 @@ def delete_review(review_id: str | ObjectId) -> bool:
     return res.deleted_count == 1
 
 
+def approve_review(
+    review_id: str | ObjectId,
+    *,
+    approved_by: int | None = None,
+) -> dict[str, Any] | None:
+    """Approve a review so it can be shown publicly."""
+    oid = _to_oid(review_id)
+    now = _now_utc()
+    res = reviews_collection().find_one_and_update(
+        {"_id": oid},
+        {
+            "$set": {
+                "status": "approved",
+                "approved_at": now,
+                "approved_by": approved_by,
+                "updated_at": now,
+            }
+        },
+        return_document=True,
+    )
+    return _clean(res)
+
+
 def increment_helpful(review_id: str | ObjectId) -> int:
     """
     Atomically increment helpful_count. Returns the NEW value.
@@ -254,12 +279,16 @@ def list_reviews_for_product(
     skip: int = 0,
 ) -> tuple[list[dict[str, Any]], int]:
     """
-    List reviews for a product, newest first.
+    List approved reviews for a product, newest first.
 
     Returns (items, total) so callers can render pagination.
     """
     _validate_product_type(product_type)
-    query = {"product_type": product_type, "product_id": product_id}
+    query = {
+        "product_type": product_type,
+        "product_id": product_id,
+        "status": "approved",
+    }
     coll = reviews_collection()
 
     total = coll.count_documents(query)
@@ -297,7 +326,7 @@ def list_reviews_by_user(
 # ─── Aggregation ───────────────────────────────────────────────────
 def rating_summary(product_type: ProductType, product_id: int) -> dict[str, Any]:
     """
-    Compute aggregate stats for a product's reviews.
+    Compute aggregate stats for a product's approved reviews.
 
     Returns a dict with:
         average   : float | None  (None if no reviews)
@@ -307,7 +336,13 @@ def rating_summary(product_type: ProductType, product_id: int) -> dict[str, Any]
     _validate_product_type(product_type)
 
     pipeline = [
-        {"$match": {"product_type": product_type, "product_id": product_id}},
+        {
+            "$match": {
+                "product_type": product_type,
+                "product_id": product_id,
+                "status": "approved",
+            }
+        },
         {
             "$group": {
                 "_id": None,
